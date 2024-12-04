@@ -1,0 +1,21 @@
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply font-estedad;
+  }
+  button {
+    @apply cursor-pointer inline-block;
+  }
+  a {
+    @apply cursor-pointer;
+  }
+  label,
+  span {
+    @apply text-xs text-[#1A1E25] md:text-sm font-light;
+  }
+  h1,h2,h3,h4,p {
+    @apply text-[#1A1E25]
+  }
+}
