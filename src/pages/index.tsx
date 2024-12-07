@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <ClientLayout>
       <main className="min-h-screen">
-        خانه
+        دیتا و مپ
       </main>
     </ClientLayout>
   );

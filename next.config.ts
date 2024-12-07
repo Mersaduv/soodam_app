@@ -1,11 +1,29 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  reactStrictMode: true,
-  env: {
-    NEXT_PUBLIC_API_MOCKING: "enabled",
+/** @type {import('next').NextConfig} */
+const nextConfig: import('next').NextConfig = {
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/,
+      issuer: /\.[jt]sx?$/,
+      use: [{
+        loader: '@svgr/webpack',
+        options: {
+          typescript: true,
+          icon: true
+        }
+      }]
+    });
+    return config;
   },
-};
+  experimental: {
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  },
+}
 
-export default nextConfig;
+module.exports = nextConfig

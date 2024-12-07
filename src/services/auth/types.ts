@@ -1,12 +1,12 @@
-
 export type MsgResult = { message: string }
 
 interface ResultBody {
-  roles: string[]
+  role: string
   phoneNumber: string
   fullName: string
+  message: string
 }
-export type LoginResult = { code : string }
+export type LoginResult = { code: string; message: string }
 export type VerifyLoginResult = ResultBody
 
 export type LoginQuery = {
@@ -14,5 +14,6 @@ export type LoginQuery = {
 }
 export type VerifyLoginQuery = {
   code: string
+  phoneNumber?: string
+  role?: string | string[]
 }
- 

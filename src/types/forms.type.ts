@@ -1,7 +1,9 @@
 export interface PhoneFormValues {
-  phoneNumber: string;
+  phoneNumber: string
 }
 
 export interface CodeFormValues {
-  code: string;
+  code: string
+  phoneNumber?: string
+  role?: string
 }

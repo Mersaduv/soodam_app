@@ -3,11 +3,14 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 interface AuthState {
   phoneNumber: string | null
   fullName: string | null
+  role: string | null
   loggedIn: boolean
 }
 
 const getPhoneNumber = () => (typeof window !== 'undefined' && localStorage.getItem('phoneNumber')) || null
 const getFullName = () => (typeof window !== 'undefined' && localStorage.getItem('fullName')) || null
+const getRole = () => (typeof window !== 'undefined' && localStorage.getItem('role')) || null
+
 const getLoggedIn = () => {
   if (typeof window !== 'undefined') {
     const loggedIn = localStorage.getItem('loggedIn')
@@ -18,6 +21,7 @@ const getLoggedIn = () => {
 const initialState: AuthState = {
   phoneNumber: getPhoneNumber(),
   fullName: getFullName(),
+  role: getRole(),
   loggedIn: getLoggedIn(),
 }
 
@@ -27,25 +31,29 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (
       state,
-      action: PayloadAction<{ phoneNumber: string; fullName: string;loggedIn: boolean }>
+      action: PayloadAction<{ phoneNumber: string; fullName: string; role: string; loggedIn: boolean }>
     ) => {
-      const { phoneNumber, fullName, loggedIn } = action.payload
+      const { phoneNumber, fullName, loggedIn, role } = action.payload
       state.phoneNumber = phoneNumber
       state.fullName = fullName
       state.loggedIn = loggedIn
+      state.role = role
       if (typeof window !== 'undefined') {
         localStorage.setItem('phoneNumber', phoneNumber)
         localStorage.setItem('fullName', fullName)
+        localStorage.setItem('role', role)
         localStorage.setItem('loggedIn', JSON.stringify(loggedIn))
       }
     },
     clearCredentials: (state) => {
       state.phoneNumber = null
       state.fullName = null
+      state.role = null
       state.loggedIn = false
       if (typeof window !== 'undefined') {
         localStorage.removeItem('phoneNumber')
         localStorage.removeItem('fullName')
+        localStorage.removeItem('role')
         localStorage.removeItem('loggedIn')
       }
     },

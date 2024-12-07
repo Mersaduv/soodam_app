@@ -1,17 +1,10 @@
 import baseApi from '@/services/baseApi'
 
-import type {
-  LoginQuery,
-  LoginResult,
-  MsgResult,
-  VerifyLoginQuery,
-  VerifyLoginResult,
-} from './types'
+import type { LoginQuery, LoginResult, MsgResult, VerifyLoginQuery, VerifyLoginResult } from './types'
 import { clearCredentials, setCredentials } from '@/store'
 
 export const authApiSlice = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-
     login: builder.mutation<LoginResult, LoginQuery>({
       query: ({ phoneNumber }) => {
         const body: LoginQuery = { phoneNumber: phoneNumber }
@@ -24,8 +17,8 @@ export const authApiSlice = baseApi.injectEndpoints({
     }),
 
     verifyLogin: builder.mutation<VerifyLoginResult, VerifyLoginQuery>({
-      query: ({ code }) => {
-        const body: VerifyLoginQuery = { code: code }
+      query: ({ code, phoneNumber, role }) => {
+        const body: VerifyLoginQuery = { code, phoneNumber, role }
         return {
           url: '/api/auth/verify-code',
           method: 'POST',
@@ -38,8 +31,9 @@ export const authApiSlice = baseApi.injectEndpoints({
           if (data) {
             dispatch(
               setCredentials({
-                fullName: data.fullName,
+                fullName: data.fullName || '',
                 phoneNumber: data.phoneNumber,
+                role: data.role,
                 loggedIn: true,
               })
             )
@@ -67,8 +61,4 @@ export const authApiSlice = baseApi.injectEndpoints({
   }),
 })
 
-export const {
-  useLoginMutation,
-  useVerifyLoginMutation,
-  useLogoutMutation,
-} = authApiSlice
+export const { useLoginMutation, useVerifyLoginMutation, useLogoutMutation } = authApiSlice

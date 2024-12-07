@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { HandleResponse } from '@/components/shared'
 import { showAlert } from '@/store'
 import { useAppDispatch } from '@/hooks'
+import { roles } from '@/utils'
 
 function LoginPage() {
   // ? States
@@ -43,8 +44,12 @@ function LoginPage() {
   }
 
   const submitVerificationCodeHandler: SubmitHandler<CodeFormValues> = ({ code }) => {
+    console.log(phoneNumber, 'phoneNumber -- phoneNumber')
+
     verificationCode({
       code,
+      phoneNumber,
+      role: query?.role || roles.User,
     })
   }
   // const onSuccess = () => replace(query?.redirectTo?.toString() || "/");
@@ -55,9 +60,15 @@ function LoginPage() {
   }
 
   const onSuccessVerificationCode = () => {
-    replace(query?.redirectTo?.toString() || "/")
+    setTimeout(() => {
+      replace(query?.redirectTo?.toString() || '/')
+      localStorage.setItem('hasSeenModal', 'true')
+    }, 1000)
   }
-
+  
+  // if (query) {
+  //   console.log(query, 'query')
+  // }
   // ? Render(s)
   return (
     <>
@@ -67,7 +78,7 @@ function LoginPage() {
           isError={isError}
           isSuccess={isSuccess}
           error={error}
-          message={data?.code}
+          message={data?.message}
           onSuccess={onSuccess}
         />
       )}
@@ -76,7 +87,7 @@ function LoginPage() {
           isError={isErrorVerification}
           isSuccess={isSuccessVerification}
           error={errorVerification}
-          message={verificationData?.}
+          message={verificationData?.message}
           onSuccess={onSuccessVerificationCode}
         />
       )}
@@ -90,8 +101,13 @@ function LoginPage() {
           ) : (
             <VerificationCode
               isLoading={isLoadingVerification}
+              resendHandler={submitHandler}
               onSubmit={submitVerificationCodeHandler}
               phoneNumber={phoneNumber}
+              errorVerification={errorVerification}
+              setPhoneNumber={setPhoneNumber}
+              setStep={setStep}
+              isSuccess={isSuccessVerification}
             />
           )}
         </section>

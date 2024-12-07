@@ -16,7 +16,7 @@ const TextField: React.FC<Props> = (props) => {
   // ? Form Hook
   const { field } = useController({ name, control, rules: { required: true } })
 
-  const direction =  name === 'phoneNumber' ? 'rtl' : /^[a-zA-Z0-9]+$/.test(field.value?.[0]) ? 'ltr' : 'rtl'
+  const direction = name === 'phoneNumber' ? 'rtl' : /^[a-zA-Z0-9]+$/.test(field.value?.[0]) ? 'ltr' : 'rtl'
 
   // ? Handlers
   const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +50,9 @@ const TextField: React.FC<Props> = (props) => {
         {...restProps}
       />
 
-      <DisplayError errors={errors} />
+      <div dir={'ltr'} className="w-fit">
+        <DisplayError errors={errors} />
+      </div>
     </div>
   )
 }

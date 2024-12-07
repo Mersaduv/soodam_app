@@ -7,9 +7,10 @@ const apiSlice = createApi({
     timeout: 60000,
   }),
 
-  // tagTypes: [
-  //   'User',
-  // ],
+  tagTypes: [
+    'User',
+    'Housing'
+  ],
   endpoints: (builder) => ({}),
 })
 
