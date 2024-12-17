@@ -1,38 +1,33 @@
-import { useRouter } from 'next/router'
+// import { useRouter } from 'next/router'
 
-import { useUserInfo } from '@/hooks'
+// interface Props {
+//   children: React.ReactNode
+//   allowedRoles: string[]
+// }
 
-import Cookies from 'js-cookie'
-import { tokens } from '@/utils'
+// const ProtectedRouteWrapper: React.FC<Props> = (props) => {
+//   // ? Props
+//   const { allowedRoles, children } = props
 
-interface Props {
-  children: React.ReactNode
-  allowedRoles: string[]
-}
+//   // ? Assets
+//   const { push, asPath } = useRouter()
 
-const ProtectedRouteWrapper: React.FC<Props> = (props) => {
-  // ? Props
-  const { allowedRoles, children } = props
-
-  // ? Assets
-  const { push, asPath } = useRouter()
-
-  // ? Get UserInfo
-  const { userInfo } = useUserInfo()
+//   // ? Get UserInfo
+//   const { userInfo } = useUserInfo()
 
 
 
-  if (userInfo) {
-    if (allowedRoles?.includes(userInfo?.role as string)) {
-      return children
-    }
-  } else {
-    asPath.includes('/admin')
-      ? push(`/admin/authentication/login?redirectTo=${asPath}`)
-      : push(`/authentication/login?redirectTo=${asPath}`)
+//   if (userInfo) {
+//     if (allowedRoles?.includes(userInfo?.role as string)) {
+//       return children
+//     }
+//   } else {
+//     asPath.includes('/admin')
+//       ? push(`/admin/authentication/login?redirectTo=${asPath}`)
+//       : push(`/authentication/login?redirectTo=${asPath}`)
 
-    return null
-  }
-}
+//     return null
+//   }
+// }
 
-export default ProtectedRouteWrapper
+// export default ProtectedRouteWrapper

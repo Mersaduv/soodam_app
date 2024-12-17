@@ -6,3 +6,72 @@
 @import 'components.css';
 
 @import 'tailwindcss/utilities';
+
+@layer utilities {
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .line-clamp-1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+      
+}
+body {
+  background-color: #F6F7FB;
+}
+.hide-scrollbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -ms-overflow-style: none; /* برای اینترنت اکسپلورر و اج */
+    scrollbar-width: none; /* برای فایرفاکس */
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* برای کروم، سافاری و اج */
+  }
+
+/* other style  */
+.leaflet-popup-tip {
+    display: none;
+}
+.leaflet-popup-content-wrapper{
+    box-shadow: none !important;
+}
+.leaflet-popup-content {
+    
+}
+
+.leaflet-control-zoom {
+    display : none
+}
+
+.leaflet-control-attribution {
+    display: none;
+}
+
+.shadow-icon {
+    box-shadow: -2px 6px 10px 3px rgba(0, 0, 0, 0.2);
+}
+
+.shadow-nav {
+    box-shadow: 4px -2px 8px 0px rgba(0, 0, 0, 0.25);
+}
+
+.shadow-filter-control {
+    box-shadow: 0px 12px 32px 0px #A8A8A826;
+}
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-top: 8px solid #D52133; /* ارتفاع مثلث */
+    border-right: 8px solid transparent; /* عرض مثلث و شفافیت */
+  }

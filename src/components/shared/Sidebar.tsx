@@ -28,14 +28,14 @@ export default function Sidebar() {
   return (
     <>
       <button
-        className="border-[1.8px] border-[#E3E3E7] bg-[#F2F2F3] rounded-lg h-[48px] px-[9.4px]"
+        className="border-[0.8px] border-[#E3E3E7] bg-[#F2F2F3] rounded-lg h-[48px] px-[9.4px]"
         type="button"
         onClick={sidebarHandlers.open}
       >
         <MenuIcon />
       </button>
       <div
-        className={`fixed top-0 z-10 h-screen w-full duration-200 lg:hidden ${
+        className={`fixed top-0 z-[1000] h-screen w-full duration-200  ${
           isSidebar ? 'right-0' : '-right-full'
         }`}
       >
@@ -44,10 +44,10 @@ export default function Sidebar() {
             isSidebar
               ? 'visible opacity-100 delay-200 duration-300'
               : 'invisible opacity-0'
-          } z-10 h-full w-full bg-[#1A1E2599]`}
+          } z-[1000] h-full w-full bg-[#1A1E2599]`}
           onClick={sidebarHandlers.close}
         />
-        <div className="absolute right-0 top-0 z-20 h-screen w-3/4 max-w-sm overflow-y-auto bg-white py-4 px-5 pt-10">
+        <div className="absolute right-0 top-0 z-[1000] h-screen w-3/4 max-w-sm overflow-y-auto bg-white py-4 px-5 pt-10">
           <button className="float-left -mt-4" onClick={sidebarHandlers.close}>
             <CloseCircleIcon />
           </button>

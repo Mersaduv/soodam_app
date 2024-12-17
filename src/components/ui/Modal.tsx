@@ -42,21 +42,21 @@ const Modal: React.FC<ModalProps> = (props) => {
   ${isShow ? 'top-0' : '-bottom-full lg:top-60'} w-full h-fit lg:max-w-3xl 
    fixed transition-all duration-700 left-0 right-0 mx-auto my-auto`
       : effect === 'ease-out'
-        ? `
+      ? `
   ${isShow ? 'top-28 transform scale-100' : 'top-40 transform scale-50 '} max-w-3xl 
    fixed transition-all duration-700 left-0 right-0 mx-auto`
-        : effect === 'buttom-to-fit'
-          ? `
+      : effect === 'buttom-to-fit'
+      ? `
   ${isShow ? 'bottom-0' : '-bottom-full'} w-full h-fit lg:max-w-3xl 
    fixed transition-all duration-700 left-0 right-0 mx-auto`
-          : ''
+      : ''
 
   // ? Render(s)
   return (
     <div
       className={`${
         isShow ? 'visible opacity-100' : 'invisible opacity-0 '
-      } fixed inset-0 z-50 transition-all duration-500`}
+      } fixed inset-0 z-[99999] transition-all duration-500`}
     >
       <div className="h-screen w-screen bg-[#1A1E2580]" onClick={onClose} />
       <div className={effectClasses}>
@@ -98,21 +98,32 @@ const Content: React.FC<ContentProps> = (props) => {
 
 interface HeaderProps {
   onClose: () => void
-  children: React.ReactNode
+  right?: boolean
+  children?: React.ReactNode
 }
 
 const Header: React.FC<HeaderProps> = (props) => {
   // ? Props
-  const { onClose, children } = props
+  const { onClose, children, right } = props
 
   // ? Render(s)
   return (
-    <div className="flex relative items-center justify-center  pb-2">
-      <h2 className="font-medium">{children}</h2>
-      <button onClick={onClose} className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full">
-        <Close className="" />
-      </button>
-    </div>
+    <>
+      {right ? (
+        <div className="flex relative items-center justify-center  py-4">
+          <button onClick={onClose} className="p-0.5 right-0 text-white bg-black absolute border-[1.8px] border-black rounded-full">
+            <Close className="" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex relative items-center justify-center  pb-2">
+          <h2 className="font-medium">{children}</h2>
+          <button onClick={onClose} className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full">
+            <Close className="" />
+          </button>
+        </div>
+      )}
+    </>
   )
 }
 
