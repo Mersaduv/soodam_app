@@ -10,6 +10,7 @@ export default {
     extend: {
       fontFamily: {
         estedad: 'Estedad',
+        iranyekan: ['IRANYekan', 'sans-serif'],
       },
       colors: {
         background: "var(--background)",

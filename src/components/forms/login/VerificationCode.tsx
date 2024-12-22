@@ -131,7 +131,7 @@ const VerificationCode: React.FC<Props> = ({
             onClick={() => {
               resendHandler({ phoneNumber })
             }}
-            className="font-normal text-xs"
+            className="font-normal cursor-pointer text-xs"
           >
             ارسال مجدد
           </div>

@@ -1,5 +1,6 @@
 @import 'tailwindcss/base';
 @import '/fonts/estedad.css';
+@import '/fonts/iranyekan.css';
 @import '/abstracts';
 
 @import 'tailwindcss/components';
@@ -72,6 +73,10 @@ body {
 .triangle {
     width: 0;
     height: 0;
-    border-top: 8px solid #D52133; /* ارتفاع مثلث */
-    border-right: 8px solid transparent; /* عرض مثلث و شفافیت */
-  }
+    border-top: 8px solid #D52133;
+    border-right: 8px solid transparent;
+}
+
+.custom-w{
+  width : 32px !important
+}

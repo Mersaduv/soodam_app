@@ -9,37 +9,42 @@ import { useEffect, useState, useRef } from 'react'
 interface Props {
   errors?: FieldError | undefined
   errorVerification?: any | undefined
+  adForm?:boolean
 }
 
-const DisplayError: React.FC<Props> = ({ errors, errorVerification }) => {
+const DisplayError: React.FC<Props> = ({ errors,adForm, errorVerification }) => {
   const [errorsData, setErrorData] = useState<any | undefined>()
   const [isVisible, setIsVisible] = useState(false)
   const prevErrorsRef = useRef(errors || errorVerification)
 
   useEffect(() => {
-    if (errors && errors !== prevErrorsRef.current) {
-      setErrorData(errors)
-      setIsVisible(true)
+    const hasErrorMessage = errors?.message || errorVerification?.data?.message;
+    if (hasErrorMessage && errors !== prevErrorsRef.current) {
+      setErrorData(errors);
+      setIsVisible(true);
+    } else if (!hasErrorMessage) {
+      setIsVisible(false);
     }
-    prevErrorsRef.current = errors
-  }, [errors])
+    prevErrorsRef.current = errors;
+  }, [errors]);
 
   useEffect(() => {
-    if (errorVerification && errorVerification !== prevErrorsRef.current) {
-      setErrorData(errorVerification)
-      console.log(errorVerification, 'errorVerification')
-
-      setIsVisible(true)
+    const hasErrorMessage = errors?.message || errorVerification?.data?.message;
+    if (hasErrorMessage && errorVerification !== prevErrorsRef.current) {
+      setErrorData(errorVerification);
+      setIsVisible(true);
+    } else if (!hasErrorMessage) {
+      setIsVisible(false);
     }
-    prevErrorsRef.current = errorVerification
-  }, [errorVerification])
+    prevErrorsRef.current = errorVerification;
+  }, [errorVerification]);
 
   const handleInVisible = () => {
     setErrorData(undefined)
     setIsVisible(false)
   }
   return (
-    <div className="min-h-[29px]">
+    <div className={`${adForm ? "": "min-h-[29px]"}`}>
       {errorsData && (
         <Transition
           show={isVisible}
@@ -53,7 +58,7 @@ const DisplayError: React.FC<Props> = ({ errors, errorVerification }) => {
           <div className="mt-1.5 flex items-center justify-between rounded-md bg-[#FFF3F7] px-3 py-2 text-sm">
             <div className="flex items-center gap-x-2">
               <span dir='rtl' className="text-[#D52133] font-normal text-xs">
-                {errors?.message || errorVerification?.data?.message || 'خطای نامشخص رخ داده است!'}
+                {errors?.message || errorVerification?.data?.message || ''}
               </span>
             </div>
             <button

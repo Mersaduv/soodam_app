@@ -9,3 +9,8 @@ export const phoneSchema = Yup.object().shape({
 export const codeSchema = Yup.object().shape({
   code: Yup.string().length(6, 'کد باید ۵ رقمی باشد').required('کد تایید الزامی است'),
 })
+
+export const advertisementRegistrationFormSchema = Yup.object().shape({
+  price: Yup.string().required('قیمت الزامی است'),
+  discount: Yup.string().optional(),
+});

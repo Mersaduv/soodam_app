@@ -1,12 +1,13 @@
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
-import { LatLngTuple } from 'leaflet'; 
+import { LatLngTuple } from 'leaflet'
 import React, { useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
-import { HomeIcon, MapIcon, MapIcon2, SatelliteIcon, SendIcon, FingerIcon } from '@/icons'
+import { HomeIcon, MapIcon, MapIcon2, SatelliteIcon, SendIcon, FingerIcon, RegisterAdIcon } from '@/icons'
 import { useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
 import { Housing } from '@/types'
+import { useRouter } from 'next/router'
 interface Props {
   housingData: Housing[]
 }
@@ -49,12 +50,12 @@ const formatPrice = (price: number): string => {
 }
 
 const getCenterOfData = (data: Housing[]): LatLngTuple => {
-  const latitudes = data.map(item => item.location.lat);
-  const longitudes = data.map(item => item.location.lng);
-  const centerLat = latitudes.reduce((sum, lat) => sum + lat, 0) / latitudes.length;
-  const centerLng = longitudes.reduce((sum, lng) => sum + lng, 0) / longitudes.length;
-  return [centerLat, centerLng] as LatLngTuple;
-};
+  const latitudes = data.map((item) => item.location.lat)
+  const longitudes = data.map((item) => item.location.lng)
+  const centerLat = latitudes.reduce((sum, lat) => sum + lat, 0) / latitudes.length
+  const centerLng = longitudes.reduce((sum, lng) => sum + lng, 0) / longitudes.length
+  return [centerLat, centerLng] as LatLngTuple
+}
 
 const createIconWithPrice = (price: string, isSelling: boolean): L.DivIcon => {
   const iconColor = isSelling ? '#D52133' : '#007BFF'
@@ -87,21 +88,19 @@ const createIconWithPrice = (price: string, isSelling: boolean): L.DivIcon => {
   return L.divIcon({ html, className: 'custom-icon', iconSize: [50, 50] })
 }
 
-const LeafletMap: React.FC<Props> = ({housingData}) => {
+const LeafletMap: React.FC<Props> = ({ housingData }) => {
   // ? Assets
+  const { query, push } = useRouter()
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
   const [isSatelliteView, setIsSatelliteView] = useState(false)
-  const [tileLayerUrl, setTileLayerUrl] = useState(
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' 
-  )
+  const [tileLayerUrl, setTileLayerUrl] = useState('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
 
   const toggleMapType = () => {
-    setTileLayerUrl(
-      (prevUrl) =>
-        prevUrl === 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
-          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    setTileLayerUrl((prevUrl) =>
+      prevUrl === 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
     )
   }
 
@@ -114,9 +113,20 @@ const LeafletMap: React.FC<Props> = ({housingData}) => {
     modalHandlers.close()
   }
 
+  const handleNavigate = (): void => {
+    const logged = localStorage.getItem('loggedIn')
+    if (logged === 'true') {
+      push('/housing/ad')
+    } else {
+      push({
+        pathname: '/authentication/login',
+        query: { redirectTo: '/housing/ad' },
+      });
+    }
+  }
+
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
-      {/* دکمه برای تغییر نوع نقشه */}
       <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] right-4 z-[1000]">
         <button
           onClick={modalHandlers.open}
@@ -129,12 +139,22 @@ const LeafletMap: React.FC<Props> = ({housingData}) => {
         >
           <MapIcon2 />
         </button>
-        <button onClick={modalHandlers.open} className="bg-white w-[48px] h-[48px] rounded-lg flex-center shadow-icon">
+        <button className="bg-white w-[48px] h-[48px] rounded-lg flex-center shadow-icon">
           <SendIcon />
         </button>
-        <button onClick={modalHandlers.open} className="bg-white w-[48px] h-[48px] rounded-lg flex-center shadow-icon">
+        <button className="bg-white w-[48px] h-[48px] rounded-lg flex-center shadow-icon">
           <FingerIcon />
         </button>
+      </div>
+
+      <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] left-4 z-[1000]">
+        <div
+          onClick={handleNavigate}
+          className="bg-white hover:bg-gray-50 w-[131px] h-[56px] rounded-[59px] flex-center gap-2 shadow-icon cursor-pointer"
+        >
+          <RegisterAdIcon />
+          <span className="font-semibold text-[16px]">ثبت آگهی</span>
+        </div>
       </div>
 
       <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
@@ -166,11 +186,7 @@ const LeafletMap: React.FC<Props> = ({housingData}) => {
         </Modal.Content>
       </Modal>
 
-      <MapContainer
-        center={getCenterOfData(housingData)}
-        zoom={13}
-        style={{ width: '100%', height: '100%' }}
-      >
+      <MapContainer center={getCenterOfData(housingData)} zoom={13} style={{ width: '100%', height: '100%' }}>
         <TileLayer
           url={tileLayerUrl}
           attribution={
@@ -180,7 +196,6 @@ const LeafletMap: React.FC<Props> = ({housingData}) => {
           }
         />
 
-        {/* نشانگرها */}
         {housingData.map((property) => (
           <Marker
             key={property.id}

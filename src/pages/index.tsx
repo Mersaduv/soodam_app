@@ -18,6 +18,7 @@ export default function Home() {
 
   const map = useAppSelector((state) => state.map)
   if (isFetching) return <div>loading....</div>
+  
   return (
     <ClientLayout>
       <main className="h-full">
