@@ -8,11 +8,12 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string
   control: Control<any>
   adForm?: boolean
+  compacted?:boolean
 }
 
 const TextField: React.FC<Props> = (props) => {
   // ? Props
-  const { label, adForm, errors, name, type = 'text', control, ...restProps } = props
+  const { label, adForm, errors, inputMode,compacted, name, type = 'text', control, ...restProps } = props
 
   // ? Form Hook
   const { field } = useController({ name, control, rules: { required: true } })
@@ -35,15 +36,19 @@ const TextField: React.FC<Props> = (props) => {
     <div>
       {label && (
         <label
-          className={`block ${adForm ? 'text-sm font-normal mb-2' : 'text-xs mb-3'}  text-gray-700 md:min-w-max lg:text-sm`}
+          className={`block ${
+            adForm ? 'text-sm font-normal mb-2' : 'text-xs mb-3'
+          }  text-gray-700 md:min-w-max lg:text-sm`}
           htmlFor={name}
         >
           {label}
         </label>
       )}
       <input
-        className={`block w-full border ${
-          adForm ? 'h-[40px] placeholder:text-xs font-normal px-2 border-[#E3E3E7] rounded-[8px]' : 'h-[48px] px-4 border-[#767372] rounded-[10px]'
+        className={`block farsi-digits w-full border ${
+          adForm
+            ? 'h-[40px] placeholder:text-xs font-normal px-2 border-[#E3E3E7] rounded-[8px]'
+            : 'h-[48px] px-4 border-[#767372] rounded-[10px]'
         }  outline-none transition-colors placeholder:text-start focus:border-blue-600 text-sm`}
         // style={{ direction }}
         id={name}

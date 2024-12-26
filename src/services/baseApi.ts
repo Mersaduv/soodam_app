@@ -10,7 +10,8 @@ const apiSlice = createApi({
   tagTypes: [
     'User',
     'Housing',
-    'Category'
+    'Category',
+    'Feature'
   ],
   endpoints: (builder) => ({}),
 })

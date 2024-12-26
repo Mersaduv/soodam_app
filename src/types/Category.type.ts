@@ -5,4 +5,5 @@ export interface Category {
   isActive?: boolean
   imageUrl?: string
   children?: Category[]
+  parentCategory?: Category
 }

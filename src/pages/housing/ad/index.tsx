@@ -22,7 +22,7 @@ const AdPage: NextPage = () => {
             <div className="flex justify-between h-full items-end w-full">
               <div className="flex flex-col gap-3 mt-1">
                 <p className="text-sm">ثبت آگهی شخصی</p>
-                <p className="text-xs font-normal text-[#5A5A5A]">
+                <p className="text-xs farsi-digits font-normal text-[#5A5A5A]">
                   (ثبت 100 آگهی رایگان +اشتراک ماهانه+100 پیامک رایگان)
                 </p>
               </div>
@@ -43,7 +43,7 @@ const AdPage: NextPage = () => {
             <div className="flex gap-1 justify-between h-full items-end w-full">
               <div className="flex flex-col gap-3">
                 <p className="text-sm">ثبت آگهی به عنوان بازاریاب</p>
-                <p className="text-xs font-normal text-[#5A5A5A]">
+                <p className="text-xs font-normal farsi-digits text-[#5A5A5A]">
                 (ثبت 100 آگهی رایگان +اشتراک ماهانه)
                 </p>
                 <p className="text-xs font-normal text-[#5A5A5A]">

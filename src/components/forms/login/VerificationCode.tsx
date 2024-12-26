@@ -82,11 +82,11 @@ const VerificationCode: React.FC<Props> = ({
       >
         <div dir="rtl" className="flex flex-col w-full">
           <h1 className="font-medium text-lg mb-6">تایید کد فعالسازی</h1>
-          <p className="font-normal text-[#5A5A5A]">کد فعالسازی به شماره {phoneNumber} ارسال گردید.</p>
+          <p className="font-normal text-[#5A5A5A] farsi-digits">کد فعالسازی به شماره {phoneNumber} ارسال گردید.</p>
           <button
             type="button"
             onClick={handleChangePhoneNumber}
-            className="font-normal text-[#2F80ED] w-full mt-2 text-start"
+            className="font-normal text-[#2F80ED] w-fit mt-2 text-start"
           >
             تغییر شماره موبایل
           </button>
@@ -110,7 +110,7 @@ const VerificationCode: React.FC<Props> = ({
                     type="text"
                     maxLength={1}
                     dir="ltr"
-                    className={`w-12 h-12 font-bold text-center text-xl border rounded-[10px] focus:ring-1 outline-none ${
+                    className={`w-12 h-12 font-bold farsi-digits text-center text-xl border rounded-[10px] focus:ring-1 outline-none ${
                       isSuccess ? 'border-green-500' : hasError ? 'border-red-600 ' : 'border-gray-600'
                     }`}
                     ref={(el) => {

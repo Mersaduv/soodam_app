@@ -111,14 +111,14 @@ const Header: React.FC<HeaderProps> = (props) => {
     <>
       {right ? (
         <div className="flex relative items-center justify-center  py-4">
-          <button onClick={onClose} className="p-0.5 right-0 text-white bg-black absolute border-[1.8px] border-black rounded-full">
+          <button type='button' onClick={onClose} className="p-0.5 right-0 text-white bg-black absolute border-[1.8px] border-black rounded-full">
             <Close className="" />
           </button>
         </div>
       ) : (
         <div className="flex relative items-center justify-center  pb-2">
           <h2 className="font-medium">{children}</h2>
-          <button onClick={onClose} className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full">
+          <button type='button' onClick={onClose} className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full">
             <Close className="" />
           </button>
         </div>
