@@ -4,7 +4,7 @@ const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NODE_ENV === 'production'
-    ? 'https://dev-soodam.vercel.app'
+    ? 'https://dev-soodam.onrender.com'
     : 'http://localhost:3000',
     timeout: 60000,
   }),
