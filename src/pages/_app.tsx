@@ -1,7 +1,7 @@
 import '../styles/main.css'
 import '../styles/browser-styles.css'
 import 'react-toastify/dist/ReactToastify.css'
-import 'leaflet/dist/leaflet.css';
+import 'leaflet/dist/leaflet.css'
 
 import type { AppProps } from 'next/app'
 import { useEffect, useState } from 'react'
@@ -11,6 +11,12 @@ import { store } from '@/store'
 import { ToastContainer } from 'react-toastify'
 async function enableMocking() {
   const { worker } = await import('../mocks/browser')
+  if (process.env.NODE_ENV !== 'development') {
+    worker.start({
+      onUnhandledRequest: 'bypass',
+    })
+    return
+  }
 
   // `worker.start()` retu rns a Promise that resolves
   // once the Service Worker is up and ready to intercept requests.
