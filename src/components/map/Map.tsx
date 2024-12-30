@@ -253,7 +253,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
                   customStyle="bg-sky-500"
                 />
                 <label htmlFor="satellite-view" className="flex items-center gap-2 w-full">
-                  <SatelliteIcon />
+                  <SatelliteIcon width="24px" height="24px" />
                   نمای ماهواره ای
                 </label>
               </div>
