@@ -231,7 +231,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           onClick={handleNavigate}
           className="bg-white hover:bg-gray-50 w-[131px] h-[56px] rounded-[59px] flex-center gap-2 shadow-icon cursor-pointer"
         >
-          <RegisterAdIcon />
+          <RegisterAdIcon width="32px" height="32px" />
           <span className="font-semibold text-[16px]">ثبت آگهی</span>
         </div>
       </div>
