@@ -123,7 +123,7 @@ const createIconWithPrice = (
             top: '-8.2px',
           }}
         >
-          <HomeIcon />
+          <HomeIcon width='16px' height='16px'/>
         </div>
         {isNew && (
           <div
@@ -150,7 +150,7 @@ const createIconWithPrice = (
           top: '-8.2px',
         }}
       >
-        <HomeIcon />
+        <HomeIcon width='16px' height='16px'/>
       </div>
     )
   )
@@ -216,13 +216,13 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
               : 'bg-white'
           } w-[48px] h-[48px] rounded-lg flex-center shadow-icon`}
         >
-          <MapIcon2 />
+          <MapIcon2 width="26.8px" height="26.8px"/>
         </button>
         <button className="bg-white w-[48px] h-[48px] rounded-lg flex-center shadow-icon">
-          <SendIcon />
+          <SendIcon width="26px" height="26px"/>
         </button>
         <button className="bg-white w-[48px] h-[48px] rounded-lg flex-center shadow-icon">
-          <FingerIcon />
+          <FingerIcon width="26px" height="29px" />
         </button>
       </div>
 

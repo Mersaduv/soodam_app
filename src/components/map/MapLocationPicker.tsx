@@ -50,7 +50,7 @@ const MapLocationPicker = (props: Props) => {
             <GpsIcon />
           </div>
           <div className="bg-white w-[32px] h-[32px] rounded-lg flex-center shadow-icon cursor-pointer">
-            <FingerIcon2 />
+            <FingerIcon2 width="18" height="20"/>
           </div>
         </div>
         <MapContainer

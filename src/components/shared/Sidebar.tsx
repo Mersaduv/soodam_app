@@ -32,7 +32,7 @@ export default function Sidebar() {
         type="button"
         onClick={sidebarHandlers.open}
       >
-        <MenuIcon />
+        <MenuIcon width="24px" height="24px"/>
       </button>
       <div
         className={`fixed top-0 z-[1000] h-screen w-full duration-200  ${
@@ -49,7 +49,7 @@ export default function Sidebar() {
         />
         <div className="absolute right-0 top-0 z-[1000] h-screen w-3/4 max-w-sm overflow-y-auto bg-white py-4 px-5 pt-10">
           <button className="float-left -mt-4" onClick={sidebarHandlers.close}>
-            <CloseCircleIcon />
+            <CloseCircleIcon width="24px" height="24px"/>
           </button>
           <div className="space-y-1">
             <h1 className="text-[#D52133] font-extrabold text-xl">سودم</h1>
@@ -71,7 +71,7 @@ export default function Sidebar() {
                         {item.title}
                       </span>
                     </div>
-                    <ArrowLeftIcon
+                    <ArrowLeftIcon width="24px" height="24px"
                       className={`${
                         open ? 'text-red-400' : 'text-gray-700 rotate-90'
                       } transition-all`}
@@ -106,7 +106,7 @@ export default function Sidebar() {
 const menuItems = [
   {
     title: 'مدیریت حساب من',
-    icon: <CardTrickIcon />,
+    icon: <CardTrickIcon  width="24px" height="24px" />,
     subItems: [
       { title: 'آگهی‌های من', icon: null },
       { title: 'پرداختی‌های من', icon: null },
@@ -116,32 +116,32 @@ const menuItems = [
   },
   {
     title: 'ثبت درخواست',
-    icon: <NoteFavIcon />,
+    icon: <NoteFavIcon width="24px" height="24px" />,
     subItems: [],
   },
   {
     title: 'ثبت آگهی',
-    icon: <AddCircleIcon />,
+    icon: <AddCircleIcon width="24px" height="24px" />,
     subItems: [],
   },
   {
     title: 'ثبت نام به عنوان بازاریاب',
-    icon: <UserEdit />,
+    icon: <UserEdit width="24px" height="24px" />,
     subItems: [],
   },
   {
     title: 'مشاورین املاک',
-    icon: <PeopleIcon />,
+    icon: <PeopleIcon width="24px" height="24px" />,
     subItems: [],
   },
   {
     title: 'مجله خبر',
-    icon: <NoteTxIcon />,
+    icon: <NoteTxIcon width="24px" height="24px" />,
     subItems: [],
   },
   {
     title: 'ارتباط ما',
-    icon: <SmsEditIcon />,
+    icon: <SmsEditIcon width="24px" height="24px" />,
     subItems: [],
   },
 ]

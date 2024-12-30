@@ -132,7 +132,7 @@ const SearchModal: React.FC<Props> = (props) => {
             onClick={() => setIsShowSearchInput(true)}
             className="flex gap-1.5 pr-3 h-[48px] w-full rounded-lgs cursor-text rounded-lg z-0  bg-[#F2F2F3] items-center transition duration-700 ease-in-out"
           >
-            <SearchNormalIcon />
+            <SearchNormalIcon width='24px' height='20px' />
             <div className="text-sm text-[#1A1E25]">جستجو</div>
           </button>
         )}

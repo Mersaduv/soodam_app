@@ -15,7 +15,7 @@ const MapMode = () => {
         </div>
       ) : (
         <div className="flex items-center gap-1">
-          <MapIcon style={{ color: 'white' }} />
+          <MapIcon height="22px" width="22px" style={{ color: 'white' }} />
           <span className="font-normal text-sm text-white">نقشه</span>
         </div>
       )}

@@ -74,7 +74,7 @@ const FilterControlNavBar: React.FC = () => {
             : "text-[#D52133]"
         }`}
       >
-        <HomeIcon />
+        <HomeIcon width='16px' height='16px' />
         <span
           className={`font-normal whitespace-nowrap text-[16px] text-[#7A7A7A] ${
             activeType === "sale" ? "text-white" : ""
@@ -91,7 +91,7 @@ const FilterControlNavBar: React.FC = () => {
             : "text-[#D52133]"
         }`}
       >
-        <HomeIcon />
+        <HomeIcon width='16px' height='16px'/>
         <span
           className={`font-normal whitespace-nowrap text-[16px] text-[#7A7A7A] ${
             activeType === "rent" ? "text-white" : ""

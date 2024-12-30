@@ -12,11 +12,11 @@ const FilterControlsHeader = ({ title }) => {
     <header className="bg-white py-2 shadow-filter-control px-4 fixed z-[9999] w-full flex justify-between items-center">
       <div className="flex items-center gap-3 w-full text-lg font-medium">
         <button onClick={handleBack} className="py-4 -rotate-90 font-bold">
-          <ArrowLeftIcon />
+          <ArrowLeftIcon width="24px" height="24px"/>
         </button>
         {title}
       </div>
-      <NotificationIcon />
+      <NotificationIcon  width="24px" height="24px"/>
     </header>
   )
 }

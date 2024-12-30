@@ -488,7 +488,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
                     index === currentStep ? 'font-bold text-[#D52133]' : ''
                   }`}
                 >
-                  {index < currentStep && <CheckIcon />}
+                  {index < currentStep && <CheckIcon width="12px" height="13px" />}
                   {step}
                 </div>
               </div>
@@ -501,7 +501,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
 
         {currentStep !== 0 && (
           <div className="h-[54px] bg-[#FFE2E5] border border-[#D52133] rounded-[8px] flex-center mx-4 mt-12 ">
-            <HouseIcon />
+            <HouseIcon width='24px' height='24px' />
             <div className="text-sm font-normal text-[#D52133] whitespace-nowrap mr-1">دسته بندی:</div>
             <div className="font-medium text-base text-[#D52133] pr-1.5 ">{mapCategoryName(selectedCategory.name)}</div>
           </div>
@@ -688,7 +688,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
                     customStyle="bg"
                   />
                   <label htmlFor="convertible" className="flex items-center gap-2 w-full font-normal text-sm">
-                    <RepeatIcon />
+                    <RepeatIcon  width="24px" height="24px" />
                     قابل تبدیل
                   </label>
                 </div>

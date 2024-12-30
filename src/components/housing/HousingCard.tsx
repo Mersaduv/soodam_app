@@ -46,7 +46,7 @@ const HousingCard: React.FC<Props> = (props) => {
         {isNew && (
           <div className="top-[180px] -right-[8.4px] absolute">
             <div className=" flex-center -mr-[0.7px]  h-[31.32px] w-[89.03px]  bg-[#D52133] text-white text-xs px-3 py-1 rounded-lg rounded-br-[0.2px]">
-              <FrameIcon />
+              <FrameIcon  width="17px" height="17px" />
               <span className="text-xs text-white font-bold">جدید</span>
             </div>
             <div className="triangle -mr-[0.75px] -mt-[0.2px]" />
@@ -65,7 +65,7 @@ const HousingCard: React.FC<Props> = (props) => {
               }`}
               onClick={(event) => handleSaveClick(event, housing)}
             >
-              <HearthIcon />
+              <HearthIcon width="15px" height="13px" />
             </div>
           </div>
         </div>
@@ -80,13 +80,13 @@ const HousingCard: React.FC<Props> = (props) => {
         </div>
         <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
           <div className="flex-center gap-1.5 text-xs font-medium">
-            <BedIcon /> {housing.bedrooms} <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>
+            <BedIcon width="21px" height="19px" /> {housing.bedrooms} <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>
           </div>
           <div className="flex-center gap-1.5 font-medium text-xs">
-            <Grid2Icon /> {housing.cubicMeters} <span className="font-medium text-[#7A7A7A] text-xs">متر مربع</span>
+            <Grid2Icon width="16px" height="16px" /> {housing.cubicMeters} <span className="font-medium text-[#7A7A7A] text-xs">متر مربع</span>
           </div>
           <div className="flex-center gap-1.5 font-medium text-xs">
-            <Grid2Icon /> طبقه {housing.onFloor} از {housing.floors}
+            <BulidingIcon width="16px" height="17px"/> طبقه {housing.onFloor} از {housing.floors}
           </div>
         </div>
       </article>
