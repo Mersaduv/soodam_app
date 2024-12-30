@@ -1,5 +1,5 @@
 import baseApi from '@/services/baseApi'
-import { Category, QueryParams, ServiceResponse,Feature } from '@/types'
+import { Category, QueryParams, ServiceResponse, Feature } from '@/types'
 
 import { generateQueryParams } from '@/utils'
 
@@ -24,7 +24,24 @@ export const featureApiSlice = baseApi.injectEndpoints({
             ]
           : ['Feature'],
     }),
+
+    getFeaturesByCategory: builder.query<ServiceResponse<Feature[]>, string>({
+      query: (id) => ({
+        url: `/api/features/by-category/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (result) =>
+        result?.data
+          ? [
+              ...result?.data.map(({ id }) => ({
+                type: 'Feature' as const,
+                id: id,
+              })),
+              'Feature',
+            ]
+          : ['Feature'],
+    }),
   }),
 })
 
-export const { useGetFeaturesQuery } = featureApiSlice
+export const { useGetFeaturesQuery, useGetFeaturesByCategoryQuery,useLazyGetFeaturesByCategoryQuery } = featureApiSlice

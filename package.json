@@ -13,6 +13,7 @@
     "@headlessui/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
     "@reduxjs/toolkit": "^2.4.0",
+    "@tailwindcss/forms": "^0.5.9",
     "@types/react-leaflet": "^2.8.3",
     "axios": "^1.7.9",
     "leaflet": "^1.9.4",

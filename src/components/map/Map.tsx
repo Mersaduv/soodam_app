@@ -1,9 +1,18 @@
-import { MapContainer, TileLayer, Marker } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { LatLngTuple } from 'leaflet'
 import React, { useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
-import { HomeIcon, MapIcon, MapIcon2, SatelliteIcon, SendIcon, FingerIcon, RegisterAdIcon } from '@/icons'
+import {
+  HomeIcon,
+  MapIcon,
+  MapIcon2,
+  SatelliteIcon,
+  SendIcon,
+  FingerIcon,
+  RegisterAdIcon,
+  ArrowDownTickIcon,
+} from '@/icons'
 import { useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
 import { Housing } from '@/types'
@@ -27,25 +36,14 @@ interface Property {
   deposit: number
   location: Location
 }
-const getPropertyPrice = (property: Property): number => {
-  if (property.sellingPrice > 0) {
-    return property.sellingPrice
-  } else if (property.rent > 0) {
-    return property.rent
-  } else {
-    return property.deposit
-  }
-}
-// تابع فرمت کردن قیمت
+
 const formatPrice = (price: number): string => {
   if (price >= 1_000_000_000) {
-    const billion = price / 1_000_000_000
-    return `${billion.toFixed(3)} میلیارد`
+    return (price / 1_000_000_000).toFixed(3)
   } else if (price >= 1_000_000) {
-    const million = price / 1_000_000
-    return `${million.toFixed(3)} میلیون`
+    return (price / 1_000_000).toFixed(0)
   } else {
-    return `${price.toLocaleString('fa-IR')} تومان`
+    return price.toString()
   }
 }
 
@@ -57,37 +55,117 @@ const getCenterOfData = (data: Housing[]): LatLngTuple => {
   return [centerLat, centerLng] as LatLngTuple
 }
 
-const createIconWithPrice = (price: string, isSelling: boolean): L.DivIcon => {
-  const iconColor = isSelling ? '#D52133' : '#007BFF'
+const createIconWithPrice = (
+  price: string,
+  rent: string,
+  deposit: string,
+  created: string,
+  zoom: number
+): L.DivIcon => {
+  const iconColor = '#D52133'
+  const isNew = (() => {
+    const createdDate = new Date(created)
+    const today = new Date()
+    const diffInDays = (today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
+    return diffInDays <= 2
+  })()
   const html = ReactDOMServer.renderToString(
-    <div style={{ textAlign: 'center' }}>
+    zoom > 12 ? (
+      <div className="w-fit relative">
+        <div
+          style={{
+            backgroundColor: 'white',
+            color: 'black',
+            borderRadius: '4px',
+            padding: '2px 5px',
+            fontSize: '14px',
+            border: '1px solid #E3E3E7',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: 'fit-content',
+            height: '16px',
+            fontFamily: 'estedad',
+            marginBottom: '-22px',
+            zIndex: 10,
+          }}
+        >
+          <div className="flex items-center gap-1">
+            {isNew && <ArrowDownTickIcon />}
+            {price > '0' ? (
+              <span className="font-extrabold text-xs text-[#1A1E25] farsi-digits">{price}</span>
+            ) : (
+              <div className="flex-center gap-x-1">
+                <div className="flex-center gap-x-0.5">
+                  <span className="font-extrabold text-xs text-[#1A1E25] farsi-digits">{deposit}</span>
+                  <span className="text-[8px] font-normal">رهن</span>
+                </div>
+                <div className="flex-center gap-x-0.5">
+                  <span className="font-extrabold text-xs text-[#1A1E25] farsi-digits">{rent}</span>
+                  <span className="text-[8px] font-normal">اجاره</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div
+          style={{
+            fontSize: '24px',
+            color: iconColor,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'absolute',
+            zIndex: -1,
+            margin: 'auto',
+            left: '0',
+            right: '0',
+            top: '-8.2px',
+          }}
+        >
+          <HomeIcon />
+        </div>
+        {isNew && (
+          <div
+            style={{ fontFamily: 'estedad' }}
+            className="bg-emerald-500 px-[1.5px] pb-[1px] rounded-[2px] w-fit text-[7px] text-white absolute -bottom-[9px] left-1"
+          >
+            جدید
+          </div>
+        )}
+      </div>
+    ) : (
       <div
         style={{
-          backgroundColor: 'white',
-          color: 'black',
-          borderRadius: '92px',
-          padding: '2px 5px',
-          fontSize: '14px',
-          border: '1px solid #E3E3E7',
+          fontSize: '24px',
+          color: iconColor,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          width: '122px',
-          height: '32px',
-          marginRight: '-46px',
-          fontFamily: 'estedad',
+          position: 'absolute',
+          zIndex: -1,
+          margin: 'auto',
+          left: '0',
+          right: '0',
+          top: '-8.2px',
         }}
       >
-        <span className="font-normal text-base text-[#1A1E25]">{price}</span>
-      </div>
-      <div style={{ fontSize: '24px', color: iconColor }}>
         <HomeIcon />
       </div>
-    </div>
+    )
   )
   return L.divIcon({ html, className: 'custom-icon', iconSize: [50, 50] })
 }
+const ZoomHandler: React.FC<{ setZoomLevel: (zoom: number) => void }> = ({ setZoomLevel }) => {
+  useMapEvents({
+    zoomend: (e) => {
+      const map = e.target;
+      setZoomLevel(map.getZoom());
+    },
+  });
 
+  return null;
+};
 const LeafletMap: React.FC<Props> = ({ housingData }) => {
   // ? Assets
   const { query, push } = useRouter()
@@ -95,6 +173,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   const [isShow, modalHandlers] = useDisclosure()
   const [isSatelliteView, setIsSatelliteView] = useState(false)
   const [tileLayerUrl, setTileLayerUrl] = useState('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+  const [zoomLevel, setZoomLevel] = useState(12);
 
   const toggleMapType = () => {
     setTileLayerUrl((prevUrl) =>
@@ -121,7 +200,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
       push({
         pathname: '/authentication/login',
         query: { redirectTo: '/housing/ad' },
-      });
+      })
     }
   }
 
@@ -186,7 +265,8 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
         </Modal.Content>
       </Modal>
 
-      <MapContainer center={getCenterOfData(housingData)} zoom={13} style={{ width: '100%', height: '100%' }}>
+      <MapContainer center={getCenterOfData(housingData)} zoom={12}  style={{ width: '100%', height: '100%' }}>
+      <ZoomHandler setZoomLevel={setZoomLevel} />
         <TileLayer
           url={tileLayerUrl}
           attribution={
@@ -200,7 +280,13 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           <Marker
             key={property.id}
             position={[property.location.lat, property.location.lng]}
-            icon={createIconWithPrice(formatPrice(getPropertyPrice(property)), property.sellingPrice > 0)}
+            icon={createIconWithPrice(
+              formatPrice(property.sellingPrice),
+              formatPrice(property.rent),
+              formatPrice(property.deposit),
+              property.created,
+              zoomLevel
+            )}
             title={property.title}
           ></Marker>
         ))}

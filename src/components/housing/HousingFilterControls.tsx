@@ -122,7 +122,6 @@ const HousingFilterControls: React.FC<Props> = (props) => {
               value={price.minPrice}
               onChange={handlefilter}
             />
-            <Toman className="h-6 w-6" />
           </div>
           <div className="mb-4 mt-2 flex items-center justify-between gap-x-1">
             <span className="text-base">تا</span>
@@ -135,7 +134,6 @@ const HousingFilterControls: React.FC<Props> = (props) => {
               onChange={handlefilter}
             />
 
-            <Toman className="h-6 w-6" />
           </div>
         </div>
       </div>

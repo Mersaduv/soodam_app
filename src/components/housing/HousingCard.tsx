@@ -70,7 +70,7 @@ const HousingCard: React.FC<Props> = (props) => {
           </div>
         </div>
         <div className="w-full mt-4 text-right">
-          <p className="text-[20px] line-clamp-1 overflow-hidden text-ellipsis text-[#1A1E25] font-extrabold	">
+          <p className="text-[20px] farsi-digits line-clamp-1 overflow-hidden text-ellipsis text-[#1A1E25] font-extrabold	">
             {isSelling
               ? `${housing.sellingPrice.toLocaleString()} تومان`
               : `رهن: ${housing.deposit.toLocaleString()} تومان | اجاره: ${housing.rent.toLocaleString()} تومان`}
