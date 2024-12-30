@@ -89,3 +89,8 @@ body {
   background-color: red !important; /* رنگ پس‌زمینه به قرمز تغییر می‌کند */
   border-color: red !important; /* مرز قرمز (اختیاری) */
 }
+
+.icons {
+  width: 32px;
+  height: 32px;
+}
