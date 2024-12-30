@@ -10,10 +10,6 @@ import { Provider } from 'react-redux'
 import { store } from '@/store'
 import { ToastContainer } from 'react-toastify'
 async function enableMocking() {
-  if (process.env.NODE_ENV !== 'development') {
-    return
-  }
-
   const { worker } = await import('../mocks/browser')
 
   // `worker.start()` retu rns a Promise that resolves
