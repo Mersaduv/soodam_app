@@ -107,7 +107,8 @@ const VerificationCode: React.FC<Props> = ({
                 render={({ field }) => (
                   <input
                     {...field}
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
                     maxLength={1}
                     dir="ltr"
                     className={`w-12 h-12 font-bold farsi-digits text-center text-xl border rounded-[10px] focus:ring-1 outline-none ${

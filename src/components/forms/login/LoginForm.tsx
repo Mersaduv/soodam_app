@@ -49,7 +49,8 @@ const LoginForm: React.FC<Props> = (props) => {
               control={control}
               errors={formErrors.phoneNumber}
               placeholder="شماره موبایل"
-              inputMode="tel"
+              inputMode="numeric"
+              pattern="[0-9]*"
             />
           )}
         />
