@@ -91,7 +91,7 @@ const createIconWithPrice = (
           }}
         >
           <div className="flex items-center gap-1">
-            {isNew && <ArrowDownTickIcon />}
+            {isNew && <ArrowDownTickIcon  width="6px" height="8px" />}
             {price > '0' ? (
               <span className="font-extrabold text-xs text-[#1A1E25] farsi-digits">{price}</span>
             ) : (
