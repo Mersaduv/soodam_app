@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
 import { LoginButton, TextField } from '../../ui'
 import { PhoneFormValues } from '@/types'
@@ -25,7 +25,6 @@ const LoginForm: React.FC<Props> = (props) => {
     setFocus,
   } = useForm<PhoneFormValues>({
     resolver: yupResolver(phoneSchema),
-    defaultValues: { phoneNumber: '' },
   })
   // ? Focus On Mount
   useEffect(() => {
@@ -38,15 +37,21 @@ const LoginForm: React.FC<Props> = (props) => {
         <Image src="/static/fingers-id.png" alt="عضو" layout="intrinsic" width={304} height={304} />
       </Link>
       <div className="bg-white space-y-7 rounded-r-[40px] rounded-l-[40px] rounded-b-none p-6 pt-7 shadow">
-        <h1 className='font-bold text-lg'>خوش آمدید!</h1>
-        <p className='font-normal'>برای ورود شماره موبایل خود را وارد نمایید.</p>
-        {' '}
-        <TextField
-          control={control}
-          errors={formErrors.phoneNumber}
-          placeholder="شماره موبایل"
+        <h1 className="font-bold text-lg">خوش آمدید!</h1>
+        <p className="font-normal">برای ورود شماره موبایل خود را وارد نمایید.</p>{' '}
+        <Controller
           name="phoneNumber"
-          inputMode="tel"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              type="number"
+              {...field}
+              control={control}
+              errors={formErrors.phoneNumber}
+              placeholder="شماره موبایل"
+              inputMode="tel"
+            />
+          )}
         />
         <LoginButton isLoading={isLoading}>ارسال کد تایید</LoginButton>
       </div>

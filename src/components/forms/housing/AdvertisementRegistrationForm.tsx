@@ -235,7 +235,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
         ]
         break
       case 2:
-        fieldsToValidate = ['title', 'features']
+        fieldsToValidate = ['title','features']
         break
       case 3:
         fieldsToValidate = ['media']
@@ -331,6 +331,9 @@ const AdvertisementRegistrationForm: React.FC = () => {
 
   const steps = ['مشخصات', stepTitle, 'ویژگی‌ها', 'عکس و ویدئو']
 
+  if(errors) {
+console.log(errors,"errors--errors")
+  }
   return (
     <div className="relative mb-44">
       <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
@@ -835,23 +838,30 @@ const AdvertisementRegistrationForm: React.FC = () => {
                   {features &&
                     features.data
                       .filter((item) => item.type === '')
-                      .map((field) => (
-                        <Controller
-                          key={field.id}
-                          name={`features.${field.id}`}
-                          control={control}
-                          render={() => (
-                            <TextField
-                              adForm
-                              label={field.name}
-                              {...field}
-                              control={control}
-                              errors={errors.features?.[field.id]}
-                              placeholder={field.placeholder}
-                            />
-                          )}
-                        />
-                      ))}
+                      .map((field) => 
+                      {
+                        console.log(field,"field--field",`features.${field.id}`)
+                        return (
+                          <Controller
+                            key={field.id}
+                            name={`features.${field.id}`}
+                            control={control}
+                            render={() => (
+                              <TextField
+                                adForm
+                                isDynamic
+                                label={field.name}
+                                {...field}
+                                name={`features.${field.id}`}
+                                control={control}
+                                errors={errors.features?.[field.id]}
+                                placeholder={field.placeholder}
+                              />
+                            )}
+                          /> 
+                        )
+                      }
+                        )}
                 </div>
                 {features &&
                   features.data
@@ -926,7 +936,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
                             <Controller
                               name={`features.${field.id}`}
                               control={control}
-                              defaultValue=""
+                              defaultValue="ندارد"
                               render={({ field: { onChange, value } }) => (
                                 <>
                                   <label className="flex items-center cursor-pointer">

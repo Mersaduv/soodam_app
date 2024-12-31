@@ -9,11 +9,12 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   control: Control<any>
   adForm?: boolean
   compacted?:boolean
+  isDynamic?:boolean
 }
 
 const TextField: React.FC<Props> = (props) => {
   // ? Props
-  const { label, adForm, errors, inputMode,compacted, name, type = 'text', control, ...restProps } = props
+  const { label, adForm, errors, inputMode,compacted, name,isDynamic, type = 'text', control, ...restProps } = props
 
   // ? Form Hook
   const { field } = useController({ name, control, rules: { required: true } })
@@ -54,7 +55,7 @@ const TextField: React.FC<Props> = (props) => {
         id={name}
         type={type}
         value={field?.value}
-        name={field.name}
+        name={isDynamic ? name : field.name}
         onBlur={field.onBlur}
         onChange={onChangeHandler}
         ref={field.ref}

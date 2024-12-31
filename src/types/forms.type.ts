@@ -4,6 +4,6 @@ export interface PhoneFormValues {
 
 export interface CodeFormValues {
   code: string
-  phoneNumber?: string
+  phoneNumber?: number
   role?: string
 }
