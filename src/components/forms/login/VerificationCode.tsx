@@ -40,13 +40,22 @@ const VerificationCode: React.FC<Props> = ({
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const handleChange = (value: string, index: number) => {
-    const sanitizedValue = value.slice(0, 1)
-    setValue(`code.${index}`, sanitizedValue)
-
+    const sanitizedValue = value.slice(0, 1);
+    setValue(`code.${index}`, sanitizedValue);
+  
     if (sanitizedValue && index < inputRefs.current.length - 1) {
-      inputRefs.current[index + 1]?.focus()
+      inputRefs.current[index + 1]?.focus();
     }
-  }
+  
+    // Check if all fields are filled
+    const allFieldsFilled = Array.from({ length: 6 }).every((_, idx) =>
+      getValues(`code.${idx}`)
+    );
+    if (allFieldsFilled) {
+      handleSubmit(onSubmitHandler)();
+    }
+  };
+  
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === 'Backspace' && !getValues(`code.${index}`) && index > 0) {
@@ -55,14 +64,19 @@ const VerificationCode: React.FC<Props> = ({
   }
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, index: number) => {
-    const pastedValue = e.clipboardData.getData('Text')
+    const pastedValue = e.clipboardData.getData('Text');
+    
     if (pastedValue.length === 6) {
       pastedValue.split('').forEach((char, idx) => {
-        setValue(`code.${idx}`, char)
-      })
-      inputRefs.current[5]?.focus()
+        setValue(`code.${idx}`, char);
+      });
+      
+      inputRefs.current[5]?.focus();
+  
+      handleSubmit(onSubmitHandler)();
     }
-  }
+  };
+  
 
   const onSubmitHandler = (data: CodeFormArray) => {
     const codeString = data.code.join('')
