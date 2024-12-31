@@ -88,7 +88,7 @@ const VerificationCode: React.FC<Props> = ({
   }
 
   return (
-    <div className="pt-20">
+    <div className="pt-20 px-4">
       <form
         dir="ltr"
         onSubmit={handleSubmit(onSubmitHandler)}
@@ -109,7 +109,7 @@ const VerificationCode: React.FC<Props> = ({
           <DisplayError errorVerification={errorVerification} />
           {isSuccess && DisplaySuccess()}
         </div>
-        <div className="flex space-x-[16px] w-full justify-end">
+        <div className="flex space-x-[7px] xxs:space-x-[16px] w-full justify-center">
           {Array.from({ length: 6 }).map((_, index) => {
             const value = getValues(`code.${index}`)
             const hasError = errorVerification && value
@@ -125,7 +125,7 @@ const VerificationCode: React.FC<Props> = ({
                     inputMode="numeric"
                     maxLength={1}
                     dir="ltr"
-                    className={`w-12 h-12 font-bold farsi-digits text-center text-xl border rounded-[10px] focus:ring-1 outline-none ${
+                    className={`w-[42px] h-[42px] xxs:w-12 xxs:h-12 font-bold farsi-digits text-center text-xl border rounded-[10px] focus:ring-1 outline-none ${
                       isSuccess ? 'border-green-500' : hasError ? 'border-red-600 ' : 'border-gray-600'
                     }`}
                     ref={(el) => {
