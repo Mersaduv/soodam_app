@@ -104,7 +104,7 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
 
     // مرحله 3: فیلدهای داینامیک
     features: Yup.object().shape(
-      contextData && contextData.features.reduce((schema, field) => {
+      contextData && contextData.features.filter(item=>item.type === "").reduce((schema, field) => {
         schema[field.id] = Yup.string()
           .required(`${field.name} الزامی است`)
           .test(

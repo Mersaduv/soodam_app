@@ -11,9 +11,15 @@ import {
   CalendarTickIcon,
   CalendarSearchIcon,
   ProfileAddIcon,
+  CameraIcon,
+  CameraSmIcon,
+  PictureSmIcon,
+  VideoSmIcon,
+  VideoIcon,
+  Cube3DSmIcon,
+  Cube3DIcon,
 } from '@/icons'
 import { Button, CustomCheckbox, DisplayError, Modal, TextField } from '@/components/ui'
-interface Props {}
 import * as yup from 'yup'
 import dynamic from 'next/dynamic'
 import { useDisclosure } from '@/hooks'
@@ -27,21 +33,14 @@ import {
 import { useRouter } from 'next/router'
 import { Category, Feature } from '@/types'
 import { validationSchema } from '@/utils'
-// مراحل فرم
+import { IoMdClose } from 'react-icons/io'
 const rentalTerms = [
   { id: 1, name: 'روزهای عادی (شنبه تا سه شنبه)', icon: CalendarIcon },
   { id: 2, name: 'آخر هفته (چهارشنبه تا جمعه)', icon: CalendarTickIcon },
   { id: 3, name: 'روزهای خاص (تعطیلات و مناسبت ها)', icon: CalendarSearchIcon },
   { id: 4, name: 'هزینه هر نفر اضافه (به ازای هر شب)', icon: ProfileAddIcon },
 ]
-const options = [
-  { id: 1, label: 'دو نیش' },
-  { id: 2, label: 'سه نیش' },
-  { id: 3, label: 'دو کله' },
-  { id: 4, label: 'تک بر' },
-]
 interface FormValues {
-  // مرحله 1 - مشخصات
   phoneNumber: string
   nationalCode?: string
   postalCode: string
@@ -52,7 +51,6 @@ interface FormValues {
     lng: number
   }
 
-  // مرحله 2 - قیمت
   price?: number
   discount?: number
 
@@ -67,16 +65,14 @@ interface FormValues {
   extraPeople?: number
   rentalTerms?: { id: number; name: string }
 
-  // مرحله 3 - ویژگی داینامیک چون دارایی سه نو هستن text , selective , radio
   title?: string
   features: {
-    [key: string]: string // برای فیلدهای داینامیک
+    [key: string]: string 
   }
 
-  // مرحله 4 - رسانه
   media: {
     images: File[]
-    video?: File
+    videos?: File[]
   }
 }
 
@@ -100,9 +96,13 @@ const AdvertisementRegistrationForm: React.FC = () => {
   const [selectedValues, setSelectedValues] = useState({})
   const [openDropdowns, setOpenDropdowns] = useState({})
   const [featureData, setFeatureData] = useState<Feature[]>([])
-
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const maxFiles = 8
+  const [selectedVideos, setSelectedVideos] = useState<File[]>([])
+  const maxVideos = 3
+  const [playingIndex, setPlayingIndex] = useState(null)
   // ? Queries
-  const { data: categoriesData, isFetching, ...categoryQueryProps } = useGetCategoriesQuery({ ...query })
+  const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
   // const { data: featuresData, isFetching: isFetchingFeature, ...featureQueryProps } = useGetFeaturesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
 
@@ -143,6 +143,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
     register,
     trigger,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: yupResolver(validationSchema({ features: featureData, dealType })) as unknown as Resolver<FormValues>,
@@ -158,6 +159,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
       convertible: false,
       media: {
         images: [],
+        videos: [],
       },
       location: {
         lat: 0,
@@ -235,7 +237,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
         ]
         break
       case 2:
-        fieldsToValidate = ['title','features']
+        fieldsToValidate = ['title', 'features']
         break
       case 3:
         fieldsToValidate = ['media']
@@ -293,13 +295,64 @@ const AdvertisementRegistrationForm: React.FC = () => {
     setOpenDropdowns((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
-  const handleSelect = (itemId: string, valueId: string) => {
-    setSelectedValues((prev) => ({
-      ...prev,
-      [itemId]: prev[itemId]?.includes(valueId)
-        ? prev[itemId].filter((v: string) => v !== valueId)
-        : [...(prev[itemId] || []), valueId],
-    }))
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (selectedFiles.length === maxFiles) return
+    if (files) {
+      const validFiles: any[] = []
+
+      Array.from(files).forEach((file) => {
+        const img = new Image()
+        img.src = URL.createObjectURL(file)
+
+        img.onload = () => {
+          URL.revokeObjectURL(img.src)
+          validFiles.push(file)
+          if (validFiles.length === Array.from(files).length) {
+            setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles])
+            if (validFiles.length > 0) {
+              setValue('media.images', ((getValues('media.images') as File[]) || []).concat(validFiles))
+            } else {
+              setValue('media.images', [])
+            }
+          }
+        }
+      })
+    }
+  }
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (selectedVideos.length === maxVideos) return
+    if (files) {
+      setSelectedVideos([...selectedVideos, ...Array.from(files)])
+    }
+  }
+
+  const handleDelete = (index: number, type = 'pic') => {
+    if (type === 'pic') {
+      setSelectedFiles((prevFiles) => {
+        const updatedFiles = [...prevFiles]
+        updatedFiles.splice(index, 1)
+        return updatedFiles
+      })
+
+      setValue(
+        'media.images',
+        ((getValues('media.images') as File[]) || []).filter((_, i) => i !== index)
+      )
+    } else {
+      setSelectedVideos((prevFiles) => {
+        const updatedFiles = [...prevFiles]
+        updatedFiles.splice(index, 1)
+        return updatedFiles
+      })
+
+      setValue(
+        'media.videos',
+        ((getValues('media.videos') as File[]) || []).filter((_, i) => i !== index)
+      )
+    }
   }
 
   const mapCategoryName = (name: string) => {
@@ -309,10 +362,6 @@ const AdvertisementRegistrationForm: React.FC = () => {
     return name
   }
 
-  // تابع برای تشخیص نوع معامله
-  // if (selectedCategory) {
-  //   console.log(selectedCategory, 'selectedCategory')
-  // }
   if (isFetching) return <div>loading...</div>
 
   if (features) {
@@ -331,8 +380,8 @@ const AdvertisementRegistrationForm: React.FC = () => {
 
   const steps = ['مشخصات', stepTitle, 'ویژگی‌ها', 'عکس و ویدئو']
 
-  if(errors) {
-console.log(errors,"errors--errors")
+  if (errors) {
+    console.log(errors, 'errors--errors')
   }
   return (
     <div className="relative mb-44">
@@ -349,7 +398,7 @@ console.log(errors,"errors--errors")
               <div className="flex flex-col gap-y-3.5 px-4 py-2">
                 {categoriesData.data.map((item, index) => (
                   <Disclosure key={index}>
-                    {({ open }) => (
+                    {() => (
                       <>
                         <Disclosure.Button
                           onClick={() => setOpenIndex(openIndex === index ? null : index)}
@@ -450,7 +499,7 @@ console.log(errors,"errors--errors")
               <div className="flex flex-col gap-y-3.5 px-1 py-2">
                 {rentalTerms.map((item, index) => (
                   <Disclosure key={index}>
-                    {({ open }) => (
+                    {() => (
                       <>
                         <Disclosure.Button
                           onClick={() => handleSelectRentalTerms({ id: item.id, name: item.name })}
@@ -504,7 +553,7 @@ console.log(errors,"errors--errors")
 
         {currentStep !== 0 && (
           <div className="h-[54px] bg-[#FFE2E5] border border-[#D52133] rounded-[8px] flex-center mx-4 mt-12 ">
-            <HouseIcon width='24px' height='24px' />
+            <HouseIcon width="24px" height="24px" />
             <div className="text-sm font-normal text-[#D52133] whitespace-nowrap mr-1">دسته بندی:</div>
             <div className="font-medium text-base text-[#D52133] pr-1.5 ">{mapCategoryName(selectedCategory.name)}</div>
           </div>
@@ -691,12 +740,12 @@ console.log(errors,"errors--errors")
                     customStyle="bg"
                   />
                   <label htmlFor="convertible" className="flex items-center gap-2 w-full font-normal text-sm">
-                    <RepeatIcon  width="24px" height="24px" />
+                    <RepeatIcon width="24px" height="24px" />
                     قابل تبدیل
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <InfoCircleIcon />
+                  <InfoCircleIcon  width="16px" height="16px"/>
                   <span className="text-[#5A5A5A] font-normal text-xs">
                     به ازای هر یک میلیون تومان ودیعه 30 هزار تومان اجاره عرف بازار می باشد.
                   </span>
@@ -838,9 +887,7 @@ console.log(errors,"errors--errors")
                   {features &&
                     features.data
                       .filter((item) => item.type === '')
-                      .map((field) => 
-                      {
-                        console.log(field,"field--field",`features.${field.id}`)
+                      .map((field) => {
                         return (
                           <Controller
                             key={field.id}
@@ -858,11 +905,57 @@ console.log(errors,"errors--errors")
                                 placeholder={field.placeholder}
                               />
                             )}
-                          /> 
+                          />
                         )
-                      }
-                        )}
+                      })}
                 </div>
+                <div className="space-y-4 mb-4">
+                  {features &&
+                    features.data
+                      .filter((item) => item.type === 'check')
+                      .map((field) => (
+                        <div
+                          key={field.id}
+                          className="flex items-center w-fit justify-between bg-white rounded-lg gap-2"
+                        >
+                          <Controller
+                            name={`features.${field.id}`}
+                            control={control}
+                            defaultValue="false"
+                            render={({ field: { onChange, value } }) => (
+                              <label className="flex items-center cursor-pointer">
+                                <div className="flex items-center cursor-pointer relative">
+                                  <input
+                                    type="checkbox"
+                                    className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#17A586] checked:bg-[#17A586] checked:border-[#17A586]"
+                                    checked={value === 'true'}
+                                    onChange={(e) => onChange(e.target.checked ? 'true' : 'false')} // مقدار را به صورت string ذخیره می‌کند
+                                  />
+                                  <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-3.5 w-3.5"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                      stroke="currentColor"
+                                      strokeWidth="1"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      ></path>
+                                    </svg>
+                                  </span>
+                                </div>
+                                <span className="font-normal text-xs text-[#5A5A5A] mr-2">{field.name}</span>
+                              </label>
+                            )}
+                          />
+                        </div>
+                      ))}
+                </div>
+
                 {features &&
                   features.data
                     .filter((item) => item.type === 'selective')
@@ -982,46 +1075,172 @@ console.log(errors,"errors--errors")
           {/* Step 4: عکس و ویدئو */}
           {currentStep === 3 && (
             <div className="space-y-4">
-              <Controller
-                name="media.images"
-                control={control}
-                render={({ field }) => (
-                  <div>
-                    <label className="block mb-2">تصاویر</label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files || [])
-                        field.onChange(files)
-                      }}
-                      className="form-input"
-                    />
-                    {errors.media?.images && <p className="text-red-500 text-sm mt-1">{errors.media.images.message}</p>}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="bg-[#FFF0F2] rounded-[10px] p-1">
+                    <CameraSmIcon width="24px" height="24px" />
                   </div>
-                )}
-              />
+                  <h3 className="font-medium text-start">عکس آگهی</h3>
+                </div>
+                <div>
+                  <input type="file" multiple className="hidden" id="Thumbnail" onChange={handleFileChange} />
+                  <label htmlFor="Thumbnail" className="block cursor-pointer h-[102px] custom-dashed">
+                    <div className="flex justify-center flex-col items-center w-full h-full gap-y-2">
+                      <CameraIcon width="43px" height="43px" />
+                      <h1 className=" border-[#5A5A5A] border-b w-fit font-normal text-xs text-[#5A5A5A]">
+                        افزودن عکس
+                      </h1>
+                    </div>
+                  </label>
+                  <div className="grid grid-cols-4 gap-3 mt-3">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={file.name}
+                          className="h-[58px] w-full object-cover rounded-[4px]"
+                        />
+                        <button
+                          type="button"
+                          className="absolute -top-2 -right-2 border hover:bg-red-500 hover:text-white bg-gray-50 p-0.5 rounded-full text-gray-500"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            handleDelete(index)
+                          }}
+                        >
+                          <IoMdClose className="text-base" />
+                        </button>
+                      </div>
+                    ))}
+                    {/* نمایش جایگاه‌های خالی */}
+                    {Array.from({ length: maxFiles - selectedFiles.length }).map((_, index) => (
+                      <div
+                        key={`empty-${index}`}
+                        className="w-full h-[58px] custom-dashed rounded-[4px] shadow-product flex items-center justify-center text-gray-500"
+                      >
+                        <PictureSmIcon width="24px" height="24px" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {errors?.media?.images && <p className="text-red-500 text-sm mt-1">{errors.media.images.message}</p>}
+              </div>
 
-              <Controller
-                name="media.video"
-                control={control}
-                render={({ field }) => (
-                  <div>
-                    <label className="block mb-2">ویدئو (اختیاری)</label>
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        field.onChange(file)
-                      }}
-                      className="form-input"
-                    />
-                    {errors.media?.video && <p className="text-red-500 text-sm mt-1">{errors.media.video.message}</p>}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="bg-[#FFF0F2] rounded-[10px] p-1">
+                    <VideoSmIcon width="24px" height="24px" />
                   </div>
-                )}
-              />
+                  <h3 className="font-medium text-start">ویدئو آگهی</h3>
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    multiple
+                    accept="video/*"
+                    className="hidden"
+                    id="VideoThumbnail"
+                    onChange={handleVideoChange}
+                  />
+                  <label htmlFor="VideoThumbnail" className="block cursor-pointer h-[143px] custom-dashed">
+                    <div className="flex justify-center flex-col items-center w-full h-full gap-y-2">
+                      <VideoIcon width="43px" height="43px" />
+                      <h1 className="border-[#5A5A5A] border-b w-fit font-normal text-xs text-[#5A5A5A]">
+                        افزودن ویدئو
+                      </h1>
+                    </div>
+                  </label>
+                  <div className="grid grid-cols-3 gap-3 mt-3">
+                    {selectedVideos.map((file, index) => (
+                      <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
+                        <div className="relative">
+                          <video
+                            src={URL.createObjectURL(file)}
+                            className="h-[58px] w-full object-cover rounded-[4px]"
+                            id={`video-${index}`}
+                            onPlay={() => {
+                              const playButton = document.getElementById(`play-button-${index}`)
+                              playButton.innerHTML = `
+                                <div class="w-1 h-3 bg-white mx-0.5"></div>
+                                <div class="w-1 h-3 bg-white mx-0.5"></div>
+                              `
+                            }}
+                            onPause={() => {
+                              const playButton = document.getElementById(`play-button-${index}`)
+                              playButton.innerHTML = `
+                                <div class="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
+                              `
+                            }}
+                          />
+                          <div
+                            className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                            onClick={() => {
+                              const video = document.getElementById(`video-${index}`) as HTMLVideoElement
+                              if (video.paused) {
+                                video.play()
+                              } else {
+                                video.pause()
+                              }
+                            }}
+                          >
+                            <div className="w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                              <div id={`play-button-${index}`} className="flex items-center justify-center">
+                                <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="absolute -top-2 -right-2 border hover:bg-red-500 hover:text-white bg-gray-50 p-0.5 rounded-full text-gray-500"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            e.preventDefault()
+                            handleDelete(index, 'vid')
+                          }}
+                        >
+                          <IoMdClose className="text-base" />
+                        </button>
+                      </div>
+                    ))}
+                    {Array.from({
+                      length: maxVideos - selectedVideos.length,
+                    }).map((_, index) => (
+                      <div
+                        key={`empty-${index}`}
+                        className="w-full h-[58px] custom-dashed rounded-[4px] shadow-product flex items-center justify-center text-gray-500"
+                      >
+                        <PictureSmIcon width="24px" height="24px" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="bg-[#FFF0F2] rounded-[10px] p-1">
+                    <Cube3DSmIcon width="24px" height="24px" />
+                  </div>
+                  <h3 className="font-medium text-start">3D آگهی</h3>
+                </div>
+                <div>
+                  <label className="block cursor-pointer h-[143px] custom-dashed">
+                    <div className="flex justify-center flex-col items-center w-full h-full gap-y-2">
+                      <Cube3DIcon width="43px" height="43px" />
+                      <h1 className=" border-[#5A5A5A] border-b w-fit font-normal text-xs text-[#5A5A5A]">
+                        افزودن عکس
+                      </h1>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                  <InfoCircleIcon  width="16px" height="16px"/>
+                  <span className="text-[#5A5A5A] font-normal text-xs">
+                  توضیحات مرتبط                  </span>
+                </div>
             </div>
           )}
 
@@ -1046,9 +1265,8 @@ console.log(errors,"errors--errors")
                 بعدی
               </Button>
             ) : (
-              <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
-                ثبت آگهی
-              </button>
+              <Button type="submit"  className="w-[120px] float-left h-[48px] whitespace-nowrap text-white rounded-lg font-bold text-sm hover:bg-[#f75263]">
+ثبت نهایی              </Button>
             )}
           </div>
         </form>

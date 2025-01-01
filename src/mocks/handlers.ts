@@ -1,3 +1,4 @@
+import { Feature,Category } from '@/types'
 import { rest } from 'msw'
 
 const verificationCodes = new Map<string, string>()
@@ -6,6 +7,32 @@ const getRandomLocation = (baseLat: number, baseLng: number, offset: number) => 
   const randomLng = baseLng + (Math.random() - 0.5) * offset
   return { lat: parseFloat(randomLat.toFixed(6)), lng: parseFloat(randomLng.toFixed(6)) }
 }
+function getFeaturesByCategory(categoryId: string): Feature[] {
+  const categoryFeatures: Set<string> = new Set();
+
+  // تابع بازگشتی برای جمع‌آوری ویژگی‌ها
+  const collectFeatures = (category: Category | undefined): void => {
+    if (!category) return;
+
+    // اضافه کردن ویژگی‌های مرتبط با دسته‌بندی فعلی
+    featureCategories
+      .filter(fc => fc.categoryId === category.id)
+      .forEach(fc => categoryFeatures.add(fc.featureId));
+
+    // بازگشتی برای فرزندان
+    if (category.children) {
+      category.children.forEach(collectFeatures);
+    }
+  };
+
+  // پیدا کردن دسته‌بندی سطح بالا
+  const rootCategory = categories.find(cat => cat.id === categoryId);
+  collectFeatures(rootCategory);
+
+  // پیدا کردن و برگرداندن ویژگی‌ها
+  return features.filter(feature => categoryFeatures.has(feature.id));
+}
+
 
 const housing = [
   {
@@ -275,7 +302,23 @@ const features = [
     created: "2024-01-30T15:50:00Z",
     updated: "2024-04-25T10:15:00Z"
   },
-
+  {
+    id: "2d3acsdf333d1",
+    name: "بازسازی شده است.",
+    type: "check",
+    values: [],
+    created: "2024-01-30T15:50:00Z",
+    updated: "2024-04-25T10:15:00Z"
+  },
+  {
+    id: "e234csdf3wdd",
+    name: "سند",
+    type: "check",
+    values: [],
+    created: "2024-01-30T15:50:00Z",
+    updated: "2024-04-25T10:15:00Z"
+  },
+  
   // type selective (medium dates)
   {
     id: "a51c28f7",
@@ -544,6 +587,7 @@ const featureCategories = [
   { featureId: "a36cd92e", categoryId: "1" },
   { featureId: "c85fe91b", categoryId: "1" },
   { featureId: "d93ab82c", categoryId: "1" },
+  { featureId: "2d3acsdf333d1", categoryId: "1" },
   { featureId: "b4134ffe4333", categoryId: "1" },
   { featureId: "b41dewew9824333", categoryId: "1" },
   { featureId: "b41ad0a3", categoryId: "1" },
@@ -609,6 +653,7 @@ const featureCategories = [
   { featureId: "f84ab71d", categoryId: "3" },
   { featureId: "a36cd92e", categoryId: "3" },
   { featureId: "c85fe91b", categoryId: "3" },
+  { featureId: "e234csdf3wdd", categoryId: "3" },
   { featureId: "f87ac4d1", categoryId: "4" },
   { featureId: "b92df63e", categoryId: "4" },
   { featureId: "a51c28f7", categoryId: "4" },
@@ -780,16 +825,7 @@ export const handlers = [
   rest.get('/api/features/by-category/:categoryId', (req, res, ctx) => {
     const { categoryId } = req.params;
     
-    // پیدا کردن تمام featureId های مرتبط با categoryId
-    const relatedFeatureIds = featureCategories
-      .filter(fc => fc.categoryId === categoryId)
-      .map(fc => fc.featureId);
-    
-    // پیدا کردن ویژگی‌های مرتبط
-    const categoryFeatures = features.filter(feature => 
-      relatedFeatureIds.includes(feature.id)
-    );
-
+    const categoryFeatures = getFeaturesByCategory(categoryId as string);
     return res(
       ctx.status(200),
       ctx.json({
