@@ -407,7 +407,7 @@
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Polygon } from 'react-leaflet'
 import L from 'leaflet'
 import { LatLngTuple } from 'leaflet'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import {
   HomeIcon,
@@ -577,81 +577,166 @@ const ZoomHandler: React.FC<{ setZoomLevel: (zoom: number) => void }> = ({ setZo
 }
 
 const DrawingControl = ({ isDrawing, drawnPoints, setDrawnPoints, polylineRef, housingData }) => {
-  const map = useMap()
-  const [isMouseDown, setIsMouseDown] = useState(false)
+  const map = useMap();
+  const overlayRef = useRef(null);
+  const isMouseDownRef = useRef(false);
+  const drawingTimeoutRef = useRef(null);
 
-  const countItemsInArea = (points) => {
-    if (points.length < 3) return
+  const countItemsInArea = useCallback((points) => {
+    if (points.length < 3) return;
 
-    const polygon = turf.polygon([points])
+    const polygon = turf.polygon([points]);
     const itemsInArea = housingData.filter((property) => {
-      const point = turf.point([property.location.lat, property.location.lng])
-      return turf.booleanPointInPolygon(point, polygon)
-    })
+      const point = turf.point([property.location.lat, property.location.lng]);
+      return turf.booleanPointInPolygon(point, polygon);
+    });
 
-    console.log('Items in drawn area:', itemsInArea.length)
-    console.log('Items details:', itemsInArea)
-  }
+    console.log('Items in area:', itemsInArea.length, itemsInArea);
+  }, [housingData]);
+
+  const updateOverlay = useCallback((points) => {
+    if (!points.length) return;
+
+    if (overlayRef.current) {
+      overlayRef.current.remove();
+    }
+
+    // Performance optimization: Only create overlay if we have enough points
+    if (points.length < 3) return;
+
+    const bounds = map.getBounds();
+    const outerCoords = [
+      [bounds.getNorth(), bounds.getWest()],
+      [bounds.getNorth(), bounds.getEast()],
+      [bounds.getSouth(), bounds.getEast()],
+      [bounds.getSouth(), bounds.getWest()],
+      [bounds.getNorth(), bounds.getWest()] // Close the outer polygon
+    ];
+
+    const overlay = L.polygon([outerCoords, points], {
+      color: 'none',
+      fillColor: '#1A1E2566',
+      fillOpacity: 0.45,
+      interactive: false // Improves performance by preventing mouse events
+    }).addTo(map);
+
+    overlayRef.current = overlay;
+  }, [map]);
+
+  const updatePolyline = useCallback((points) => {
+    if (polylineRef.current) {
+      polylineRef.current.remove();
+    }
+
+    const polyline = L.polyline(points, {
+      color: '#FFFFFF', // مشابه رنگ blue-600 در Tailwind
+      weight: 4,
+      smoothFactor: 1,
+      interactive: false
+    }).addTo(map);
+
+    polylineRef.current = polyline;
+  }, [map]);
+
+  // Throttled update function for better performance
+  const throttledUpdate = useCallback(
+    throttle((points) => {
+      updatePolyline(points);
+      updateOverlay(points);
+    }, 16), // ~60fps
+    [updatePolyline, updateOverlay]
+  );
+
   useMapEvents({
     mousedown: (e) => {
-      if (!isDrawing) return
-      setIsMouseDown(true)
-      const newPoint = [e.latlng.lat, e.latlng.lng]
-      setDrawnPoints([newPoint])
+      if (!isDrawing) return;
+      isMouseDownRef.current = true;
+      const newPoint = [e.latlng.lat, e.latlng.lng];
+      setDrawnPoints([newPoint]);
     },
 
     mousemove: (e) => {
-      if (!isDrawing || !isMouseDown) return
+      if (!isDrawing || !isMouseDownRef.current) return;
 
-      const newPoint = [e.latlng.lat, e.latlng.lng]
-      setDrawnPoints((prev) => [...prev, newPoint])
+      setDrawnPoints(prev => {
+        const newPoint = [e.latlng.lat, e.latlng.lng];
+        const newPoints = [...prev, newPoint];
+        
+        // Clear existing timeout
+        if (drawingTimeoutRef.current) {
+          cancelAnimationFrame(drawingTimeoutRef.current);
+        }
 
-      if (polylineRef.current) {
-        polylineRef.current.remove()
-      }
+        // Schedule update on next animation frame
+        drawingTimeoutRef.current = requestAnimationFrame(() => {
+          throttledUpdate(newPoints);
+        });
 
-      const polyline = L.polyline(drawnPoints, {
-        color: 'blue',
-        weight: 3,
-        smoothFactor: 1,
-      })
-
-      polyline.addTo(map)
-      polylineRef.current = polyline
+        return newPoints;
+      });
     },
 
     mouseup: () => {
-      setIsMouseDown(false)
-      if (drawnPoints.length > 0) {
-        const closedPoints = [...drawnPoints, drawnPoints[0]]
-        setDrawnPoints(closedPoints)
-        countItemsInArea(closedPoints) // Count items when drawing is complete
-      }
-    },
-  })
-
-  // Disable map interactions while drawing
-  useEffect(() => {
-    if (isDrawing) {
-      map.dragging.disable()
-      map.touchZoom.disable()
-      map.doubleClickZoom.disable()
-      map.scrollWheelZoom.disable()
-      map.boxZoom.disable()
-      map.keyboard.disable()
-      if (map.tapHold) map.tapHold.disable()
-    } else {
-      map.dragging.enable()
-      map.touchZoom.enable()
-      map.doubleClickZoom.enable()
-      map.scrollWheelZoom.enable()
-      map.boxZoom.enable()
-      map.keyboard.enable()
-      if (map.tapHold) map.tapHold.enable()
+      if (!isMouseDownRef.current) return;
+      
+      isMouseDownRef.current = false;
+      setDrawnPoints(prev => {
+        if (prev.length > 0) {
+          const closedPoints = [...prev, prev[0]];
+          updateOverlay(closedPoints);
+          countItemsInArea(closedPoints);
+          return closedPoints;
+        }
+        return prev;
+      });
     }
-  }, [isDrawing, map])
+  });
 
-  return null
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (overlayRef.current) {
+        overlayRef.current.remove();
+      }
+      if (polylineRef.current) {
+        polylineRef.current.remove();
+      }
+      if (drawingTimeoutRef.current) {
+        cancelAnimationFrame(drawingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Toggle map interactions
+  useEffect(() => {
+    const controls = [
+      map.dragging,
+      map.touchZoom,
+      map.doubleClickZoom,
+      map.scrollWheelZoom,
+      map.boxZoom,
+      map.keyboard,
+      map.tapHold
+    ].filter(Boolean);
+
+    controls.forEach(control => {
+      isDrawing ? control.disable() : control.enable();
+    });
+  }, [isDrawing, map]);
+
+  return null;
+};
+
+// Utility function for throttling
+function throttle(func, limit) {
+  let inThrottle;
+  return function(...args) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
 }
 
 const LeafletMap: React.FC<Props> = ({ housingData }) => {
