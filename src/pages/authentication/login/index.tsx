@@ -9,7 +9,7 @@ import { SubmitHandler } from 'react-hook-form'
 import { LoginForm, VerificationCode } from '@/components/forms'
 import { useState } from 'react'
 import { HandleResponse } from '@/components/shared'
-import { showAlert } from '@/store'
+import { setIsShowLogin, showAlert } from '@/store'
 import { useAppDispatch } from '@/hooks'
 import { roles } from '@/utils'
 
@@ -44,7 +44,6 @@ function LoginPage() {
   }
 
   const submitVerificationCodeHandler: SubmitHandler<CodeFormValues> = ({ code }) => {
-    console.log(phoneNumber, 'phoneNumber -- phoneNumber')
 
     verificationCode({
       code,
@@ -63,6 +62,7 @@ function LoginPage() {
     setTimeout(() => {
       replace(query?.redirectTo?.toString() || '/')
       localStorage.setItem('hasSeenModal', 'true')
+      dispatch(setIsShowLogin(false))
     }, 1000)
   }
   

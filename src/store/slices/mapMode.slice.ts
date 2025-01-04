@@ -1,14 +1,14 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
-interface ProductUpdateState {
+interface State {
   mode: boolean
 }
 
-const initialState: ProductUpdateState = {
+const initialState: State = {
     mode: true,
 }
 
-const productUpdateSlice = createSlice({
+const updateSlice = createSlice({
   name: 'mapMode',
   initialState,
   reducers: {
@@ -18,5 +18,5 @@ const productUpdateSlice = createSlice({
   },
 })
 
-export const { setMapMode } = productUpdateSlice.actions
-export default productUpdateSlice.reducer
+export const { setMapMode } = updateSlice.actions
+export default updateSlice.reducer
