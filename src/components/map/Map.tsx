@@ -575,137 +575,253 @@ const ZoomHandler: React.FC<{ setZoomLevel: (zoom: number) => void }> = ({ setZo
 
   return null
 }
+let isShowAdModalButton = true
+const DrawingControl = ({
+  isDrawing,
+  drawnPoints,
+  setDrawnPoints,
+  polylineRef,
+  housingData,
+  onDrawingComplete,
+  setItemFiles,
+}) => {
+  const map = useMap()
+  const overlayRef = useRef(null)
+  const isDrawingRef = useRef(false)
+  const drawingTimeoutRef = useRef(null)
+  const lastPointRef = useRef(null)
+  const minDistance = 5
 
-const DrawingControl = ({ isDrawing, drawnPoints, setDrawnPoints, polylineRef, housingData }) => {
-  const map = useMap();
-  const overlayRef = useRef(null);
-  const isMouseDownRef = useRef(false);
-  const drawingTimeoutRef = useRef(null);
+  useEffect(() => {
+    if (isDrawing) {
+      setItemFiles([])
 
-  const countItemsInArea = useCallback((points) => {
-    if (points.length < 3) return;
+      if (overlayRef.current) {
+        overlayRef.current.remove()
+        overlayRef.current = null
+      }
 
-    const polygon = turf.polygon([points]);
-    const itemsInArea = housingData.filter((property) => {
-      const point = turf.point([property.location.lat, property.location.lng]);
-      return turf.booleanPointInPolygon(point, polygon);
-    });
+      if (drawingTimeoutRef.current) {
+        cancelAnimationFrame(drawingTimeoutRef.current)
+        drawingTimeoutRef.current = null
+      }
 
-    console.log('Items in area:', itemsInArea.length, itemsInArea);
-  }, [housingData]);
-
-  const updateOverlay = useCallback((points) => {
-    if (!points.length) return;
-
-    if (overlayRef.current) {
-      overlayRef.current.remove();
+      isDrawingRef.current = false
+      lastPointRef.current = null
     }
+  }, [isDrawing])
 
-    // Performance optimization: Only create overlay if we have enough points
-    if (points.length < 3) return;
+  const countItemsInArea = useCallback(
+    (points) => {
+      if (points.length < 3) return
 
-    const bounds = map.getBounds();
-    const outerCoords = [
-      [bounds.getNorth(), bounds.getWest()],
-      [bounds.getNorth(), bounds.getEast()],
-      [bounds.getSouth(), bounds.getEast()],
-      [bounds.getSouth(), bounds.getWest()],
-      [bounds.getNorth(), bounds.getWest()] // Close the outer polygon
-    ];
+      const polygon = turf.polygon([points])
+      const itemsInArea = housingData.filter((property) => {
+        const point = turf.point([property.location.lat, property.location.lng])
+        return turf.booleanPointInPolygon(point, polygon)
+      })
+      setItemFiles(itemsInArea)
+      console.log('Items in area:', itemsInArea.length, itemsInArea)
+    },
+    [housingData]
+  )
 
-    const overlay = L.polygon([outerCoords, points], {
-      color: 'none',
-      fillColor: '#1A1E2566',
-      fillOpacity: 0.45,
-      interactive: false // Improves performance by preventing mouse events
-    }).addTo(map);
+  const getPointDistance = useCallback(
+    (point1, point2) => {
+      if (!point1 || !point2) return Infinity
+      const p1 = map.latLngToContainerPoint(point1)
+      const p2 = map.latLngToContainerPoint(point2)
+      return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2))
+    },
+    [map]
+  )
 
-    overlayRef.current = overlay;
-  }, [map]);
+  const updateOverlay = useCallback(
+    (points) => {
+      if (!points.length) return
 
-  const updatePolyline = useCallback((points) => {
-    if (polylineRef.current) {
-      polylineRef.current.remove();
-    }
+      if (overlayRef.current) {
+        overlayRef.current.remove()
+      }
 
-    const polyline = L.polyline(points, {
-      color: '#FFFFFF', // مشابه رنگ blue-600 در Tailwind
-      weight: 4,
-      smoothFactor: 1,
-      interactive: false
-    }).addTo(map);
+      if (points.length < 3) return
 
-    polylineRef.current = polyline;
-  }, [map]);
+      const bounds = map.getBounds()
+      const outerCoords = [
+        [bounds.getNorth(), bounds.getWest()],
+        [bounds.getNorth(), bounds.getEast()],
+        [bounds.getSouth(), bounds.getEast()],
+        [bounds.getSouth(), bounds.getWest()],
+        [bounds.getNorth(), bounds.getWest()],
+      ]
 
-  // Throttled update function for better performance
+      const overlay = L.polygon([outerCoords, points], {
+        color: 'none',
+        fillColor: '#1A1E2566',
+        fillOpacity: 0.45,
+        interactive: false,
+      }).addTo(map)
+
+      overlayRef.current = overlay
+    },
+    [map]
+  )
+
+  const updatePolyline = useCallback(
+    (points) => {
+      if (polylineRef.current) {
+        polylineRef.current.remove()
+      }
+
+      const polyline = L.polyline(points, {
+        color: 'white',
+        weight: 5,
+        smoothFactor: 1,
+        interactive: false,
+      }).addTo(map)
+
+      polylineRef.current = polyline
+    },
+    [map]
+  )
+
   const throttledUpdate = useCallback(
     throttle((points) => {
-      updatePolyline(points);
-      updateOverlay(points);
-    }, 16), // ~60fps
+      updatePolyline(points)
+      updateOverlay(points)
+    }, 16),
     [updatePolyline, updateOverlay]
-  );
+  )
 
-  useMapEvents({
-    mousedown: (e) => {
-      if (!isDrawing) return;
-      isMouseDownRef.current = true;
-      const newPoint = [e.latlng.lat, e.latlng.lng];
-      setDrawnPoints([newPoint]);
-    },
+  const handleDrawingMove = useCallback(
+    (latlng) => {
+      if (!isDrawingRef.current) return
 
-    mousemove: (e) => {
-      if (!isDrawing || !isMouseDownRef.current) return;
+      const newPoint: any = [latlng.lat, latlng.lng]
+      const lastPoint = lastPointRef.current
 
-      setDrawnPoints(prev => {
-        const newPoint = [e.latlng.lat, e.latlng.lng];
-        const newPoints = [...prev, newPoint];
-        
-        // Clear existing timeout
+      // Check if the new point is far enough from the last point
+      if (lastPoint && getPointDistance(L.latLng(lastPoint), L.latLng(newPoint)) < minDistance) {
+        return
+      }
+
+      lastPointRef.current = newPoint
+
+      setDrawnPoints((prev) => {
+        const newPoints = [...prev, newPoint]
+
         if (drawingTimeoutRef.current) {
-          cancelAnimationFrame(drawingTimeoutRef.current);
+          cancelAnimationFrame(drawingTimeoutRef.current)
         }
 
-        // Schedule update on next animation frame
         drawingTimeoutRef.current = requestAnimationFrame(() => {
-          throttledUpdate(newPoints);
-        });
+          throttledUpdate(newPoints)
+        })
 
-        return newPoints;
-      });
+        return newPoints
+      })
     },
+    [getPointDistance, throttledUpdate]
+  )
 
-    mouseup: () => {
-      if (!isMouseDownRef.current) return;
-      
-      isMouseDownRef.current = false;
-      setDrawnPoints(prev => {
-        if (prev.length > 0) {
-          const closedPoints = [...prev, prev[0]];
-          updateOverlay(closedPoints);
-          countItemsInArea(closedPoints);
-          return closedPoints;
-        }
-        return prev;
-      });
+  // Touch Events
+  useEffect(() => {
+    if (!map || !isDrawing) return
+
+    const container = map.getContainer()
+
+    const handleTouchStart = (e) => {
+      e.preventDefault()
+      const touch = e.touches[0]
+      const point = map.containerPointToLatLng([touch.clientX, touch.clientY])
+      isDrawingRef.current = true
+      setDrawnPoints([])
+      handleDrawingMove(point)
     }
-  });
+
+    const handleTouchMove = (e) => {
+      e.preventDefault()
+      if (!isDrawingRef.current) return
+      const touch = e.touches[0]
+      const point = map.containerPointToLatLng([touch.clientX, touch.clientY])
+      handleDrawingMove(point)
+    }
+
+    const handleTouchEnd = (e) => {
+      e.preventDefault()
+      if (!isDrawingRef.current) return
+      isDrawingRef.current = false
+      lastPointRef.current = null
+
+      setDrawnPoints((prev) => {
+        if (prev.length > 2) {
+          const closedPoints = [...prev, prev[0]]
+          updateOverlay(closedPoints)
+          countItemsInArea(closedPoints)
+          onDrawingComplete() // فراخوانی تابع بعد از اتمام drawing
+          return closedPoints
+        }
+        return prev
+      })
+    }
+
+    // Mouse Events
+    const handleMouseDown = (e) => {
+      const point = map.containerPointToLatLng([e.clientX, e.clientY])
+      isDrawingRef.current = true
+      setDrawnPoints([])
+      handleDrawingMove(point)
+    }
+
+    const handleMouseMove = (e) => {
+      if (!isDrawingRef.current) return
+      const point = map.containerPointToLatLng([e.clientX, e.clientY])
+      handleDrawingMove(point)
+    }
+
+    const handleMouseUp = () => {
+      if (!isDrawingRef.current) return
+      isDrawingRef.current = false
+      lastPointRef.current = null
+
+      setDrawnPoints((prev) => {
+        if (prev.length > 2) {
+          const closedPoints = [...prev, prev[0]]
+          updateOverlay(closedPoints)
+          countItemsInArea(closedPoints)
+          onDrawingComplete() // فراخوانی تابع بعد از اتمام drawing
+          return closedPoints
+        }
+        return prev
+      })
+    }
+
+    // Add event listeners
+    container.addEventListener('touchstart', handleTouchStart, { passive: false })
+    container.addEventListener('touchmove', handleTouchMove, { passive: false })
+    container.addEventListener('touchend', handleTouchEnd, { passive: false })
+    container.addEventListener('mousedown', handleMouseDown)
+    container.addEventListener('mousemove', handleMouseMove)
+    container.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart)
+      container.removeEventListener('touchmove', handleTouchMove)
+      container.removeEventListener('touchend', handleTouchEnd)
+      container.removeEventListener('mousedown', handleMouseDown)
+      container.removeEventListener('mousemove', handleMouseMove)
+      container.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [map, isDrawing, handleDrawingMove, updateOverlay, countItemsInArea])
 
   // Cleanup
   useEffect(() => {
     return () => {
-      if (overlayRef.current) {
-        overlayRef.current.remove();
-      }
-      if (polylineRef.current) {
-        polylineRef.current.remove();
-      }
-      if (drawingTimeoutRef.current) {
-        cancelAnimationFrame(drawingTimeoutRef.current);
-      }
-    };
-  }, []);
+      if (overlayRef.current) overlayRef.current.remove()
+      if (polylineRef.current) polylineRef.current.remove()
+      if (drawingTimeoutRef.current) cancelAnimationFrame(drawingTimeoutRef.current)
+    }
+  }, [])
 
   // Toggle map interactions
   useEffect(() => {
@@ -716,27 +832,26 @@ const DrawingControl = ({ isDrawing, drawnPoints, setDrawnPoints, polylineRef, h
       map.scrollWheelZoom,
       map.boxZoom,
       map.keyboard,
-      map.tapHold
-    ].filter(Boolean);
+      map.tapHold,
+    ].filter(Boolean)
 
-    controls.forEach(control => {
-      isDrawing ? control.disable() : control.enable();
-    });
-  }, [isDrawing, map]);
+    controls.forEach((control) => {
+      isDrawing ? control.disable() : control.enable()
+    })
+  }, [isDrawing, map])
 
-  return null;
-};
+  return null
+}
 
-// Utility function for throttling
 function throttle(func, limit) {
-  let inThrottle;
-  return function(...args) {
+  let inThrottle
+  return function (...args) {
     if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      func.apply(this, args)
+      inThrottle = true
+      setTimeout(() => (inThrottle = false), limit)
     }
-  };
+  }
 }
 
 const LeafletMap: React.FC<Props> = ({ housingData }) => {
@@ -746,6 +861,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   const dispatch = useAppDispatch()
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
+  const [itemFiles, setItemFiles] = useState([])
   const [isSatelliteView, setIsSatelliteView] = useState(false)
   const [tileLayerUrl, setTileLayerUrl] = useState('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
   const [zoomLevel, setZoomLevel] = useState(12)
@@ -771,6 +887,11 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
       }
     }
   }
+
+  // اضافه کردن تابع جدید برای مدیریت اتمام drawing
+  const handleDrawingComplete = useCallback(() => {
+    setIsDrawing(false)
+  }, [])
 
   const completeDrawing = () => {
     if (drawnPoints.length < 3) {
@@ -819,10 +940,9 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
 
   const handleNavigate = (): void => {
     const logged = localStorage.getItem('loggedIn')
-    if (role === "User") {
+    if (role === 'User') {
       dispatch(setIsShowLogin(true))
-    }
-    else if (logged === 'true') {
+    } else if (logged === 'true') {
       push('/housing/ad')
     } else {
       push({
@@ -850,24 +970,30 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           <SendIcon width="26px" height="26px" />
         </button>
         <button
-          className={`${isDrawing ? 'bg-[#1A1E25]' : 'bg-white'} w-[48px] h-[48px] rounded-lg flex-center shadow-icon ${
-            isDrawing ? 'bg-blue-500' : ''
-          }`}
+          className={`${isDrawing ? 'bg-[#1A1E25]' : 'bg-white'} w-[48px] h-[48px] rounded-lg flex-center shadow-icon`}
           onClick={handleDrawButtonClick}
         >
           {isDrawing ? <Close className="text-[28px] text-white" /> : <FingerIcon width="26px" height="29px" />}
         </button>
       </div>
-
-      <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] left-4 z-[1000]">
-        <div
-          onClick={handleNavigate}
-          className="bg-white hover:bg-gray-50 w-[131px] h-[56px] rounded-[59px] flex-center gap-2 shadow-icon cursor-pointer"
-        >
-          <RegisterAdIcon width="32px" height="32px" />
-          <span className="font-semibold text-[16px]">ثبت آگهی</span>
+      {isShowAdModalButton && (
+        <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] left-4 z-[1000]">
+          <div
+            onClick={handleNavigate}
+            className="bg-white hover:bg-gray-50 w-[131px] h-[56px] rounded-[59px] flex-center gap-2 shadow-icon cursor-pointer"
+          >
+            <RegisterAdIcon width="32px" height="32px" />
+            <span className="font-semibold text-[16px]">ثبت آگهی</span>
+          </div>
         </div>
-      </div>
+      )}
+      {itemFiles.length > 0 && (
+        <div className="absolute flex-center gap-y-2.5 bottom-[155px] left-4 z-[1000]">
+          <div className="bg-[#FFF0F2] farsi-digits w-[102px] h-[24px] text-[#9D9D9D] font-normal text-xs rounded-[59px] flex-center gap-2 shadow-icon cursor-pointer">
+            {itemFiles.length} فایل موجود
+          </div>
+        </div>
+      )}
 
       <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
         <Modal.Content
@@ -904,6 +1030,8 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           setDrawnPoints={setDrawnPoints}
           polylineRef={polylineRef}
           housingData={housingData}
+          onDrawingComplete={handleDrawingComplete}
+          setItemFiles={setItemFiles}
         />
         <ZoomHandler setZoomLevel={setZoomLevel} />
         <TileLayer
