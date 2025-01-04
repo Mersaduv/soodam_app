@@ -42,7 +42,7 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
 
             <Link
               href={{
-                pathname: '/authentication/login',
+                pathname: '/',
                 query: { role: 'User' },
               }}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
