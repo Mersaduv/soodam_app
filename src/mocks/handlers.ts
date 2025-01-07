@@ -706,6 +706,73 @@ const featureCategories = [
   { featureId: "f87ac4d1", categoryId: "5-1-1" },
 ];
 
+const requestCategoryFeatures = [
+  { featureId: "f87ac4d1", categoryId: "1-1" },
+  { featureId: "b92df63e", categoryId: "1-1" },
+  { featureId: "a51c28f7", categoryId: "1-1" },
+  { featureId: "d38fa92p", categoryId: "1-1" },
+  { featureId: "f73bd91c", categoryId: "1-1" },
+  { featureId: "b68ad74e", categoryId: "1-1" },
+  { featureId: "e12ad83c", categoryId: "1-1" },
+  { featureId: "f84ab71d", categoryId: "1-1" },
+  { featureId: "a36cd92e", categoryId: "1-1" },
+  { featureId: "c85fe91b", categoryId: "1-1" },
+  { featureId: "d93ab82c", categoryId: "1-1" },
+  { featureId: "b4134ffe4333", categoryId: "1-1" },
+  { featureId: "b41dewew9824333", categoryId: "1-1" },
+  { featureId: "b41ad0a3", categoryId: "1-1" },
+  { featureId: "f91ab64e", categoryId: "1-1" },
+  { featureId: "a53fe92b", categoryId: "1-1" },
+  { featureId: "b81ad74c", categoryId: "1-1" },
+  { featureId: "b41ad7r9", categoryId: "1-1" },
+  { featureId: "2d3acsdf333d1", categoryId: "1-1" },
+  { featureId: "b41fc83a", categoryId: "1-1" },
+  { featureId: "f89cd72e", categoryId: "1-1" },
+
+  { featureId: "f87ac4d1", categoryId: "2-1" },
+  { featureId: "b92df63e", categoryId: "2-1" },
+  { featureId: "a51c28f7", categoryId: "2-1" },
+  { featureId: "d38fa92p", categoryId: "2-1" },
+  { featureId: "f73bd91c", categoryId: "2-1" },
+  { featureId: "b68ad74e", categoryId: "2-1" },
+  { featureId: "e12ad83c", categoryId: "2-1" },
+  { featureId: "f84ab71d", categoryId: "2-1" },
+  { featureId: "a36cd92e", categoryId: "2-1" },
+  { featureId: "c85fe91b", categoryId: "2-1" },
+  { featureId: "d93ab82c", categoryId: "2-1" },
+  { featureId: "b4134ffe4333", categoryId: "2-1" },
+  { featureId: "b41dewew9824333", categoryId: "2-1" },
+  { featureId: "b41ad0a3", categoryId: "2-1" },
+  { featureId: "f91ab64e", categoryId: "2-1" },
+  { featureId: "a53fe92b", categoryId: "2-1" },
+  { featureId: "b81ad74c", categoryId: "2-1" },
+  { featureId: "b41ad7r9", categoryId: "2-1" },
+  { featureId: "2d3acsdf333d1", categoryId: "2-1" },
+  { featureId: "b41fc83a", categoryId: "2-1" },
+  { featureId: "f89cd72e", categoryId: "2-1" },
+
+  { featureId: "f87ac4d1", categoryId: "2-3" },
+  { featureId: "b41ddsfs8ue8243wd333", categoryId: "2-3" },
+  { featureId: "b41ddsFer422224333", categoryId: "2-3" },
+  { featureId: "f87safe3d1", categoryId: "2-3" },
+  { featureId: "b41ddsfs8ue824333", categoryId: "2-3" },
+
+
+  { featureId: "b41ddsfssafsdse824333", categoryId: "5" },
+  { featureId: "b41ddsfs8ue8243wd333", categoryId: "5" },
+  { featureId: "f87safe3d1", categoryId: "5" },
+  { featureId: "b41ddsfs8ue824333", categoryId: "5" },
+
+  { featureId: "f87ac4d1", categoryId: "4" },
+  { featureId: "b92df63e", categoryId: "4" },
+  { featureId: "e234csdf3wdd", categoryId: "4" },
+  { featureId: "a51c28f7", categoryId: "4" },
+
+  { featureId: "f87ac4d1", categoryId: "3" },
+  { featureId: "b92df63e", categoryId: "3" },
+  { featureId: "e234csdf3wdd", categoryId: "3" },
+  { featureId: "a51c28f7", categoryId: "3" },
+]
 
 export const handlers = [
   rest.post('/api/auth/send-code', async (req, res, ctx) => {
@@ -823,6 +890,19 @@ export const handlers = [
   }),
 
   rest.get('/api/features/by-category/:categoryId', (req, res, ctx) => {
+    const { categoryId } = req.params;
+    
+    const categoryFeatures = getFeaturesByCategory(categoryId as string);
+    return res(
+      ctx.status(200),
+      ctx.json({
+        message: 'Success',
+        data: categoryFeatures
+      })
+    );
+  }),
+
+  rest.get('/api/request-features/by-category/:categoryId', (req, res, ctx) => {
     const { categoryId } = req.params;
     
     const categoryFeatures = getFeaturesByCategory(categoryId as string);

@@ -8,6 +8,7 @@ import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet'
 interface Props {
   selectedLocation: [number, number]
   handleLocationChange: (location: [number, number]) => void
+  label: string
 }
 
 interface LocationPickerProps {
@@ -40,10 +41,10 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationChange }) => 
 }
 
 const MapLocationPicker = (props: Props) => {
-  const { selectedLocation, handleLocationChange } = props
+  const { selectedLocation, handleLocationChange, label } = props
   return (
     <div>
-      <label className="block text-sm font-normal text-gray-700 mb-2">لوکیشن دقیق ملک</label>
+      <label className="block text-sm font-normal text-gray-700 mb-2">{label}</label>
       <div style={{ position: 'relative' }}>
         <div className="absolute flex flex-col gap-y-2.5 bottom-[9px] right-3 z-[999]">
           <div className="bg-white w-[32px] h-[32px] rounded-lg flex-center shadow-icon cursor-pointer">

@@ -33,7 +33,7 @@ const ClientLayout: React.FC<Props> = ({ children, title }) => {
   }, [modalHandlers])
 
   const handleModalClose = (): void => {
-    setIsShowLogin(false)
+    dispatch(setIsShowLogin(false))
     localStorage.setItem('hasSeenModal', 'true')
     modalHandlers.close()
   }

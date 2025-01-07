@@ -45,6 +45,7 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
                 pathname: '/',
                 query: { role: 'User' },
               }}
+              onClick={onClose}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">

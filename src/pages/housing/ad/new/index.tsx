@@ -8,13 +8,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 
 const NewAdPage: NextPage = () => {
-      // ? Assets
+  // ? Assets
   const { query } = useRouter()
   return (
-    <ClientLayout title={`${query.role === "Marketer" ? "ثبت آگهی به عنوان بازاریاب" : "ثبت آگهی شخصی"}`}>
+    <ClientLayout title={`${query.role === 'Marketer' ? 'ثبت آگهی به عنوان بازاریاب' : 'ثبت آگهی شخصی'}`}>
       <div className="pt-[90px] px-4">
-      {query.role === "Marketer" ? "ثبت آگهی فرم بعنوان .." : <AdvertisementRegistrationForm />}
-      </div> 
+        {query.role === 'Marketer' ? 'ثبت آگهی فرم بعنوان ..' : <AdvertisementRegistrationForm />}
+      </div>
     </ClientLayout>
   )
 }

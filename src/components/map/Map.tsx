@@ -419,6 +419,7 @@ import {
   RegisterAdIcon,
   ArrowDownTickIcon,
   Close,
+  FingerWIcon,
 } from '@/icons'
 import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
@@ -584,6 +585,8 @@ const DrawingControl = ({
   housingData,
   onDrawingComplete,
   setItemFiles,
+  mode,
+  setMode,
 }) => {
   const map = useMap()
   const overlayRef = useRef(null)
@@ -591,6 +594,31 @@ const DrawingControl = ({
   const drawingTimeoutRef = useRef(null)
   const lastPointRef = useRef(null)
   const minDistance = 5
+
+  useEffect(() => {
+    if (mode === 'dispose') {
+      setItemFiles([])
+      setDrawnPoints([])
+
+      if (overlayRef.current) {
+        overlayRef.current.remove()
+        overlayRef.current = null
+      }
+
+      if (polylineRef.current) {
+        polylineRef.current.remove()
+      }
+
+      if (drawingTimeoutRef.current) {
+        cancelAnimationFrame(drawingTimeoutRef.current)
+        drawingTimeoutRef.current = null
+      }
+
+      isDrawingRef.current = false
+      lastPointRef.current = null
+      setMode('none')
+    }
+  }, [mode])
 
   useEffect(() => {
     if (isDrawing) {
@@ -870,7 +898,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   const [selectedArea, setSelectedArea] = useState(null)
   const mapRef = useRef(null)
   const polylineRef = useRef(null)
-
+  const [mode, setMode] = useState('none') // 'none', 'drawing', 'checking', 'dispose'
   const mapStyle = {
     width: '100%',
     height: '100%',
@@ -878,21 +906,40 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   }
 
   const handleDrawButtonClick = () => {
-    setIsDrawing(!isDrawing)
-    if (!isDrawing) {
+    if (mode === 'none') {
+      setMode('drawing')
+      setIsDrawing(true)
       setDrawnPoints([])
       setSelectedArea(null)
+      if (polylineRef.current) {
+        polylineRef.current.remove()
+      }
+    } else if (mode === 'checking') {
+      setMode('dispose')
+      setIsDrawing(false)
+      setDrawnPoints([])
+      setItemFiles([])
       if (polylineRef.current) {
         polylineRef.current.remove()
       }
     }
   }
 
-  // اضافه کردن تابع جدید برای مدیریت اتمام drawing
   const handleDrawingComplete = useCallback(() => {
     setIsDrawing(false)
+    setMode('checking')
   }, [])
 
+  const renderButtonContent = () => {
+    switch (mode) {
+      case 'drawing':
+        return <FingerWIcon width="26px" height="29px" fill="#FDFDFD" />
+      case 'checking':
+        return <Close className="text-[28px] text-white" />
+      default:
+        return <FingerIcon width="26px" height="29px" />
+    }
+  }
   const completeDrawing = () => {
     if (drawnPoints.length < 3) {
       alert('لطفا حداقل سه نقطه را انتخاب کنید')
@@ -970,10 +1017,13 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           <SendIcon width="26px" height="26px" />
         </button>
         <button
-          className={`${isDrawing ? 'bg-[#1A1E25]' : 'bg-white'} w-[48px] h-[48px] rounded-lg flex-center shadow-icon`}
+          className={`${mode === 'drawing' ? 'bg-[#1A1E25]' : ''} ${mode === 'checking' ? 'bg-[#1A1E25]' : ''} ${
+            mode !== 'drawing' && mode !== 'checking' && 'bg-white'
+          } w-[48px] h-[48px] rounded-lg flex-center shadow-icon`}
           onClick={handleDrawButtonClick}
+          disabled={mode === 'drawing'}
         >
-          {isDrawing ? <Close className="text-[28px] text-white" /> : <FingerIcon width="26px" height="29px" />}
+          {renderButtonContent()}
         </button>
       </div>
       {isShowAdModalButton && (
@@ -1032,6 +1082,8 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           housingData={housingData}
           onDrawingComplete={handleDrawingComplete}
           setItemFiles={setItemFiles}
+          mode={mode}
+          setMode={setMode}
         />
         <ZoomHandler setZoomLevel={setZoomLevel} />
         <TileLayer

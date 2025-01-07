@@ -31,41 +31,25 @@ import {
   useLazyGetFeaturesByCategoryQuery,
 } from '@/services'
 import { useRouter } from 'next/router'
-import { AdFormValues, Category, Feature } from '@/types'
-import { validationSchema } from '@/utils'
+import { AdFormValues, Category, Feature, RequestFormValues } from '@/types'
+import { validationRequestSchema, validationSchema } from '@/utils'
 import { IoMdClose } from 'react-icons/io'
-const rentalTerms = [
-  { id: 1, name: 'روزهای عادی (شنبه تا سه شنبه)', icon: CalendarIcon },
-  { id: 2, name: 'آخر هفته (چهارشنبه تا جمعه)', icon: CalendarTickIcon },
-  { id: 3, name: 'روزهای خاص (تعطیلات و مناسبت ها)', icon: CalendarSearchIcon },
-  { id: 4, name: 'هزینه هر نفر اضافه (به ازای هر شب)', icon: ProfileAddIcon },
-]
-
 const MapLocationPicker = dynamic(() => import('@/components/map/MapLocationPicker'), { ssr: false })
 
-const AdvertisementRegistrationForm: React.FC = () => {
+const RequestRegistrationForm: React.FC = () => {
   // ? Assets
   const { query } = useRouter()
   // ? States
+  const [selectedCategory, setSelectedCategory] = useState<Category>(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [isShow, modalHandlers] = useDisclosure()
-  const [isShowRentalTerms, modalRentalTermsHandlers] = useDisclosure()
+  const [featureData, setFeatureData] = useState<Feature[]>([])
+  const [isConvertible, setIsConvertible] = useState(false)
+  const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null)
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null)
   const [openIndex, setOpenIndex] = useState(null)
-  const [isConvertible, setIsConvertible] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState<Category>(null)
-  const [selectedRentalTerm, setSelectedRentalTerm] = useState<{ id: number; name: string }>(null)
-  const [isSelectCategorySkip, setIsSelectCategorySkip] = useState(true)
-  const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
-  const [selectedValues, setSelectedValues] = useState({})
   const [openDropdowns, setOpenDropdowns] = useState({})
-  const [featureData, setFeatureData] = useState<Feature[]>([])
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const maxFiles = 8
-  const [selectedVideos, setSelectedVideos] = useState<File[]>([])
-  const maxVideos = 3
-  const [playingIndex, setPlayingIndex] = useState(null)
+  const [selectedValues, setSelectedValues] = useState({})
   // ? Queries
   const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
@@ -109,22 +93,20 @@ const AdvertisementRegistrationForm: React.FC = () => {
     setValue,
     getValues,
     formState: { errors },
-  } = useForm<AdFormValues>({
-    resolver: yupResolver(validationSchema({ features: featureData, dealType })) as unknown as Resolver<AdFormValues>,
+  } = useForm<RequestFormValues>({
+    resolver: yupResolver(
+      validationRequestSchema({ features: featureData, dealType })
+    ) as unknown as Resolver<RequestFormValues>,
     mode: 'onChange',
     context: { dealType },
     defaultValues: {
       features: featureData
         .filter((item) => item.type === 'radio')
         .reduce((acc, field) => {
-          acc[field.id] = 'اولویت ندارد'
+          acc[field.id] = 'ندارد'
           return acc
         }, {}),
       convertible: false,
-      media: {
-        images: [],
-        videos: [],
-      },
       location: {
         lat: 0,
         lng: 0,
@@ -178,7 +160,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
   }, [isConvertible, setValue])
 
   //? submit final step
-  const onSubmit = (data: AdFormValues) => {
+  const onSubmit = (data: RequestFormValues) => {
     console.log('Form submitted:', data)
   }
 
@@ -187,7 +169,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
 
     switch (currentStep) {
       case 0:
-        fieldsToValidate = ['phoneNumber', 'postalCode', 'address', 'category', 'location']
+        fieldsToValidate = ['phoneNumber', 'fullName', 'category', 'location']
         break
       case 1:
         fieldsToValidate = [
@@ -202,9 +184,6 @@ const AdvertisementRegistrationForm: React.FC = () => {
         break
       case 2:
         fieldsToValidate = ['title', 'features']
-        break
-      case 3:
-        fieldsToValidate = ['media']
         break
     }
 
@@ -226,12 +205,12 @@ const AdvertisementRegistrationForm: React.FC = () => {
     }
   }
 
-  const handleModalClose = (): void => {
-    modalHandlers.close()
-  }
-
   const handleLocationChange = (location: [number, number]) => {
     setSelectedLocation(location)
+  }
+
+  const handleModalClose = (): void => {
+    modalHandlers.close()
   }
 
   const handleSelectCategory = (category: Category) => {
@@ -244,92 +223,8 @@ const AdvertisementRegistrationForm: React.FC = () => {
     handleModalClose()
   }
 
-  const handleSelectRentalTerms = (item: { id: number; name: string }) => {
-    if (selectedRentalTerm && selectedRentalTerm.id === item.id) {
-      setSelectedRentalTerm(null)
-      setValue('rentalTerms', null)
-    } else {
-      setSelectedRentalTerm(item)
-      setValue('rentalTerms', item)
-    }
-    modalRentalTermsHandlers.close()
-  }
-
   const toggleDropdown = (id: string) => {
     setOpenDropdowns((prev) => ({ ...prev, [id]: !prev[id] }))
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (selectedFiles.length === maxFiles) return
-    if (files) {
-      const validFiles: any[] = []
-
-      Array.from(files).forEach((file) => {
-        const img = new Image()
-        img.src = URL.createObjectURL(file)
-
-        img.onload = () => {
-          URL.revokeObjectURL(img.src)
-          validFiles.push(file)
-          if (validFiles.length === Array.from(files).length) {
-            setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles])
-            if (validFiles.length > 0) {
-              setValue('media.images', ((getValues('media.images') as File[]) || []).concat(validFiles))
-            } else {
-              setValue('media.images', [])
-            }
-          }
-        }
-      })
-    }
-  }
-
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (selectedVideos.length === maxVideos) return
-    if (files) {
-      setSelectedVideos([...selectedVideos, ...Array.from(files)])
-    }
-  }
-
-  const handleDelete = (index: number, type = 'pic') => {
-    if (type === 'pic') {
-      setSelectedFiles((prevFiles) => {
-        const updatedFiles = [...prevFiles]
-        updatedFiles.splice(index, 1)
-        return updatedFiles
-      })
-
-      setValue(
-        'media.images',
-        ((getValues('media.images') as File[]) || []).filter((_, i) => i !== index)
-      )
-    } else {
-      setSelectedVideos((prevFiles) => {
-        const updatedFiles = [...prevFiles]
-        updatedFiles.splice(index, 1)
-        return updatedFiles
-      })
-
-      setValue(
-        'media.videos',
-        ((getValues('media.videos') as File[]) || []).filter((_, i) => i !== index)
-      )
-    }
-  }
-
-  const mapCategoryName = (name: string) => {
-    if (name.includes('خرید')) {
-      return name.replace('خرید', 'فروش')
-    }
-    return name
-  }
-
-  if (isFetching) return <div>loading...</div>
-
-  if (features) {
-    console.log(features, 'features')
   }
 
   let stepTitle = 'قیمت'
@@ -342,8 +237,9 @@ const AdvertisementRegistrationForm: React.FC = () => {
     stepTitle = 'شرایط اجاره'
   }
 
-  const steps = ['مشخصات', stepTitle, 'ویژگی‌ها', 'عکس و ویدئو']
+  const steps = ['مشخصات', stepTitle, 'ویژگی‌ها']
 
+  if (isFetching) return <div>loading...</div>
   if (errors) {
     console.log(errors, 'errors--errors')
   }
@@ -371,7 +267,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
                           <div className="flex gap-x-1.5 items-center">
                             <img className="w-[24px] h-[24px]" src={item.imageUrl} alt={item.name} />
                             <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
-                              {mapCategoryName(item.name)}
+                              {item.name}
                             </span>
                           </div>
                           <ArrowLeftIcon
@@ -393,9 +289,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
                                               : ''
                                           }`}
                                         >
-                                          <span className="font-light text-[14px] text-[#5A5A5A]">
-                                            {mapCategoryName(subItem.name)}
-                                          </span>
+                                          <span className="font-light text-[14px] text-[#5A5A5A]">{subItem.name}</span>
                                           <ArrowLeftIcon
                                             className={`w-5 h-5 ml-4 ${
                                               subOpen ? '' : 'rotate-90 text-gray-700'
@@ -414,7 +308,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
                                               }`}
                                             >
                                               <span className="font-light text-[14px] text-[#5A5A5A]">
-                                                {mapCategoryName(childItem.name)}
+                                                {childItem.name}
                                               </span>
                                             </div>
                                           ))}
@@ -431,52 +325,13 @@ const AdvertisementRegistrationForm: React.FC = () => {
                                         : ''
                                     }`}
                                   >
-                                    <span className="font-light text-[14px] text-[#5A5A5A]">
-                                      {mapCategoryName(subItem.name)}
-                                    </span>
+                                    <span className="font-light text-[14px] text-[#5A5A5A]">{subItem.name}</span>
                                   </div>
                                 )}
                               </div>
                             ))}
                           </Disclosure.Panel>
                         )}
-                      </>
-                    )}
-                  </Disclosure>
-                ))}
-              </div>
-            </div>
-          </Modal.Body>
-        </Modal.Content>
-      </Modal>
-
-      <Modal isShow={isShowRentalTerms} onClose={modalRentalTermsHandlers.close} effect="buttom-to-fit">
-        <Modal.Content
-          onClose={modalRentalTermsHandlers.close}
-          className="flex h-full flex-col gap-y-5 bg-white p-4 rounded-2xl rounded-b-none"
-        >
-          <Modal.Header onClose={modalRentalTermsHandlers.close}>
-            <div className="pt-4">اجاره</div>
-          </Modal.Header>
-          <Modal.Body>
-            <div className=" mt-2 w-full z-10">
-              <div className="flex flex-col gap-y-3.5 px-1 py-2">
-                {rentalTerms.map((item, index) => (
-                  <Disclosure key={index}>
-                    {() => (
-                      <>
-                        <Disclosure.Button
-                          onClick={() => handleSelectRentalTerms({ id: item.id, name: item.name })}
-                          className="!mt-0 flex w-full items-center justify-between py-2"
-                        >
-                          <div className="flex gap-x-2 items-center">
-                            <item.icon />
-                            <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
-                              {item.name}
-                            </span>
-                          </div>
-                          <ArrowLeftIcon className={`w-5 h-5 rotate-90 transition-all`} />
-                        </Disclosure.Button>
                       </>
                     )}
                   </Disclosure>
@@ -519,7 +374,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
           <div className="h-[54px] bg-[#FFE2E5] border border-[#D52133] rounded-[8px] flex-center mx-4 mt-12 ">
             <HouseIcon width="24px" height="24px" />
             <div className="text-sm font-normal text-[#D52133] whitespace-nowrap mr-1">دسته بندی:</div>
-            <div className="font-medium text-base text-[#D52133] pr-1.5 ">{mapCategoryName(selectedCategory.name)}</div>
+            <div className="font-medium text-base text-[#D52133] pr-1.5 ">{selectedCategory.name}</div>
           </div>
         )}
 
@@ -528,6 +383,21 @@ const AdvertisementRegistrationForm: React.FC = () => {
           {/* Step 1: مشخصات */}
           {currentStep === 0 && (
             <div className="space-y-4">
+              <Controller
+                name="fullName"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    adForm
+                    label="نام و نام خانوادگی"
+                    type="text"
+                    {...field}
+                    control={control}
+                    errors={errors.fullName}
+                    placeholder="نام و نام خانوادگی (اجباری)"
+                  />
+                )}
+              />
               <Controller
                 name="phoneNumber"
                 control={control}
@@ -544,62 +414,6 @@ const AdvertisementRegistrationForm: React.FC = () => {
                 )}
               />
 
-              <Controller
-                name="nationalCode"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    adForm
-                    label="کد ملی مالک"
-                    type="number"
-                    {...field}
-                    control={control}
-                    errors={errors.nationalCode}
-                    placeholder="کد ملی (اختیاری)"
-                  />
-                )}
-              />
-
-              <Controller
-                name="postalCode"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    adForm
-                    label="کد پستی"
-                    {...field}
-                    control={control}
-                    errors={errors.postalCode}
-                    placeholder="کد پستی (اجباری)"
-                  />
-                )}
-              />
-
-              <MapLocationPicker
-                label={'لوکیشن دقیق ملک'}
-                selectedLocation={selectedLocation}
-                handleLocationChange={handleLocationChange}
-              />
-
-              <div className="space-y-31">
-                <label
-                  className="block text-sm font-normal mb-2 text-gray-700 md:min-w-max lg:text-sm"
-                  htmlFor="address"
-                >
-                  آدرس نوشتاری دقیق ملک را مشخص کنید
-                </label>
-                <textarea
-                  placeholder="آدرس کامل را وارد کنید"
-                  className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs pr-2"
-                  id="address"
-                  {...register('address')}
-                />
-                <div className="w-fit" dir={'ltr'}>
-                  {' '}
-                  <DisplayError adForm errors={errors.address} />
-                </div>
-              </div>
-
               <div>
                 <label
                   className={`block text-sm font-normal mb-2  text-gray-700 md:min-w-max lg:text-sm`}
@@ -613,7 +427,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
                 >
                   <span className="text-[14px]">
                     {!isShow}
-                    {selectedCategory ? mapCategoryName(selectedCategory.name) : 'انتخاب'}
+                    {selectedCategory ? selectedCategory.name : 'انتخاب'}
                   </span>
                   <ArrowLeftIcon
                     className={`w-5 h-5 text-[#9D9D9D] transition-transform ${isShow ? 'rotate-180' : ''}`}
@@ -624,80 +438,147 @@ const AdvertisementRegistrationForm: React.FC = () => {
                   <DisplayError adForm errors={errors.category} />
                 </div>
               </div>
+              <MapLocationPicker
+                label={'محدوده ملک'}
+                selectedLocation={selectedLocation}
+                handleLocationChange={handleLocationChange}
+              />
             </div>
           )}
-
-          {/* Step 2: قیمت */}
+          {/* /* Step 2: قیمت */}
           {currentStep === 1 &&
             (dealType === 'sale' ? (
               <div className="space-y-4">
-                <Controller
-                  name="price"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      adForm
-                      label="قیمت فروش"
-                      type="number"
-                      {...field}
+                <div className="flex">
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                    <Controller
+                      name="priceRange.from"
                       control={control}
-                      errors={errors.price}
-                      placeholder="مثال : 100 میلیون تومان"
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="قیمت فروش"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.priceRange?.from}
+                          placeholder="مثال: 100 میلیون تومان"
+                        />
+                      )}
                     />
-                  )}
-                />
-
-                <Controller
-                  name="discount"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      adForm
-                      label="تخفیف"
-                      type="number"
-                      {...field}
+                  </div>
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                    <Controller
+                      name="priceRange.to"
                       control={control}
-                      errors={errors.discount}
-                      placeholder="مثال : 10 میلیون(اختیاری)"
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="isTo"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.priceRange?.to}
+                          placeholder="مثال: 1 میلیارد تومان"
+                        />
+                      )}
                     />
-                  )}
-                />
+                  </div>
+                </div>
               </div>
             ) : dealType === 'rent' ? (
               <div className="space-y-4">
-                <Controller
-                  name="deposit"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      adForm
-                      compacted
-                      label="رهن یا ودیعه"
-                      type="number"
-                      {...field}
+                <div className="flex">
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                    <Controller
+                      name="depositRange.from"
                       control={control}
-                      errors={errors.deposit}
-                      placeholder="مثال : 100 میلیون تومان"
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="رهن یا ودیعه"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.depositRange?.from}
+                          placeholder="مثال: 100 میلیون تومان"
+                        />
+                      )}
                     />
-                  )}
-                />
+                  </div>
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                    <Controller
+                      name="depositRange.to"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="isTo"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.depositRange?.to}
+                          placeholder="مثال: 12 میلیارد تومان"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
 
-                <Controller
-                  name="rent"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      adForm
-                      compacted
-                      label="اجاره ماهیانه"
-                      type="number"
-                      {...field}
+                <div className="flex">
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                    <Controller
+                      name="rent.from"
                       control={control}
-                      errors={errors.rent}
-                      placeholder="مثال : 10 میلیون "
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="اجاره ماهیانه"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.rent?.from}
+                          placeholder="مثال: 100,000 تومان"
+                        />
+                      )}
                     />
-                  )}
-                />
+                  </div>
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                    <Controller
+                      name="rent.to"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="isTo"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.rent?.to}
+                          placeholder="مثال: 10,000,000 تومان"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
 
                 <div className="flex flex-row-reverse items-center gap-2 w-full pt-2">
                   <CustomCheckbox
@@ -715,100 +596,185 @@ const AdvertisementRegistrationForm: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <InfoCircleIcon width="16px" height="16px" />
                   <span className="text-[#5A5A5A] font-normal text-xs">
-                    به ازای هر یک میلیون تومان ودیعه 30 هزار تومان اجاره عرف بازار می باشد.
+                    به ازای هر یک میلیون تومان ودیعه 30 هزار تومان اجاره عرف بازار می‌باشد.
                   </span>
                 </div>
               </div>
             ) : dealType === 'shortRent' ? (
               <div className="space-y-4">
-                <Controller
-                  name="capacity"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      adForm
-                      compacted
-                      label="ظرفیت"
-                      type="number"
-                      {...field}
+                <div className="flex">
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                    <Controller
+                      name="capacity.from"
                       control={control}
-                      errors={errors.capacity}
-                      placeholder="مثال : 10 نفر"
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="ظرفیت"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.capacity?.from}
+                          placeholder="مثال: 5 نفر"
+                        />
+                      )}
                     />
-                  )}
-                />
-
-                <Controller
-                  name="extraPeople"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      adForm
-                      compacted
-                      label="نفرات اضافه"
-                      type="number"
-                      {...field}
+                  </div>
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                    <Controller
+                      name="capacity.to"
                       control={control}
-                      errors={errors.extraPeople}
-                      placeholder="مثال : 2 نفر"
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="isTo"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.capacity?.to}
+                          placeholder="مثال: 20 نفر"
+                        />
+                      )}
                     />
-                  )}
-                />
+                  </div>
+                </div>
 
-                <div>
-                  <label
-                    className={`block text-sm font-normal mb-2  text-gray-700 md:min-w-max lg:text-sm`}
-                    htmlFor="category"
-                  >
-                    اجاره
-                  </label>
-                  <div
-                    onClick={modalRentalTermsHandlers.open}
-                    className="w-full cursor-pointer border-[1.5px] bg-[#FCFCFC] rounded-[8px] px-4 h-[40px] text-right text-[#5A5A5A] flex justify-between items-center"
-                  >
-                    <span className="text-[14px]">
-                      {!isShowRentalTerms}
-                      {selectedRentalTerm ? selectedRentalTerm.name : 'انتخاب'}
-                    </span>
-                    <ArrowLeftIcon
-                      className={`w-5 h-5 text-[#9D9D9D] transition-transform ${isShowRentalTerms ? 'rotate-180' : ''}`}
+                <div className="flex">
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                    <Controller
+                      name="extraPeople.from"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="نفرات اضافه"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.extraPeople?.from}
+                          placeholder="مثال: 1 نفر"
+                        />
+                      )}
+                    />
+                  </div>
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                    <Controller
+                      name="extraPeople.to"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="isTo"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.extraPeople?.to}
+                          placeholder="مثال: 5 نفر"
+                        />
+                      )}
                     />
                   </div>
                 </div>
               </div>
             ) : dealType === 'constructionProjects' ? (
               <div className="space-y-4">
-                <Controller
-                  name="producerProfitPercentage"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      adForm
-                      label="درصد سود سازنده"
-                      type="number"
-                      {...field}
+                <div className="flex">
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                    <Controller
+                      name="producerProfitPercentage.from"
                       control={control}
-                      errors={errors.producerProfitPercentage}
-                      placeholder="مثال: 50 درصد"
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="درصد سود سازنده"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.producerProfitPercentage?.from}
+                          placeholder="مثال: 20 درصد"
+                        />
+                      )}
                     />
-                  )}
-                />
+                  </div>
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                    <Controller
+                      name="producerProfitPercentage.to"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="isTo"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.producerProfitPercentage?.to}
+                          placeholder="مثال: 50 درصد"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
 
-                <Controller
-                  name="ownerProfitPercentage"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      adForm
-                      label="درصد سود مالک"
-                      type="number"
-                      {...field}
+                <div className="flex">
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                    <Controller
+                      name="ownerProfitPercentage.from"
                       control={control}
-                      errors={errors.ownerProfitPercentage}
-                      placeholder="مثال: 50 درصد"
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="درصد سود مالک"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.ownerProfitPercentage?.from}
+                          placeholder="مثال: 10 درصد"
+                        />
+                      )}
                     />
-                  )}
-                />
+                  </div>
+                  <div className="flex gap-2 w-full">
+                    <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                    <Controller
+                      name="ownerProfitPercentage.to"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          isFromTo
+                          adForm
+                          compacted
+                          label="isTo"
+                          type="number"
+                          {...field}
+                          control={control}
+                          errors={errors.ownerProfitPercentage?.to}
+                          placeholder="مثال: 40 درصد"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
               </div>
             ) : (
               <div>نوع معامله مشخص نیست</div>
@@ -841,26 +807,50 @@ const AdvertisementRegistrationForm: React.FC = () => {
                       .filter((item) => item.type === '')
                       .map((field) => {
                         return (
-                          <Controller
-                            key={field.id}
-                            name={`features.${field.id}`}
-                            control={control}
-                            render={() => (
-                              <TextField
-                                adForm
-                                isDynamic
-                                label={field.name}
-                                {...field}
-                                name={`features.${field.id}`}
+                          <div key={field.id} className="flex">
+                            <div className="flex gap-2 w-full">
+                              <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                              <Controller
+                                name={`features.${field.id}.from`}
                                 control={control}
-                                errors={errors.features?.[field.id]}
-                                placeholder={field.placeholder}
+                                render={({ field: controllerField }) => (
+                                  <TextField
+                                    isFromTo
+                                    adForm
+                                    isDynamic
+                                    compacted
+                                    label={field.name}
+                                    {...controllerField}
+                                    control={control}
+                                    placeholder={`${field.placeholder}`}
+                                  />
+                                )}
                               />
-                            )}
-                          />
+                            </div>
+                            <div className="flex gap-2 w-full">
+                              <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                              <Controller
+                                name={`features.${field.id}.to`}
+                                control={control}
+                                render={({ field: controllerField }) => (
+                                  <TextField
+                                    isFromTo
+                                    adForm
+                                    isDynamic
+                                    compacted
+                                    label={'isTo'}
+                                    {...controllerField}
+                                    control={control}
+                                    placeholder={`${field.placeholder}`}
+                                  />
+                                )}
+                              />
+                            </div>
+                          </div>
                         )
                       })}
                 </div>
+
                 <div className="space-y-4 mb-4">
                   {features &&
                     features.data
@@ -981,37 +971,39 @@ const AdvertisementRegistrationForm: React.FC = () => {
                             <Controller
                               name={`features.${field.id}`}
                               control={control}
-                              defaultValue="ندارد"
+                              defaultValue="اولویت ندارد"
                               render={({ field: { onChange, value } }) => (
                                 <>
                                   <label className="flex items-center cursor-pointer">
                                     <input
                                       type="radio"
                                       className="hidden"
-                                      checked={value === 'دارد'}
-                                      onChange={() => onChange('دارد')}
+                                      checked={value === 'اولویت دارد'}
+                                      onChange={() => onChange('اولویت دارد')}
                                     />
                                     <div
                                       className={`w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]`}
                                     >
-                                      {value === 'دارد' && <div className="w-3 h-3 rounded-full bg-[#D52133]" />}
+                                      {value === 'اولویت دارد' && <div className="w-3 h-3 rounded-full bg-[#D52133]" />}
                                     </div>
-                                    <span className="mr-2 font-normal text-xs">دارد</span>
+                                    <span className="mr-2 font-normal text-xs">اولویت دارد</span>
                                   </label>
 
                                   <label className="flex items-center cursor-pointer">
                                     <input
                                       type="radio"
                                       className="hidden"
-                                      checked={value === 'ندارد'}
-                                      onChange={() => onChange('ندارد')}
+                                      checked={value === 'اولویت ندارد'}
+                                      onChange={() => onChange('اولویت ندارد')}
                                     />
                                     <div
                                       className={`w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]`}
                                     >
-                                      {value === 'ندارد' && <div className="w-3 h-3 rounded-full bg-[#D52133]" />}
+                                      {value === 'اولویت ندارد' && (
+                                        <div className="w-3 h-3 rounded-full bg-[#D52133]" />
+                                      )}
                                     </div>
-                                    <span className="mr-2 font-normal text-xs">ندارد</span>
+                                    <span className="mr-2 font-normal text-xs">اولویت ندارد</span>
                                   </label>
                                 </>
                               )}
@@ -1023,178 +1015,6 @@ const AdvertisementRegistrationForm: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* Step 4: عکس و ویدئو */}
-          {currentStep === 3 && (
-            <div className="space-y-4">
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="bg-[#FFF0F2] rounded-[10px] p-1">
-                    <CameraSmIcon width="24px" height="24px" />
-                  </div>
-                  <h3 className="font-medium text-start">عکس آگهی</h3>
-                </div>
-                <div>
-                  <input type="file" multiple className="hidden" id="Thumbnail" onChange={handleFileChange} />
-                  <label htmlFor="Thumbnail" className="block cursor-pointer h-[102px] custom-dashed">
-                    <div className="flex justify-center flex-col items-center w-full h-full gap-y-2">
-                      <CameraIcon width="43px" height="43px" />
-                      <h1 className=" border-[#5A5A5A] border-b w-fit font-normal text-xs text-[#5A5A5A]">
-                        افزودن عکس
-                      </h1>
-                    </div>
-                  </label>
-                  <div className="grid grid-cols-4 gap-3 mt-3">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={file.name}
-                          className="h-[58px] w-full object-cover rounded-[4px]"
-                        />
-                        <button
-                          type="button"
-                          className="absolute -top-2 -right-2 border hover:bg-red-500 hover:text-white bg-gray-50 p-0.5 rounded-full text-gray-500"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            e.preventDefault()
-                            handleDelete(index)
-                          }}
-                        >
-                          <IoMdClose className="text-base" />
-                        </button>
-                      </div>
-                    ))}
-                    {/* نمایش جایگاه‌های خالی */}
-                    {Array.from({ length: maxFiles - selectedFiles.length }).map((_, index) => (
-                      <div
-                        key={`empty-${index}`}
-                        className="w-full h-[58px] custom-dashed rounded-[4px] shadow-product flex items-center justify-center text-gray-500"
-                      >
-                        <PictureSmIcon width="24px" height="24px" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {errors?.media?.images && <p className="text-red-500 text-sm mt-1">{errors.media.images.message}</p>}
-              </div>
-
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="bg-[#FFF0F2] rounded-[10px] p-1">
-                    <VideoSmIcon width="24px" height="24px" />
-                  </div>
-                  <h3 className="font-medium text-start">ویدئو آگهی</h3>
-                </div>
-                <div>
-                  <input
-                    type="file"
-                    multiple
-                    accept="video/*"
-                    className="hidden"
-                    id="VideoThumbnail"
-                    onChange={handleVideoChange}
-                  />
-                  <label htmlFor="VideoThumbnail" className="block cursor-pointer h-[143px] custom-dashed">
-                    <div className="flex justify-center flex-col items-center w-full h-full gap-y-2">
-                      <VideoIcon width="43px" height="43px" />
-                      <h1 className="border-[#5A5A5A] border-b w-fit font-normal text-xs text-[#5A5A5A]">
-                        افزودن ویدئو
-                      </h1>
-                    </div>
-                  </label>
-                  <div className="grid grid-cols-3 gap-3 mt-3">
-                    {selectedVideos.map((file, index) => (
-                      <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
-                        <div className="relative">
-                          <video
-                            src={URL.createObjectURL(file)}
-                            className="h-[58px] w-full object-cover rounded-[4px]"
-                            id={`video-${index}`}
-                            onPlay={() => {
-                              const playButton = document.getElementById(`play-button-${index}`)
-                              playButton.innerHTML = `
-                                <div class="w-1 h-3 bg-white mx-0.5"></div>
-                                <div class="w-1 h-3 bg-white mx-0.5"></div>
-                              `
-                            }}
-                            onPause={() => {
-                              const playButton = document.getElementById(`play-button-${index}`)
-                              playButton.innerHTML = `
-                                <div class="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
-                              `
-                            }}
-                          />
-                          <div
-                            className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                            onClick={() => {
-                              const video = document.getElementById(`video-${index}`) as HTMLVideoElement
-                              if (video.paused) {
-                                video.play()
-                              } else {
-                                video.pause()
-                              }
-                            }}
-                          >
-                            <div className="w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                              <div id={`play-button-${index}`} className="flex items-center justify-center">
-                                <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className="absolute -top-2 -right-2 border hover:bg-red-500 hover:text-white bg-gray-50 p-0.5 rounded-full text-gray-500"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            e.preventDefault()
-                            handleDelete(index, 'vid')
-                          }}
-                        >
-                          <IoMdClose className="text-base" />
-                        </button>
-                      </div>
-                    ))}
-                    {Array.from({
-                      length: maxVideos - selectedVideos.length,
-                    }).map((_, index) => (
-                      <div
-                        key={`empty-${index}`}
-                        className="w-full h-[58px] custom-dashed rounded-[4px] shadow-product flex items-center justify-center text-gray-500"
-                      >
-                        <PictureSmIcon width="24px" height="24px" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="bg-[#FFF0F2] rounded-[10px] p-1">
-                    <Cube3DSmIcon width="24px" height="24px" />
-                  </div>
-                  <h3 className="font-medium text-start">3D آگهی</h3>
-                </div>
-                <div>
-                  <label className="block cursor-pointer h-[143px] custom-dashed">
-                    <div className="flex justify-center flex-col items-center w-full h-full gap-y-2">
-                      <Cube3DIcon width="43px" height="43px" />
-                      <h1 className=" border-[#5A5A5A] border-b w-fit font-normal text-xs text-[#5A5A5A]">
-                        افزودن عکس
-                      </h1>
-                    </div>
-                  </label>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <InfoCircleIcon width="16px" height="16px" />
-                <span className="text-[#5A5A5A] font-normal text-xs">توضیحات مرتبط </span>
-              </div>
-            </div>
-          )}
-
           {/* Navigation Buttons */}
           <div className="w-full mt-6 absolute left-0 right-0 -bottom-[80px]">
             {currentStep !== 0 && (
@@ -1230,4 +1050,4 @@ const AdvertisementRegistrationForm: React.FC = () => {
   )
 }
 
-export default AdvertisementRegistrationForm
+export default RequestRegistrationForm

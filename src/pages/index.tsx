@@ -8,17 +8,26 @@ import { ArchiveTickIcon } from '@/icons'
 import { useGetHousingQuery } from '@/services'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 const LeafletMap = dynamic(() => import('@/components/map/Map'), { ssr: false })
 export default function Home() {
   // ? Assets
   const { query, events } = useRouter()
   const type = query?.type?.toString() ?? ''
-
+  const role = query?.role?.toString() ?? ''
   const { data: housingData, isFetching, ...housingQueryProps } = useGetHousingQuery({ ...query, type })
 
   const map = useAppSelector((state) => state.map)
-  if (isFetching) return <div>loading....</div>
+
+  useEffect(() => {
+    if (role) {
+      localStorage.setItem('role', role);
+    }
+  }, [role]);
   
+
+  if (isFetching) return <div>loading....</div>
+
   return (
     <ClientLayout>
       <main className="h-full">
