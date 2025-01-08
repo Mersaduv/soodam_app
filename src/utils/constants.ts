@@ -1,8 +1,10 @@
 export const roles = {
   MemberUser: 'memberUser',
-  User: 'user',
   Marketer: 'marketer',
+  Subscriber: 'subscriber'
 }
+
+export type UserRoleType =  'subscriber' | 'marketer' | 'memberUser'
 
 export const tokens = {
 }

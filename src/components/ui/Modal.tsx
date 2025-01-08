@@ -43,7 +43,7 @@ const Modal: React.FC<ModalProps> = (props) => {
    fixed transition-all duration-700 left-0 right-0 mx-auto my-auto`
       : effect === 'ease-out'
       ? `
-  ${isShow ? 'top-28 transform scale-100' : 'top-40 transform scale-50 '} max-w-3xl 
+  ${isShow ? 'top-24 transform scale-100' : 'top-40 transform scale-50 '} max-w-3xl 
    fixed transition-all duration-700 left-0 right-0 mx-auto`
       : effect === 'buttom-to-fit'
       ? `

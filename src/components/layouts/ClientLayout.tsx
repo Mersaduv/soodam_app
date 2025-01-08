@@ -5,8 +5,8 @@ import { Modal } from '../ui'
 import Image from 'next/image'
 import Link from 'next/link'
 import { roles } from '@/utils'
-import FirstLoginModal from '../modals/FirstLoginModal'
-import { setIsShowLogin } from '@/store'
+import { setIsMemberUserLogin, setIsShowLogin } from '@/store'
+import { FirstLoginModal, MemberUserLoginsModal } from '../modals'
 
 interface Props {
   title?: string
@@ -16,7 +16,8 @@ interface Props {
 const ClientLayout: React.FC<Props> = ({ children, title }) => {
   // const [showModal, setShowModal] = useState<boolean>(false)
   const [isShow, modalHandlers] = useDisclosure()
-  const { isShowLogin } = useAppSelector((state) => state.isShowLogin)
+  const [isShowMemberUserGuid,memberUserGuidModalHandlers] = useDisclosure()
+  const { isShowLogin,isMemberUserLogin } = useAppSelector((state) => state.isShowLogin)
    const dispatch = useAppDispatch()
   useEffect(() => {
     let hasSeenModal = localStorage.getItem('hasSeenModal')
@@ -38,6 +39,11 @@ const ClientLayout: React.FC<Props> = ({ children, title }) => {
     modalHandlers.close()
   }
 
+  const handleMemberUserModalClose = (): void => {
+    dispatch(setIsMemberUserLogin(false))
+    memberUserGuidModalHandlers.close()
+  }
+
   useEffect(() => {
     if (isShowLogin) {
       modalHandlers.open()
@@ -46,13 +52,21 @@ const ClientLayout: React.FC<Props> = ({ children, title }) => {
     }
   }, [isShowLogin])
     
-  
+  useEffect(() => {
+    if (isMemberUserLogin) {
+      memberUserGuidModalHandlers.open()
+    } else {
+      memberUserGuidModalHandlers.close()
+    }
+  }, [isMemberUserLogin])
+    
   return (
     <>
       {title ? <FilterControlsHeader title={title} /> : <Header />}
 
       <main className="h-full bg-[#F6F7FB]">
         {isShowLogin && <FirstLoginModal isShow={isShow} onClose={handleModalClose} />}
+        {isMemberUserLogin && <MemberUserLoginsModal isShow={isShowMemberUserGuid} onClose={handleMemberUserModalClose} />}
         {children}
       </main>
       <BottomNavigation />

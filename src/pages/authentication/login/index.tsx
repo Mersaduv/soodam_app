@@ -9,7 +9,7 @@ import { SubmitHandler } from 'react-hook-form'
 import { LoginForm, VerificationCode } from '@/components/forms'
 import { useState } from 'react'
 import { HandleResponse } from '@/components/shared'
-import { setIsShowLogin, showAlert } from '@/store'
+import { setIsMemberUserLogin, setIsShowLogin, showAlert } from '@/store'
 import { useAppDispatch } from '@/hooks'
 import { roles } from '@/utils'
 
@@ -48,7 +48,7 @@ function LoginPage() {
     verificationCode({
       code,
       phoneNumber,
-      role: query?.role || roles.User,
+      role: query?.role,
     })
   }
   // const onSuccess = () => replace(query?.redirectTo?.toString() || "/");
@@ -63,6 +63,9 @@ function LoginPage() {
       replace(query?.redirectTo?.toString() || '/')
       localStorage.setItem('hasSeenModal', 'true')
       dispatch(setIsShowLogin(false))
+      if (query?.role === roles.MemberUser) {
+        dispatch(setIsMemberUserLogin(true))
+      }
     }, 1000)
   }
   

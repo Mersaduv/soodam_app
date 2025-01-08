@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Modal } from '../ui';
+import { roles } from '@/utils';
 
 interface FirstLoginModalProps {
   isShow: boolean;
@@ -21,7 +22,7 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
             <Link
               href={{
                 pathname: '/authentication/login',
-                query: { role: 'MemberUser' }, // اطمینان حاصل کنید که `roles.MemberUser` در دسترس است
+                query: { role: roles.MemberUser }, // اطمینان حاصل کنید که `roles.MemberUser` در دسترس است
               }}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
@@ -43,7 +44,7 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
             <Link
               href={{
                 pathname: '/',
-                query: { role: 'User' },
+                query: { role: '' },
               }}
               onClick={onClose}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
@@ -63,7 +64,7 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
             <Link
               href={{
                 pathname: '/authentication/login',
-                query: { role: 'Marketer' },
+                query: { role: roles.Marketer },
               }}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >

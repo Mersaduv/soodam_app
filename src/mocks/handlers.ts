@@ -1,7 +1,63 @@
-import { Feature,Category } from '@/types'
+import { Feature,Category, SubscriptionPlan } from '@/types'
 import { rest } from 'msw'
 
 const verificationCodes = new Map<string, string>()
+export interface User {
+  id: string
+  phoneNumber: string
+  role: 'BASIC' | 'MEMBER' | 'SUBSCRIBER'
+  subscription?: {
+    type: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+    remainingViews: number
+    totalViews: number
+    startDate: string
+    endDate: string
+    status: 'ACTIVE' | 'EXPIRED'
+  }
+}
+
+export const users = new Map<string, User>()
+
+export const subscriptionPlans: SubscriptionPlan[] = [
+  {
+    id: 'monthly-1000',
+    title: 'اشتراک ماهیانه',
+    duration: 'MONTHLY',
+    viewLimit: 1000,
+    price: 3000000,
+  },
+  {
+    id: 'monthly-2000',
+    title: 'اشتراک ماهیانه',
+    duration: 'MONTHLY',
+    viewLimit: 2000,
+    price: 4000000,
+  },
+  {
+    id: 'monthly-3000',
+    title: 'اشتراک ماهیانه',
+    duration: 'MONTHLY',
+    viewLimit: 3000,
+    price: 5000000,
+  },
+  {
+    id: 'quarterly-5000',
+    title: 'اشتراک 3 ماهه',
+    duration: 'QUARTERLY',
+    viewLimit: 5000,
+    price: 12000000,
+    discount: 20,
+  },
+  {
+    id: 'yearly-unlimited',
+    title: 'اشتراک یک ساله',
+    duration: 'YEARLY',
+    viewLimit: -1, // unlimited
+    price: 42000000,
+    discount: 30,
+  },
+]
+
 const getRandomLocation = (baseLat: number, baseLng: number, offset: number) => {
   const randomLat = baseLat + (Math.random() - 0.5) * offset
   const randomLng = baseLng + (Math.random() - 0.5) * offset
@@ -10,26 +66,21 @@ const getRandomLocation = (baseLat: number, baseLng: number, offset: number) => 
 function getFeaturesByCategory(categoryId: string): Feature[] {
   const categoryFeatures: Set<string> = new Set();
 
-  // تابع بازگشتی برای جمع‌آوری ویژگی‌ها
   const collectFeatures = (category: Category | undefined): void => {
     if (!category) return;
 
-    // اضافه کردن ویژگی‌های مرتبط با دسته‌بندی فعلی
     featureCategories
       .filter(fc => fc.categoryId === category.id)
       .forEach(fc => categoryFeatures.add(fc.featureId));
 
-    // بازگشتی برای فرزندان
     if (category.children) {
       category.children.forEach(collectFeatures);
     }
   };
 
-  // پیدا کردن دسته‌بندی سطح بالا
   const rootCategory = categories.find(cat => cat.id === categoryId);
   collectFeatures(rootCategory);
 
-  // پیدا کردن و برگرداندن ویژگی‌ها
   return features.filter(feature => categoryFeatures.has(feature.id));
 }
 
@@ -810,6 +861,115 @@ export const handlers = [
   rest.post('/api/auth/logout', (req, res, ctx) => {
     return res(ctx.status(200), ctx.json({ message: 'خروج با موفقیت انجام شد' }))
   }),
+
+   // Handler for purchasing subscription
+   rest.post('/api/subscription/purchase', async (req, res, ctx) => {
+    const { phoneNumber, planType, planName } = await req.json<{
+      phoneNumber: string
+      planType: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+      planName: string
+    }>()
+
+    const user = users.get(phoneNumber)
+    if (!user) {
+      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
+    }
+
+    const plan = subscriptionPlans[planType][planName]
+    const now = new Date()
+    let endDate = new Date()
+
+    switch (planType) {
+      case 'MONTHLY':
+        endDate.setMonth(now.getMonth() + 1)
+        break
+      case 'QUARTERLY':
+        endDate.setMonth(now.getMonth() + 3)
+        break
+      case 'YEARLY':
+        endDate.setFullYear(now.getFullYear() + 1)
+        break
+    }
+
+    const updatedUser: User = {
+      ...user,
+      role: 'SUBSCRIBER',
+      subscription: {
+        type: planType,
+        remainingViews: plan.views,
+        totalViews: plan.views,
+        startDate: now.toISOString(),
+        endDate: endDate.toISOString(),
+        status: 'ACTIVE',
+      },
+    }
+
+    users.set(phoneNumber, updatedUser)
+
+    return res(ctx.status(200), ctx.json({
+      message: 'اشتراک با موفقیت خریداری شد',
+      user: updatedUser,
+    }))
+  }),
+
+  // Handler for viewing a property (decrements remaining views)
+  rest.post('/api/properties/view', async (req, res, ctx) => {
+    const { phoneNumber, propertyId } = await req.json<{
+      phoneNumber: string
+      propertyId: string
+    }>()
+
+    const user = users.get(phoneNumber)
+    if (!user) {
+      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
+    }
+
+    if (!user.subscription || user.subscription.status !== 'ACTIVE') {
+      return res(ctx.status(403), ctx.json({ message: 'اشتراک فعال یافت نشد' }))
+    }
+
+    if (user.subscription.remainingViews <= 0) {
+      return res(ctx.status(403), ctx.json({ message: 'تعداد بازدید های مجاز به پایان رسیده است' }))
+    }
+
+    const updatedUser: User = {
+      ...user,
+      subscription: {
+        ...user.subscription,
+        remainingViews: user.subscription.remainingViews - 1,
+      },
+    }
+
+    users.set(phoneNumber, updatedUser)
+
+    return res(ctx.status(200), ctx.json({
+      message: 'بازدید با موفقیت ثبت شد',
+      remainingViews: updatedUser.subscription.remainingViews,
+    }))
+  }),
+
+  // Handler for checking subscription status
+  rest.get('/api/subscription/status', async (req, res, ctx) => {
+    const phoneNumber = req.url.searchParams.get('phoneNumber')
+    if (!phoneNumber) {
+      return res(ctx.status(400), ctx.json({ message: 'شماره تلفن الزامی است' }))
+    }
+
+    const user = users.get(phoneNumber)
+    if (!user) {
+      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
+    }
+
+    return res(ctx.status(200), ctx.json({
+      subscription: user.subscription,
+    }))
+  }),
+
+  rest.get('/api/subscriptions', (req, res, ctx) => {
+
+    return res(ctx.status(200), ctx.json({ message: 'Success', data: subscriptionPlans }))
+  }),
+  
 
   rest.get('/api/all-housing', (req, res, ctx) => {
     const searchParams = req.url.searchParams
