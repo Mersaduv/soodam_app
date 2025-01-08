@@ -10,8 +10,9 @@ import { ArrowLeftIcon, RegisterAdIcon, TicketStarIcon, InfoCircleMdIcon, Ticket
 import { useState } from 'react'
 import { SubscriptionPlan } from '@/types'
 import { SubscriptionCard } from '@/components/user'
-import { useGetSubscriptionsQuery } from '@/services'
+import { useGetSubscriptionsQuery, usePurchaseSubscriptionMutation } from '@/services'
 import { Button } from '@/components/ui'
+import { toast } from 'react-toastify'
 
 // try {
 //   await purchaseSubscription({
@@ -37,26 +38,41 @@ import { Button } from '@/components/ui'
 // }
 
 const SubscriptionPage: NextPage = () => {
-  // ? States
-  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null)
-  const [referralCode, setReferralCode] = useState('')
-
-  // ? Queries
-  const { data: subscriptionPlans, isLoading, isFetching } = useGetSubscriptionsQuery()
   // ? Assets
   const { query, events, push } = useRouter()
   const dispatch = useAppDispatch()
   const { role, phoneNumber } = useAppSelector((state) => state.auth)
+  // ? States
+  const [referralCode, setReferralCode] = useState('')
+
+  // ? Queries
+  const { data: subscriptionPlans, isLoading, isFetching } = useGetSubscriptionsQuery()
+  const [purchaseSubscription, { isLoading: isPurchasing }] = usePurchaseSubscriptionMutation()
   // ? handlers
   const handleNavigate = (): void => {
     push('/requests/new')
   }
 
-  const handlePlanSelect = async (plan: SubscriptionPlan) => {
-    setSelectedPlan(plan)
-  }
-  const handlePurchase = async () => {
-    if (!selectedPlan || !phoneNumber) return
+  const handlePurchase = async (plan: SubscriptionPlan) => {
+    if (!plan || !phoneNumber) return
+    try {
+      const response = await purchaseSubscription({
+        phoneNumber,
+        planType: plan.duration,
+        planName: plan.title,
+        referralCode: referralCode || undefined,
+      }).unwrap()
+
+      console.log(response, 'response--selectedPlan')
+      if (response.data) {
+        // Update auth state or show success message
+        toast.success(response.message)
+        push('/')
+      }
+    } catch (error) {
+      console.log(error, 'error')
+      toast.error('خطا در خرید اشتراک')
+    }
   }
 
   if (isLoading) return <div>loading ...</div>
@@ -66,7 +82,7 @@ const SubscriptionPage: NextPage = () => {
       <ClientLayout title="خرید اشتراک">
         <main className="py-[100px] px-4">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-lg h-[127px] p-4 mb-6">
+            <div className="bg-white rounded-[16px] p-4 relative border mb-6">
               <div className="flex justify-between items-start gap-4">
                 <div className="p-1">
                   <h2 className="font-medium">اشتراک باقی مانده</h2>
@@ -80,19 +96,19 @@ const SubscriptionPage: NextPage = () => {
               <SubscriptionSection
                 title="اشتراک ماهیانه"
                 plans={subscriptionPlans.data.filter((plan) => plan.duration === 'MONTHLY')}
-                onSelect={handlePlanSelect}
+                onSelect={handlePurchase}
               />
 
               <SubscriptionSection
                 title="اشتراک سه ماهه"
                 plans={subscriptionPlans.data.filter((plan) => plan.duration === 'QUARTERLY')}
-                onSelect={handlePlanSelect}
+                onSelect={handlePurchase}
               />
 
               <SubscriptionSection
                 title="اشتراک سالانه"
                 plans={subscriptionPlans.data.filter((plan) => plan.duration === 'YEARLY')}
-                onSelect={handlePlanSelect}
+                onSelect={handlePurchase}
               />
             </div>
 
@@ -107,7 +123,7 @@ const SubscriptionPage: NextPage = () => {
             </div>
 
             <div className="bg-white flex flex-col rounded-[16px] p-4 border mt-6">
-            <label htmlFor='referral-code' className="flex items-center justify-start gap-2 w-full">
+              <label htmlFor="referral-code" className="flex items-center justify-start gap-2 w-full">
                 <div className="w-[32px] h-[32px] flex-center bg-[#FFF0F2] rounded-[10px]">
                   <TicketDiscountIcon width="24px" height="24px" />
                 </div>
@@ -116,7 +132,7 @@ const SubscriptionPage: NextPage = () => {
               <hr className="my-3 mb-4" />
               <div className="">
                 <input
-                id="referral-code"
+                  id="referral-code"
                   type="text"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value)}
@@ -124,7 +140,7 @@ const SubscriptionPage: NextPage = () => {
                   className="w-full border rounded-lg p-2 placeholder:text-sm"
                 />
               </div>
-              <Button onClick={handlePurchase} className="w-full text-white rounded-lg py-3 mt-4">
+              <Button type="button" className="w-full text-white rounded-lg py-3 mt-4">
                 تایید کد
               </Button>
             </div>

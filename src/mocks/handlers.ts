@@ -1,20 +1,21 @@
-import { Feature,Category, SubscriptionPlan } from '@/types'
+import { Feature,Category, SubscriptionPlan, User } from '@/types'
+import { UserRoleType } from '@/utils'
 import { rest } from 'msw'
 
 const verificationCodes = new Map<string, string>()
-export interface User {
-  id: string
-  phoneNumber: string
-  role: 'BASIC' | 'MEMBER' | 'SUBSCRIBER'
-  subscription?: {
-    type: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
-    remainingViews: number
-    totalViews: number
-    startDate: string
-    endDate: string
-    status: 'ACTIVE' | 'EXPIRED'
-  }
-}
+// export interface User {
+//   id: string
+//   phoneNumber: string
+//   role: 'BASIC' | 'MEMBER' | 'SUBSCRIBER'
+//   subscription?: {
+//     type: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+//     remainingViews: number
+//     totalViews: number
+//     startDate: string
+//     endDate: string
+//     status: 'ACTIVE' | 'EXPIRED'
+//   }
+// }
 
 export const users = new Map<string, User>()
 
@@ -824,7 +825,13 @@ const requestCategoryFeatures = [
   { featureId: "e234csdf3wdd", categoryId: "3" },
   { featureId: "a51c28f7", categoryId: "3" },
 ]
-
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
 export const handlers = [
   rest.post('/api/auth/send-code', async (req, res, ctx) => {
     const { phoneNumber } = await req.json<{ phoneNumber: string }>()
@@ -835,15 +842,13 @@ export const handlers = [
 
     const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
     verificationCodes.set(phoneNumber, randomCode)
-    console.log(verificationCodes, 'verificationCodes')
     return res(ctx.status(200), ctx.json({ message: 'کد تایید ارسال شد', code: randomCode }))
   }),
 
   rest.post('/api/auth/verify-code', async (req, res, ctx) => {
-    const { code, phoneNumber, role } = await req.json<{ code: string; phoneNumber: string; role: string }>()
+    const { code, phoneNumber, role } = await req.json<{ code: string; phoneNumber: string; role: UserRoleType }>()
 
     const storedCode = verificationCodes.get(phoneNumber)
-    console.log(verificationCodes, 'verificationCodes-storedCode', phoneNumber, 'phoneNumber')
 
     if (!storedCode) {
       return res(ctx.status(401), ctx.json({ message: 'کد تایید منقضی شده است' }))
@@ -852,7 +857,14 @@ export const handlers = [
     if (code !== storedCode) {
       return res(ctx.status(401), ctx.json({ message: 'کد تایید نادرست می‌باشد!', phoneNumber }))
     }
+    const user: User = users.get(phoneNumber) || {
+      id: generateUUID(), // تابعی برای تولید UUID
+      phoneNumber,
+      role : role ,
+      subscription: undefined, // کاربر جدید هنوز اشتراک ندارد
+    }
 
+    users.set(phoneNumber, user)
     verificationCodes.clear()
 
     return res(ctx.status(200), ctx.json({ message: 'ورود موفقیت‌آمیز بود', phoneNumber, role }))
@@ -863,54 +875,63 @@ export const handlers = [
   }),
 
    // Handler for purchasing subscription
-   rest.post('/api/subscription/purchase', async (req, res, ctx) => {
-    const { phoneNumber, planType, planName } = await req.json<{
-      phoneNumber: string
-      planType: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
-      planName: string
-    }>()
+rest.post('/api/subscription/purchase', async (req, res, ctx) => {
+  const { phoneNumber, planType, planName } = await req.json<{
+    phoneNumber: string
+    planType: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
+    planName: string
+  }>()
 
-    const user = users.get(phoneNumber)
-    if (!user) {
-      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
-    }
+  const user = users.get(phoneNumber)
+  if (!user) {
+    return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
+  }
 
-    const plan = subscriptionPlans[planType][planName]
-    const now = new Date()
-    let endDate = new Date()
+  // پیدا کردن پلن مورد نظر از آرایه
+  const plan = subscriptionPlans.find(
+    plan => plan.duration === planType && plan.title === planName
+  )
 
-    switch (planType) {
-      case 'MONTHLY':
-        endDate.setMonth(now.getMonth() + 1)
-        break
-      case 'QUARTERLY':
-        endDate.setMonth(now.getMonth() + 3)
-        break
-      case 'YEARLY':
-        endDate.setFullYear(now.getFullYear() + 1)
-        break
-    }
+  if (!plan) {
+    return res(ctx.status(404), ctx.json({ message: 'پلن مورد نظر یافت نشد' }))
+  }
 
-    const updatedUser: User = {
-      ...user,
-      role: 'SUBSCRIBER',
-      subscription: {
-        type: planType,
-        remainingViews: plan.views,
-        totalViews: plan.views,
-        startDate: now.toISOString(),
-        endDate: endDate.toISOString(),
-        status: 'ACTIVE',
-      },
-    }
+  const now = new Date()
+  let endDate = new Date()
 
-    users.set(phoneNumber, updatedUser)
+  switch (planType) {
+    case 'MONTHLY':
+      endDate.setMonth(now.getMonth() + 1)
+      break
+    case 'QUARTERLY':
+      endDate.setMonth(now.getMonth() + 3)
+      break
+    case 'YEARLY':
+      endDate.setFullYear(now.getFullYear() + 1)
+      break
+  }
 
-    return res(ctx.status(200), ctx.json({
-      message: 'اشتراک با موفقیت خریداری شد',
-      user: updatedUser,
-    }))
-  }),
+  const updatedUser: User = {
+    ...user,
+    role: 'subscriber',
+    subscription: {
+      type: planType,
+      remainingViews: plan.viewLimit,
+      totalViews: plan.viewLimit,
+      startDate: now.toISOString(),
+      endDate: endDate.toISOString(),
+      status: 'ACTIVE',
+    },
+  }
+
+  users.set(phoneNumber, updatedUser)
+
+  return res(ctx.status(200), ctx.json({
+    success: true,
+    message: 'خرید اشتراک شما با موفقیت انجام شد.',
+    data: updatedUser,
+  }))
+}),
 
   // Handler for viewing a property (decrements remaining views)
   rest.post('/api/properties/view', async (req, res, ctx) => {

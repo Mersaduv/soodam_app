@@ -1,27 +1,41 @@
 import baseApi from '@/services/baseApi'
-import { ServiceResponse, SubscriptionPlan } from '@/types'
+import { ServiceResponse, SubscriptionPlan, User } from '@/types'
+import { PurchaseSubscriptionRequest } from './type'
 
-export const userApiSlice = baseApi.injectEndpoints({
+export const subscriptionApiSlice = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    // Get all subscriptions
     getSubscriptions: builder.query<ServiceResponse<SubscriptionPlan[]>, void>({
-      query: () => {
-        return {
-          url: `/api/subscriptions`,
-          method: 'GET',
-        }
-      },
-      providesTags: (result) =>
-        result?.data
-          ? [
-              ...result?.data.map(({ id }) => ({
-                type: 'Subscription' as const,
-                id: id,
-              })),
-              'Subscription',
-            ]
-          : ['Subscription'],
+      query: () => ({
+        url: '/api/subscriptions',
+        method: 'GET',
+      }),
+      providesTags: ['Subscription'],
+    }),
+
+    // Purchase subscription
+    purchaseSubscription: builder.mutation<ServiceResponse<User>, PurchaseSubscriptionRequest>({
+      query: (body) => ({
+        url: '/api/subscription/purchase',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Subscription'],
+    }),
+
+    // Get subscription status
+    getSubscriptionStatus: builder.query<ServiceResponse<User['subscription']>, string>({
+      query: (phoneNumber) => ({
+        url: `/api/subscription/status?phoneNumber=${phoneNumber}`,
+        method: 'GET',
+      }),
+      providesTags: ['Subscription'],
     }),
   }),
 })
 
-export const { useGetSubscriptionsQuery } = userApiSlice
+export const {
+  useGetSubscriptionsQuery,
+  usePurchaseSubscriptionMutation,
+  useGetSubscriptionStatusQuery,
+} = subscriptionApiSlice
