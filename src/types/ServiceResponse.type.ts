@@ -1,4 +1,5 @@
 export default interface ServiceResponse<T> {
-    message: string
-    data: T
+  status?: number
+  message: string
+  data: T
 }

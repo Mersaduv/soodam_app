@@ -7,10 +7,10 @@ import { ClientLayout } from '@/components/layouts'
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { setIsShowLogin } from '@/store'
 import { ArrowLeftIcon, RegisterAdIcon, TicketStarIcon, InfoCircleMdIcon, TicketDiscountIcon } from '@/icons'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SubscriptionPlan } from '@/types'
 import { SubscriptionCard } from '@/components/user'
-import { useGetSubscriptionsQuery, usePurchaseSubscriptionMutation } from '@/services'
+import { useGetSubscriptionsQuery, useGetSubscriptionStatusQuery, usePurchaseSubscriptionMutation } from '@/services'
 import { Button } from '@/components/ui'
 import { toast } from 'react-toastify'
 
@@ -48,6 +48,7 @@ const SubscriptionPage: NextPage = () => {
   // ? Queries
   const { data: subscriptionPlans, isLoading, isFetching } = useGetSubscriptionsQuery()
   const [purchaseSubscription, { isLoading: isPurchasing }] = usePurchaseSubscriptionMutation()
+    const {data : statusData} = useGetSubscriptionStatusQuery(phoneNumber)
   // ? handlers
   const handleNavigate = (): void => {
     push('/requests/new')
@@ -74,7 +75,12 @@ const SubscriptionPage: NextPage = () => {
       toast.error('خطا در خرید اشتراک')
     }
   }
-
+useEffect(()=>{
+  if (statusData) {
+    console.log(statusData , "statusData");
+    
+  }
+},[])
   if (isLoading) return <div>loading ...</div>
   // ? Render(s)
   return (

@@ -56,6 +56,7 @@ const authSlice = createSlice({
         localStorage.removeItem('role')
         localStorage.removeItem('loggedIn')
         localStorage.removeItem('hasSeenModal')
+        localStorage.removeItem('user')
       }
     },
   },

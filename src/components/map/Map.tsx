@@ -420,6 +420,7 @@ import {
   ArrowDownTickIcon,
   Close,
   FingerWIcon,
+  Check,
 } from '@/icons'
 import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
@@ -427,6 +428,8 @@ import { Housing } from '@/types'
 import { useRouter } from 'next/router'
 import * as turf from '@turf/turf'
 import { setIsShowLogin } from '@/store'
+import { useGetSubscriptionStatusQuery, useViewPropertyMutation } from '@/services'
+import { toast } from 'react-toastify'
 interface Props {
   housingData: Housing[]
 }
@@ -470,7 +473,9 @@ const createIconWithPrice = (
   rent: string,
   deposit: string,
   created: string,
-  zoom: number
+  zoom: number,
+  propertyId: string,
+  isViewed: boolean 
 ): L.DivIcon => {
   const iconColor = '#D52133'
   const isNew = (() => {
@@ -514,6 +519,11 @@ const createIconWithPrice = (
                   <span className="font-extrabold text-xs text-[#1A1E25] farsi-digits">{rent}</span>
                   <span className="text-[8px] font-normal">اجاره</span>
                 </div>
+              </div>
+            )}
+                      {isViewed && (
+              <div className="text-green-500">
+                <Check width="12px" height="12px" />
               </div>
             )}
           </div>
@@ -885,7 +895,7 @@ function throttle(func, limit) {
 const LeafletMap: React.FC<Props> = ({ housingData }) => {
   // ? Assets
   const { query, push } = useRouter()
-  const { role } = useAppSelector((state) => state.auth)
+  const { role,phoneNumber } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
@@ -898,12 +908,17 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   const [selectedArea, setSelectedArea] = useState(null)
   const mapRef = useRef(null)
   const polylineRef = useRef(null)
-  const [mode, setMode] = useState('none') // 'none', 'drawing', 'checking', 'dispose'
+  const [mode, setMode] = useState('none')
+  const [viewedProperties, setViewedProperties] = useState<string[]>([]);
   const mapStyle = {
     width: '100%',
     height: '100%',
     cursor: isDrawing ? 'crosshair' : 'grab',
   }
+
+  // ? Queries
+  const {data : statusData} = useGetSubscriptionStatusQuery(phoneNumber)
+  const [viewProperty,{isSuccess}] = useViewPropertyMutation()
 
   const handleDrawButtonClick = () => {
     if (mode === 'none') {
@@ -940,33 +955,6 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
         return <FingerIcon width="26px" height="29px" />
     }
   }
-  const completeDrawing = () => {
-    if (drawnPoints.length < 3) {
-      alert('لطفا حداقل سه نقطه را انتخاب کنید')
-      return
-    }
-
-    const polygon = turf.polygon([[...drawnPoints, drawnPoints[0]]])
-    setSelectedArea(polygon)
-    setIsDrawing(false)
-
-    // نمایش محدوده انتخاب شده
-    if (polylineRef.current) {
-      polylineRef.current.remove()
-    }
-
-    const closedPolygon = L.polygon(drawnPoints, { color: 'red' })
-    closedPolygon.addTo(mapRef.current.getMap())
-    polylineRef.current = closedPolygon
-
-    // شمارش آیتم‌های داخل محدوده
-    const itemsInArea = housingData.filter((property) => {
-      const point = turf.point([property.location.lat, property.location.lng])
-      return turf.booleanPointInPolygon(point, polygon)
-    })
-
-    alert(`تعداد آیتم‌های داخل محدوده: ${itemsInArea.length}`)
-  }
 
   const toggleMapType = () => {
     setTileLayerUrl((prevUrl) =>
@@ -999,6 +987,43 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
     }
   }
 
+  const handleMarkerClick = async (property: any) => {
+    if (!phoneNumber) {
+      toast.error('لطفا ابتدا وارد شوید');
+      dispatch(setIsShowLogin(true));
+      return;
+    }
+
+    try {
+      const response = await viewProperty({
+        phoneNumber,
+        propertyId: property.id,
+      }).unwrap();
+
+      if (response.status === 201) {
+        setViewedProperties(prev => [...prev, property.id]);
+        toast.success(response.message);
+      }
+      else 
+      {
+        toast.warning(response.message);
+      }
+      
+    } catch (error: any) {
+      if (error.status === 403) {
+        toast.error('لطفا اشتراک تهیه کنید');
+        push('/subscription');
+      } else {
+        toast.error(error.data?.message || 'خطا در بازدید ملک');
+      }
+    }
+  }
+useEffect(()=>{
+if (statusData) {
+  console.log(statusData ,"statusData");
+  
+}
+},[isSuccess])
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
       <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] right-4 z-[1000]">
@@ -1104,9 +1129,14 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
               formatPrice(property.rent),
               formatPrice(property.deposit),
               property.created,
-              zoomLevel
+              zoomLevel,
+              property.id,
+              viewedProperties.includes(property.id)
             )}
             title={property.title}
+            eventHandlers={{
+              click: () => handleMarkerClick(property),
+            }}
           />
         ))}
       </MapContainer>

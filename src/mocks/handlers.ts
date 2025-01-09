@@ -875,115 +875,174 @@ export const handlers = [
   }),
 
    // Handler for purchasing subscription
-rest.post('/api/subscription/purchase', async (req, res, ctx) => {
-  const { phoneNumber, planType, planName } = await req.json<{
-    phoneNumber: string
-    planType: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
-    planName: string
-  }>()
-
-  const user = users.get(phoneNumber)
-  if (!user) {
-    return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
-  }
-
-  // پیدا کردن پلن مورد نظر از آرایه
-  const plan = subscriptionPlans.find(
-    plan => plan.duration === planType && plan.title === planName
-  )
-
-  if (!plan) {
-    return res(ctx.status(404), ctx.json({ message: 'پلن مورد نظر یافت نشد' }))
-  }
-
-  const now = new Date()
-  let endDate = new Date()
-
-  switch (planType) {
-    case 'MONTHLY':
-      endDate.setMonth(now.getMonth() + 1)
-      break
-    case 'QUARTERLY':
-      endDate.setMonth(now.getMonth() + 3)
-      break
-    case 'YEARLY':
-      endDate.setFullYear(now.getFullYear() + 1)
-      break
-  }
-
-  const updatedUser: User = {
-    ...user,
-    role: 'subscriber',
-    subscription: {
-      type: planType,
-      remainingViews: plan.viewLimit,
-      totalViews: plan.viewLimit,
-      startDate: now.toISOString(),
-      endDate: endDate.toISOString(),
-      status: 'ACTIVE',
-    },
-  }
-
-  users.set(phoneNumber, updatedUser)
-
-  return res(ctx.status(200), ctx.json({
-    success: true,
-    message: 'خرید اشتراک شما با موفقیت انجام شد.',
-    data: updatedUser,
-  }))
-}),
+   rest.post('/api/subscription/purchase', async (req, res, ctx) => {
+    const { phoneNumber, planType, planName } = await req.json<{
+      phoneNumber: string;
+      planType: 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
+      planName: string;
+    }>();
+  
+    const user = users.get(phoneNumber);
+    if (!user) {
+      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }));
+    }
+  
+    // پیدا کردن پلن مورد نظر از آرایه
+    const plan = subscriptionPlans.find(
+      (plan) => plan.duration === planType && plan.title === planName
+    );
+  
+    if (!plan) {
+      return res(ctx.status(404), ctx.json({ message: 'پلن مورد نظر یافت نشد' }));
+    }
+  
+    const now = new Date();
+    let endDate = new Date();
+  
+    switch (planType) {
+      case 'MONTHLY':
+        endDate.setMonth(now.getMonth() + 1);
+        break;
+      case 'QUARTERLY':
+        endDate.setMonth(now.getMonth() + 3);
+        break;
+      case 'YEARLY':
+        endDate.setFullYear(now.getFullYear() + 1);
+        break;
+    }
+  
+    const updatedUser: User = {
+      ...user,
+      role: 'subscriber',
+      subscription: {
+        type: planType,
+        remainingViews: plan.viewLimit,
+        totalViews: plan.viewLimit,
+        startDate: now.toISOString(),
+        endDate: endDate.toISOString(),
+        status: 'ACTIVE',
+        viewedProperties:[]
+      },
+    };
+  
+    // ذخیره‌سازی اطلاعات به‌روزرسانی‌شده در localStorage
+    try {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('خطا در ذخیره اطلاعات در localStorage:', error);
+    }
+  
+    users.set(phoneNumber, updatedUser);
+  
+    return res(ctx.status(200), ctx.json({
+      success: true,
+      message: 'خرید اشتراک شما با موفقیت انجام شد.',
+      data: updatedUser,
+    }));
+  }),
 
   // Handler for viewing a property (decrements remaining views)
   rest.post('/api/properties/view', async (req, res, ctx) => {
     const { phoneNumber, propertyId } = await req.json<{
-      phoneNumber: string
-      propertyId: string
-    }>()
-
-    const user = users.get(phoneNumber)
+      phoneNumber: string;
+      propertyId: string;
+    }>();
+  
+    // خواندن اطلاعات کاربر از localStorage
+    let user: User | null = null;
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser.phoneNumber === phoneNumber) {
+          user = parsedUser;
+        }
+      }
+    } catch (error) {
+      console.error('خطا در خواندن اطلاعات از localStorage:', error);
+    }
+  
     if (!user) {
-      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
+      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }));
     }
-
+  
     if (!user.subscription || user.subscription.status !== 'ACTIVE') {
-      return res(ctx.status(403), ctx.json({ message: 'اشتراک فعال یافت نشد' }))
+      return res(ctx.status(403), ctx.json({ message: 'اشتراک فعال یافت نشد' }));
     }
-
+  
+    // اضافه کردن آرایه viewedProperties اگر وجود نداشت
+    if (!user.subscription.viewedProperties) {
+      user.subscription.viewedProperties = [];
+    }
+  
+    // بررسی اینکه آیا این ملک قبلاً بازدید شده است
+    if (user.subscription.viewedProperties.includes(propertyId)) {
+      return res(ctx.status(200), ctx.json({
+        message: 'این ملک قبلاً بازدید شده است',
+        remainingViews: user.subscription.remainingViews,
+        alreadyViewed: true
+      }));
+    }
+  
     if (user.subscription.remainingViews <= 0) {
-      return res(ctx.status(403), ctx.json({ message: 'تعداد بازدید های مجاز به پایان رسیده است' }))
+      return res(ctx.status(403), ctx.json({ 
+        message: 'تعداد بازدیدهای مجاز به پایان رسیده است' 
+      }));
     }
-
+  
+    // به‌روزرسانی remainingViews و اضافه کردن propertyId به لیست بازدیدها
     const updatedUser: User = {
       ...user,
       subscription: {
         ...user.subscription,
         remainingViews: user.subscription.remainingViews - 1,
+        viewedProperties: [...user.subscription.viewedProperties, propertyId]
       },
+    };
+  
+    // ذخیره اطلاعات به‌روزرسانی‌شده در localStorage
+    try {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error('خطا در ذخیره اطلاعات در localStorage:', error);
     }
-
-    users.set(phoneNumber, updatedUser)
-
+  
     return res(ctx.status(200), ctx.json({
+      status :201,
       message: 'بازدید با موفقیت ثبت شد',
-      remainingViews: updatedUser.subscription.remainingViews,
-    }))
+      data: updatedUser.subscription.remainingViews,
+      alreadyViewed: false
+    }));
   }),
 
-  // Handler for checking subscription status
   rest.get('/api/subscription/status', async (req, res, ctx) => {
-    const phoneNumber = req.url.searchParams.get('phoneNumber')
+    const phoneNumber = req.url.searchParams.get('phoneNumber');
+    
     if (!phoneNumber) {
-      return res(ctx.status(400), ctx.json({ message: 'شماره تلفن الزامی است' }))
+      return res(ctx.status(400), ctx.json({ message: 'شماره تلفن الزامی است' }));
     }
-
-    const user = users.get(phoneNumber)
+  
+    // بررسی اطلاعات از localStorage
+    let user: User | null = null;
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser.phoneNumber === phoneNumber) {
+          user = parsedUser;
+        }
+      }
+    } catch (error) {
+      console.error('خطا در خواندن اطلاعات از localStorage:', error);
+    }
+  
     if (!user) {
-      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
+      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }));
     }
-
+  
     return res(ctx.status(200), ctx.json({
       subscription: user.subscription,
-    }))
+    }));
   }),
 
   rest.get('/api/subscriptions', (req, res, ctx) => {
