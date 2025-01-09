@@ -421,6 +421,7 @@ import {
   Close,
   FingerWIcon,
   Check,
+  CheckSmIcon,
 } from '@/icons'
 import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
@@ -428,7 +429,7 @@ import { Housing } from '@/types'
 import { useRouter } from 'next/router'
 import * as turf from '@turf/turf'
 import { setIsShowLogin } from '@/store'
-import { useGetSubscriptionStatusQuery, useViewPropertyMutation } from '@/services'
+import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'
 interface Props {
   housingData: Housing[]
@@ -489,7 +490,7 @@ const createIconWithPrice = (
       <div className="w-fit relative">
         <div
           style={{
-            backgroundColor: 'white',
+            backgroundColor:isViewed ?"#D52133" : 'white',
             color: 'black',
             borderRadius: '4px',
             padding: '2px 5px',
@@ -506,24 +507,22 @@ const createIconWithPrice = (
           }}
         >
           <div className="flex items-center gap-1">
-            {isNew && <ArrowDownTickIcon width="6px" height="8px" />}
+            {isViewed && (
+              <CheckSmIcon width="7px" height="6px" />
+          )}
+            {isNew && !isViewed && <ArrowDownTickIcon width="6px" height="8px" />}
             {price > '0' ? (
-              <span className="font-extrabold text-xs text-[#1A1E25] farsi-digits">{price}</span>
+              <span className={`font-extrabold text-xs ${isViewed && "text-white"} farsi-digits pb-[1px]`}>{price}</span>
             ) : (
-              <div className="flex-center gap-x-1">
+              <div className={`flex-center gap-x-1`}>
                 <div className="flex-center gap-x-0.5">
-                  <span className="font-extrabold text-xs text-[#1A1E25] farsi-digits">{deposit}</span>
-                  <span className="text-[8px] font-normal">رهن</span>
+                  <span className={`font-extrabold text-xs ${isViewed && "text-white"} farsi-digits`}>{deposit}</span>
+                  <span className={`text-[8px] font-normal ${isViewed && "text-white"}`}>رهن</span>
                 </div>
                 <div className="flex-center gap-x-0.5">
-                  <span className="font-extrabold text-xs text-[#1A1E25] farsi-digits">{rent}</span>
-                  <span className="text-[8px] font-normal">اجاره</span>
+                  <span className={`font-extrabold text-xs ${isViewed && "text-white"} farsi-digits `}>{rent}</span>
+                  <span className={`text-[8px] font-normal ${isViewed && "text-white"}`}>اجاره</span>
                 </div>
-              </div>
-            )}
-                      {isViewed && (
-              <div className="text-green-500">
-                <Check width="12px" height="12px" />
               </div>
             )}
           </div>
@@ -919,6 +918,15 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   // ? Queries
   const {data : statusData} = useGetSubscriptionStatusQuery(phoneNumber)
   const [viewProperty,{isSuccess}] = useViewPropertyMutation()
+  const { data:viewedPropertiesData, isLoading:isLoadingViewedProperties } = useGetViewedPropertiesQuery(phoneNumber, {
+    skip: !phoneNumber,
+  });
+
+  useEffect(() => {
+    if (viewedPropertiesData) {
+      setViewedProperties(viewedPropertiesData.data.map((item) => item.propertyId));
+    }
+  }, [viewedPropertiesData]);
 
   const handleDrawButtonClick = () => {
     if (mode === 'none') {

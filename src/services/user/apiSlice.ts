@@ -43,6 +43,14 @@ export const subscriptionApiSlice = baseApi.injectEndpoints({
     }),
     invalidatesTags: ['Subscription'],
   }),
+      // Get viewed properties
+      getViewedProperties: builder.query<ServiceResponse<{ propertyId: string; viewDate: string }[]>, string>({
+        query: (phoneNumber) => ({
+          url: `/api/properties/viewed-properties?phoneNumber=${phoneNumber}`,
+          method: 'GET',
+        }),
+        providesTags: ['Subscription'],
+      }),
   }),
 })
 
@@ -50,5 +58,6 @@ export const {
   useGetSubscriptionsQuery,
   usePurchaseSubscriptionMutation,
   useGetSubscriptionStatusQuery,
-  useViewPropertyMutation
+  useViewPropertyMutation,
+  useGetViewedPropertiesQuery
 } = subscriptionApiSlice
