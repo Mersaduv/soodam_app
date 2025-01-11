@@ -933,7 +933,7 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
     <div className="fixed w-full inset-0 z-[9999] flex items-end mb-[85px] justify-center" onClick={onClose}>
       <div className="bg-white rounded-lg p-4 shadow-lg max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col">
-          <div className="flex gap-2">
+          <div className="flex gap-2 ">
             {housing.images.length > 0 && (
               <div className=" bg-gray-200 rounded-[10px] mb-4">
                 <Image
