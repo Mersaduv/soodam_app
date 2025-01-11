@@ -476,14 +476,13 @@ const formatPrice = (price: number): string => {
 
 const formatPriceLoc = (price: number): string => {
   if (price >= 1_000_000_000) {
-    return `${(price / 1_000_000_000).toFixed(3)} میلیارد تومان`;
+    return `${(price / 1_000_000_000).toFixed(3)} میلیارد تومان`
   } else if (price >= 1_000_000) {
-    return `${(price / 1_000_000).toFixed(0)} میلیون تومان`;
+    return `${(price / 1_000_000).toFixed(0)} میلیون تومان`
   } else {
-    return `${price.toLocaleString()} تومان`;
+    return `${price.toLocaleString()} تومان`
   }
-};
-
+}
 
 const getCenterOfData = (data: Housing[]): LatLngTuple => {
   const latitudes = data.map((item) => item.location.lat)
@@ -955,12 +954,20 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
                 {housing.category},{housing.address}
               </div>
               <div>
-                {isSelling ? <div className="text-xs font-normal text-[#5A5A5A] farsi-digits mt-2.5">
-                  قیمت: {formatPriceLoc(housing.sellingPrice)}
-                </div> : <div className="space-y-2 mt-2.5">
-                  <p className="text-xs font-normal text-[#5A5A5A] farsi-digits">رهن: {formatPriceLoc(housing.deposit)}</p>
-                  <p className="text-xs font-normal text-[#5A5A5A] farsi-digits">اجاره: {formatPriceLoc(housing.rent)}</p>
-                </div> }
+                {isSelling ? (
+                  <div className="text-xs font-normal text-[#5A5A5A] farsi-digits mt-2.5">
+                    قیمت: {formatPriceLoc(housing.sellingPrice)}
+                  </div>
+                ) : (
+                  <div className="space-y-2 mt-2.5">
+                    <p className="text-xs font-normal text-[#5A5A5A] farsi-digits">
+                      رهن: {formatPriceLoc(housing.deposit)}
+                    </p>
+                    <p className="text-xs font-normal text-[#5A5A5A] farsi-digits">
+                      اجاره: {formatPriceLoc(housing.rent)}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1004,11 +1011,63 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   const [viewedProperties, setViewedProperties] = useState<string[]>([])
   const [selectedProperty, setSelectedProperty] = useState<Housing>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [userLocation, setUserLocation] = useState(null)
   const mapStyle = {
     width: '100%',
     height: '100%',
     cursor: isDrawing ? 'crosshair' : 'grab',
   }
+
+  const userLocationIcon = L.divIcon({
+    className: 'custom-user-location',
+    html: `
+      <div class="location-marker">
+        <div class="location-marker__inner"></div>
+      </div>
+      <style>
+        .location-marker {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: rgba(37, 99, 235, 0.2);
+          position: relative;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .location-marker__inner {
+          width: 12px;
+          height: 12px;
+          background: rgb(37, 99, 235);
+          border: 2px solid white;
+          border-radius: 50%;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          box-shadow: 0 0 0 2px rgb(37, 99, 235);
+        }
+        
+        @keyframes pulse {
+          0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5);
+          }
+          
+          70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 15px rgba(37, 99, 235, 0);
+          }
+          
+          100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+          }
+        }
+      </style>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  })
 
   // ? Queries
   const { data: statusData } = useGetSubscriptionStatusQuery(phoneNumber)
@@ -1025,6 +1084,28 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
       setViewedProperties(viewedPropertiesData.data.map((item) => item.propertyId))
     }
   }, [viewedPropertiesData])
+
+  const handleGPSClick = () => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords
+          setUserLocation([latitude, longitude])
+
+          // پن کردن نقشه به موقعیت کاربر
+          if (mapRef.current) {
+            mapRef.current.flyTo([latitude, longitude], 15)
+          }
+        },
+        (error) => {
+          console.error('خطا در دریافت موقعیت:', error)
+          alert('دسترسی به موقعیت مکانی امکان‌پذیر نیست')
+        }
+      )
+    } else {
+      alert('مرورگر شما از Geolocation پشتیبانی نمی‌کند')
+    }
+  }
 
   const handleDrawButtonClick = () => {
     if (mode === 'none') {
@@ -1143,7 +1224,11 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
         >
           <MapIcon2 width="26.8px" height="26.8px" />
         </button>
-        <button className="bg-white w-[48px] h-[48px] rounded-lg flex-center shadow-icon">
+        <button
+          id="gps"
+          onClick={handleGPSClick}
+          className="bg-white w-[48px] h-[48px] rounded-lg flex-center shadow-icon"
+        >
           <SendIcon width="26px" height="26px" />
         </button>
         <button
@@ -1224,6 +1309,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
               : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }
         />
+        {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
 
         {housingData.map((property) => (
           <Marker

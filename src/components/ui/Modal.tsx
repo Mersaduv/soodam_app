@@ -9,23 +9,16 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = (props) => {
+  // ? Porps
   const { isShow, onClose, effect, children } = props
 
+  // ? Re-Renders
+  //* abort to scroll
   useEffect(() => {
-    if (isShow) {
-      document.body.style.position = 'fixed'
-      document.body.style.width = '100%'
-    } else {
-      document.body.style.position = ''
-      document.body.style.width = ''
-    }
-
-    return () => {
-      document.body.style.position = ''
-      document.body.style.width = ''
-    }
+    document.body.style.overflow = isShow ? 'hidden' : 'unset'
   }, [isShow])
 
+  //* close modal on press Escape
   useEffect(() => {
     const closeModalOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -42,40 +35,35 @@ const Modal: React.FC<ModalProps> = (props) => {
     }
   }, [isShow, onClose])
 
+  // ? Styles
   const effectClasses =
     effect === 'bottom-to-top'
       ? `
-  ${isShow ? 'translate-y-0' : 'translate-y-full lg:translate-y-60'} w-full h-fit lg:max-w-3xl 
-   fixed transition-transform duration-700 left-0 right-0 mx-auto my-auto`
+  ${isShow ? 'top-0' : '-bottom-full lg:top-60'} w-full h-fit lg:max-w-3xl 
+   fixed transition-all duration-700 left-0 right-0 mx-auto my-auto`
       : effect === 'ease-out'
       ? `
-  ${
-    isShow ? 'translate-y-24 scale-100' : 'translate-y-40 scale-50'
-  } max-w-3xl 
+  ${isShow ? 'top-24 transform scale-100' : 'top-40 transform scale-50 '} max-w-3xl 
    fixed transition-all duration-700 left-0 right-0 mx-auto`
       : effect === 'buttom-to-fit'
       ? `
-  ${isShow ? 'translate-y-0' : 'translate-y-full'} w-full h-fit lg:max-w-3xl 
-   fixed transition-transform duration-700 left-0 right-0 mx-auto bottom-0`
-      : ''
+  ${isShow ? 'bottom-0' : '-bottom-full'} w-full h-fit lg:max-w-3xl 
+   fixed transition-all duration-700 left-0 right-0 mx-auto`
+      : '' 
 
+  // ? Render(s)
   return (
     <div
       className={`${
-        isShow ? 'visible opacity-100' : 'invisible opacity-0'
+        isShow ? 'visible opacity-100' : 'invisible opacity-0 '
       } fixed inset-0 z-[99999] transition-all duration-500`}
-      aria-modal="true"
-      role="dialog"
     >
-      <div 
-        className="fixed inset-0 bg-[#1A1E2580]" 
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div className={`${effectClasses} z-10`}>
+      <div className="h-screen w-screen bg-[#1A1E2580]" onClick={onClose} />
+      <div className={effectClasses}>
         {React.Children.map(children, (child) =>
           React.isValidElement(child)
-            ? React.cloneElement(child as React.ReactElement<ContentProps>, {
+            ? // eslint-disable-next-line no-use-before-define
+              React.cloneElement(child as React.ReactElement<ContentProps>, {
                 onClose,
               })
             : child
