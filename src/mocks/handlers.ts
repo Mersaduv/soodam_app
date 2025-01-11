@@ -1229,13 +1229,15 @@ export const handlers = [
     }
 
     users.set(phoneNumber, user)
+    try {
+      localStorage.setItem('user', JSON.stringify(user));
+    } catch (error) {
+      console.error('خطا در ذخیره اطلاعات کاربر در localStorage:', error);
+      return res(ctx.status(500), ctx.json({ message: 'خطا در ذخیره اطلاعات کاربر' }));
+    }
     verificationCodes.clear()
 
     return res(ctx.status(200), ctx.json({ message: 'ورود موفقیت‌آمیز بود', phoneNumber, role }))
-  }),
-
-  rest.post('/api/auth/logout', (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json({ message: 'خروج با موفقیت انجام شد' }))
   }),
 
    // Handler for purchasing subscription

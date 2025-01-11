@@ -76,7 +76,8 @@ const SubscriptionPage: NextPage = () => {
     }
   }
   useEffect(() => {
-    if (statusData) {
+    if (statusData && Object.keys(statusData).length > 0) {
+      console.log(statusData, "statusData--statusData");
       const now = new Date();
       const endDate = new Date(statusData.data.endDate);
   
@@ -92,6 +93,7 @@ const SubscriptionPage: NextPage = () => {
       setSubscriptionStatus(`${days} روز`);
     }
   }, [statusData]);
+  
   
   if (isLoading) return <div>loading ...</div>
   // ? Render(s)
