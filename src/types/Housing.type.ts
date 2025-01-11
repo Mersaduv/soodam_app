@@ -35,4 +35,5 @@ export interface Housing {
   images: string[]
   cubicMeters: number
   categoryId: string
+  category: string
 }

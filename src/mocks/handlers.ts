@@ -101,6 +101,7 @@ const housing = [
     rent: 5000000,
     sellingPrice: 0,
     categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10001',
@@ -136,6 +137,7 @@ const housing = [
     rent: 0,
     sellingPrice: 10000000000,
     categoryId: '2-1',
+    category:'خرید آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10002',
@@ -171,6 +173,7 @@ const housing = [
     rent: 5000000,
     sellingPrice: 0,
     categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: '2024-12-07T09:21:45.625Z',
     updated: '2024-12-07T09:21:45.625Z',
     adId: 'A10003',
@@ -206,6 +209,7 @@ const housing = [
     rent: 5000000,
     sellingPrice: 0,
     categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: '2024-12-07T09:21:45.625Z',
     updated: '2024-12-07T09:21:45.625Z',
     adId: 'A10004',
@@ -240,7 +244,8 @@ const housing = [
     deposit: 800000000,
     rent: 7000000,
     sellingPrice: 0,
-    categoryId: '1-2',
+    categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10005',
@@ -259,7 +264,7 @@ const housing = [
     visitingTime: '۸ صبح تا ۹ شب',
     views: 15,
     save: 1,
-    images: ['/static/ads/Photo (3).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 300,
   },
   {
@@ -275,7 +280,8 @@ const housing = [
     deposit: 1000000000,
     rent: 10000000,
     sellingPrice: 0,
-    categoryId: '1-2',
+    categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10006',
@@ -294,7 +300,7 @@ const housing = [
     visitingTime: '۹ صبح تا ۶ عصر',
     views: 25,
     save: 2,
-    images: ['/static/ads/Photo (4).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 250,
   },
   {
@@ -310,7 +316,8 @@ const housing = [
     deposit: 2000000000,
     rent: 15000000,
     sellingPrice: 0,
-    categoryId: '1-3',
+    categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10007',
@@ -329,7 +336,7 @@ const housing = [
     visitingTime: '۱۰ صبح تا ۸ شب',
     views: 30,
     save: 3,
-    images: ['/static/ads/Photo (5).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 400,
   },
   {
@@ -345,7 +352,8 @@ const housing = [
     deposit: 300000000,
     rent: 4000000,
     sellingPrice: 0,
-    categoryId: '1-2',
+    categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10008',
@@ -364,7 +372,7 @@ const housing = [
     visitingTime: '۱۱ صبح تا ۷ شب',
     views: 10,
     save: 0,
-    images: ['/static/ads/Photo (6).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 120,
   },
   {
@@ -380,7 +388,8 @@ const housing = [
     deposit: 0,
     rent: 0,
     sellingPrice: 4300000000,
-    categoryId: '1-1',
+    categoryId: '2-1',
+    category:'خرید آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10009',
@@ -399,7 +408,7 @@ const housing = [
     visitingTime: '۹ صبح تا ۸ شب',
     views: 18,
     save: 1,
-    images: ['/static/ads/Photo (7).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 180,
   },
   {
@@ -415,7 +424,8 @@ const housing = [
     deposit: 0,
     rent: 0,
     sellingPrice: 1300000000,
-    categoryId: '1-3',
+    categoryId: '2-1',
+    category:'خرید آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10010',
@@ -434,7 +444,7 @@ const housing = [
     visitingTime: '۱۰ صبح تا ۸ شب',
     views: 40,
     save: 5,
-    images: ['/static/ads/Photo (8).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 200,
   },
   {
@@ -450,7 +460,8 @@ const housing = [
     deposit: 1200000000,
     rent: 11000000,
     sellingPrice: 0,
-    categoryId: '1-4',
+    categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10011',
@@ -469,7 +480,7 @@ const housing = [
     visitingTime: '۸ صبح تا ۶ عصر',
     views: 50,
     save: 4,
-    images: ['/static/ads/Photo (9).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 300,
   },
   {
@@ -485,7 +496,8 @@ const housing = [
     deposit: 500000000,
     rent: 5000000,
     sellingPrice: 0,
-    categoryId: '1-2',
+    categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10012',
@@ -504,7 +516,7 @@ const housing = [
     visitingTime: '۹ صبح تا ۷ شب',
     views: 15,
     save: 1,
-    images: ['/static/ads/Photo (10).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 120,
   },
   {
@@ -520,7 +532,8 @@ const housing = [
     deposit: 2500000000,
     rent: 20000000,
     sellingPrice: 0,
-    categoryId: '1-5',
+    categoryId: '1-1',
+    category:'اجاره آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10013',
@@ -539,7 +552,7 @@ const housing = [
     visitingTime: '۱۰ صبح تا ۸ شب',
     views: 60,
     save: 7,
-    images: ['/static/ads/Photo (11).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 400,
   },
   {
@@ -555,7 +568,8 @@ const housing = [
     deposit: 0,
     rent: 0,
     sellingPrice: 1000000000,
-    categoryId: '1-3',
+    categoryId: '2-1',
+    category:'خرید آپارتمان',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     adId: 'A10014',
@@ -574,7 +588,7 @@ const housing = [
     visitingTime: '۹ صبح تا ۸ شب',
     views: 25,
     save: 2,
-    images: ['/static/ads/Photo (12).png'],
+    images: ['/static/ads/Photo.png', '/static/ads/Photo (1).png', '/static/ads/Photo (2).png'],
     cubicMeters: 180,
   },
 ]
@@ -1232,9 +1246,22 @@ export const handlers = [
       planName: string;
     }>();
   
-    const user = users.get(phoneNumber);
-    if (!user) {
-      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }));
+    // جستجوی کاربر از localStorage
+    let user;
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        user = JSON.parse(storedUser);
+        // چک کردن تطابق شماره تلفن
+        if (user.phoneNumber !== phoneNumber) {
+          return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }));
+        }
+      } else {
+        return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }));
+      }
+    } catch (error) {
+      console.error('خطا در خواندن اطلاعات از localStorage:', error);
+      return res(ctx.status(500), ctx.json({ message: 'خطا در دریافت اطلاعات کاربر' }));
     }
   
     // پیدا کردن پلن مورد نظر از آرایه
@@ -1271,18 +1298,19 @@ export const handlers = [
         startDate: now.toISOString(),
         endDate: endDate.toISOString(),
         status: 'ACTIVE',
-        viewedProperties:[]
+        viewedProperties: []
       },
     };
   
     // ذخیره‌سازی اطلاعات به‌روزرسانی‌شده در localStorage
     try {
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      // به‌روزرسانی map users نیز در صورت نیاز
+      users.set(phoneNumber, updatedUser);
     } catch (error) {
       console.error('خطا در ذخیره اطلاعات در localStorage:', error);
+      return res(ctx.status(500), ctx.json({ message: 'خطا در ذخیره اطلاعات' }));
     }
-  
-    users.set(phoneNumber, updatedUser);
   
     return res(ctx.status(200), ctx.json({
       success: true,
@@ -1356,7 +1384,7 @@ export const handlers = [
     }
   
     if (!user) {
-      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }));
+      return res(ctx.status(403), ctx.json({ message: 'کاربر یافت نشد' }));
     }
   
     if (!user.subscription || user.subscription.status !== 'ACTIVE') {
@@ -1434,7 +1462,7 @@ export const handlers = [
     }
   
     return res(ctx.status(200), ctx.json({
-      subscription: user.subscription,
+      data: user.subscription,
     }));
   }),
 

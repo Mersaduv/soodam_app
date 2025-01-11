@@ -422,6 +422,11 @@ import {
   FingerWIcon,
   Check,
   CheckSmIcon,
+  BedIcon,
+  BulidingIcon,
+  Grid2Icon,
+  GpsIcon,
+  LocationSmIcon,
 } from '@/icons'
 import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
@@ -431,6 +436,8 @@ import * as turf from '@turf/turf'
 import { setIsShowLogin } from '@/store'
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'
+import Image from 'next/image'
+import { IRAN_PROVINCES } from '@/utils'
 interface Props {
   housingData: Housing[]
 }
@@ -451,6 +458,12 @@ interface Property {
   location: Location
 }
 
+interface ModalSelectHousing {
+  housing: Housing
+  onClose: () => void
+  isModalOpen: boolean
+}
+
 const formatPrice = (price: number): string => {
   if (price >= 1_000_000_000) {
     return (price / 1_000_000_000).toFixed(3)
@@ -460,6 +473,17 @@ const formatPrice = (price: number): string => {
     return price.toString()
   }
 }
+
+const formatPriceLoc = (price: number): string => {
+  if (price >= 1_000_000_000) {
+    return `${(price / 1_000_000_000).toFixed(3)} میلیارد تومان`;
+  } else if (price >= 1_000_000) {
+    return `${(price / 1_000_000).toFixed(0)} میلیون تومان`;
+  } else {
+    return `${price.toLocaleString()} تومان`;
+  }
+};
+
 
 const getCenterOfData = (data: Housing[]): LatLngTuple => {
   const latitudes = data.map((item) => item.location.lat)
@@ -476,7 +500,7 @@ const createIconWithPrice = (
   created: string,
   zoom: number,
   propertyId: string,
-  isViewed: boolean 
+  isViewed: boolean
 ): L.DivIcon => {
   const iconColor = '#D52133'
   const isNew = (() => {
@@ -490,7 +514,7 @@ const createIconWithPrice = (
       <div className="w-fit relative">
         <div
           style={{
-            backgroundColor:isViewed ?"#D52133" : 'white',
+            backgroundColor: isViewed ? '#D52133' : 'white',
             color: 'black',
             borderRadius: '4px',
             padding: '2px 5px',
@@ -507,21 +531,21 @@ const createIconWithPrice = (
           }}
         >
           <div className="flex items-center gap-1">
-            {isViewed && (
-              <CheckSmIcon width="7px" height="6px" />
-          )}
+            {isViewed && <CheckSmIcon width="7px" height="6px" />}
             {isNew && !isViewed && <ArrowDownTickIcon width="6px" height="8px" />}
             {price > '0' ? (
-              <span className={`font-extrabold text-xs ${isViewed && "text-white"} farsi-digits pb-[1px]`}>{price}</span>
+              <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits pb-[1px]`}>
+                {price}
+              </span>
             ) : (
               <div className={`flex-center gap-x-1`}>
                 <div className="flex-center gap-x-0.5">
-                  <span className={`font-extrabold text-xs ${isViewed && "text-white"} farsi-digits`}>{deposit}</span>
-                  <span className={`text-[8px] font-normal ${isViewed && "text-white"}`}>رهن</span>
+                  <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits`}>{deposit}</span>
+                  <span className={`text-[8px] font-normal ${isViewed && 'text-white'}`}>رهن</span>
                 </div>
                 <div className="flex-center gap-x-0.5">
-                  <span className={`font-extrabold text-xs ${isViewed && "text-white"} farsi-digits `}>{rent}</span>
-                  <span className={`text-[8px] font-normal ${isViewed && "text-white"}`}>اجاره</span>
+                  <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>{rent}</span>
+                  <span className={`text-[8px] font-normal ${isViewed && 'text-white'}`}>اجاره</span>
                 </div>
               </div>
             )}
@@ -891,10 +915,79 @@ function throttle(func, limit) {
   }
 }
 
+const getProvinceFromCoordinates = (lat, lng) => {
+  const province = IRAN_PROVINCES.find((province) => {
+    const { bounds } = province
+    return lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng
+  })
+  return province ? province.name : 'نامشخص'
+}
+
+const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
+  const { housing, isModalOpen, onClose } = props
+  if (!isModalOpen) return null
+  console.log(housing, 'property--property')
+  const province = getProvinceFromCoordinates(housing.location.lat, housing.location.lng)
+  const isSelling = housing.sellingPrice > 0
+  return (
+    <div className="fixed w-full inset-0 z-[9999] flex items-end mb-[85px] justify-center" onClick={onClose}>
+      <div className="bg-white rounded-lg p-4 shadow-lg max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-col">
+          <div className="flex gap-2">
+            {housing.images.length > 0 && (
+              <div className=" bg-gray-200 rounded-[10px] mb-4">
+                <Image
+                  width={104}
+                  height={100}
+                  className="rounded-[10px] h-[104px] object-cover"
+                  src={housing.images[1]}
+                  alt={housing.title}
+                />
+              </div>
+            )}
+            <div className="flex-1 flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <LocationSmIcon width="16px" height="16px" />
+                <div className="text-xs font-normal">{province}</div>
+              </div>
+
+              <div className="line-clamp-1 overflow-hidden text-ellipsis text-base font-normal mt-1">
+                {housing.category},{housing.address}
+              </div>
+              <div>
+                {isSelling ? <div className="text-xs font-normal text-[#5A5A5A] farsi-digits mt-2.5">
+                  قیمت: {formatPriceLoc(housing.sellingPrice)}
+                </div> : <div className="space-y-2 mt-2.5">
+                  <p className="text-xs font-normal text-[#5A5A5A] farsi-digits">رهن: {formatPriceLoc(housing.deposit)}</p>
+                  <p className="text-xs font-normal text-[#5A5A5A] farsi-digits">اجاره: {formatPriceLoc(housing.rent)}</p>
+                </div> }
+              </div>
+            </div>
+          </div>
+
+          {/* Property Details */}
+          <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
+            <div className="flex-center gap-1.5 text-xs font-medium farsi-digits">
+              <BedIcon width="21px" height="19px" /> {housing.bedrooms}{' '}
+              <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>
+            </div>
+            <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
+              <Grid2Icon width="16px" height="16px" /> {housing.cubicMeters}{' '}
+              <span className="font-medium text-[#7A7A7A] text-xs">متر مربع</span>
+            </div>
+            <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
+              <BulidingIcon width="16px" height="17px" /> طبقه {housing.onFloor} از {housing.floors}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 const LeafletMap: React.FC<Props> = ({ housingData }) => {
   // ? Assets
   const { query, push } = useRouter()
-  const { role,phoneNumber } = useAppSelector((state) => state.auth)
+  const { role, phoneNumber } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
@@ -908,7 +1001,9 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   const mapRef = useRef(null)
   const polylineRef = useRef(null)
   const [mode, setMode] = useState('none')
-  const [viewedProperties, setViewedProperties] = useState<string[]>([]);
+  const [viewedProperties, setViewedProperties] = useState<string[]>([])
+  const [selectedProperty, setSelectedProperty] = useState<Housing>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const mapStyle = {
     width: '100%',
     height: '100%',
@@ -916,17 +1011,20 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   }
 
   // ? Queries
-  const {data : statusData} = useGetSubscriptionStatusQuery(phoneNumber)
-  const [viewProperty,{isSuccess}] = useViewPropertyMutation()
-  const { data:viewedPropertiesData, isLoading:isLoadingViewedProperties } = useGetViewedPropertiesQuery(phoneNumber, {
-    skip: !phoneNumber,
-  });
+  const { data: statusData } = useGetSubscriptionStatusQuery(phoneNumber)
+  const [viewProperty, { isSuccess }] = useViewPropertyMutation()
+  const { data: viewedPropertiesData, isLoading: isLoadingViewedProperties } = useGetViewedPropertiesQuery(
+    phoneNumber,
+    {
+      skip: !phoneNumber,
+    }
+  )
 
   useEffect(() => {
     if (viewedPropertiesData) {
-      setViewedProperties(viewedPropertiesData.data.map((item) => item.propertyId));
+      setViewedProperties(viewedPropertiesData.data.map((item) => item.propertyId))
     }
-  }, [viewedPropertiesData]);
+  }, [viewedPropertiesData])
 
   const handleDrawButtonClick = () => {
     if (mode === 'none') {
@@ -995,43 +1093,42 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
     }
   }
 
-  const handleMarkerClick = async (property: any) => {
+  const handleMarkerClick = async (property: Housing) => {
     if (!phoneNumber) {
-      toast.error('لطفا ابتدا وارد شوید');
-      dispatch(setIsShowLogin(true));
-      return;
+      toast.error('لطفا ابتدا وارد شوید')
+      dispatch(setIsShowLogin(true))
+      return
     }
 
+    setSelectedProperty(property)
     try {
       const response = await viewProperty({
         phoneNumber,
         propertyId: property.id,
-      }).unwrap();
+      }).unwrap()
 
       if (response.status === 201) {
-        setViewedProperties(prev => [...prev, property.id]);
-        toast.success(response.message);
+        setViewedProperties((prev) => [...prev, property.id])
+        setIsModalOpen(true)
+        toast.success(response.message)
+      } else {
+        setIsModalOpen(true)
+        toast.warning(response.message)
       }
-      else 
-      {
-        toast.warning(response.message);
-      }
-      
     } catch (error: any) {
       if (error.status === 403) {
-        toast.error('لطفا اشتراک تهیه کنید');
-        push('/subscription');
+        toast.error('لطفا اشتراک تهیه کنید')
+        push('/subscription')
       } else {
-        toast.error(error.data?.message || 'خطا در بازدید ملک');
+        toast.error(error.data?.message || 'خطا در بازدید ملک')
       }
     }
   }
-useEffect(()=>{
-if (statusData) {
-  console.log(statusData ,"statusData");
-  
-}
-},[isSuccess])
+  useEffect(() => {
+    if (statusData) {
+      console.log(statusData, 'statusData')
+    }
+  }, [isSuccess])
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
       <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] right-4 z-[1000]">
@@ -1077,7 +1174,7 @@ if (statusData) {
           </div>
         </div>
       )}
-
+      <PropertyModal isModalOpen={isModalOpen} onClose={() => setIsModalOpen(false)} housing={selectedProperty} />
       <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
         <Modal.Content
           onClose={handleModalClose}

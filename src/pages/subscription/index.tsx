@@ -44,11 +44,11 @@ const SubscriptionPage: NextPage = () => {
   const { role, phoneNumber } = useAppSelector((state) => state.auth)
   // ? States
   const [referralCode, setReferralCode] = useState('')
-
+  const [subscriptionStatus, setSubscriptionStatus] = useState('')
   // ? Queries
+  const {data : statusData , error} = useGetSubscriptionStatusQuery(phoneNumber)
   const { data: subscriptionPlans, isLoading, isFetching } = useGetSubscriptionsQuery()
   const [purchaseSubscription, { isLoading: isPurchasing }] = usePurchaseSubscriptionMutation()
-    const {data : statusData} = useGetSubscriptionStatusQuery(phoneNumber)
   // ? handlers
   const handleNavigate = (): void => {
     push('/requests/new')
@@ -75,12 +75,24 @@ const SubscriptionPage: NextPage = () => {
       toast.error('خطا در خرید اشتراک')
     }
   }
-useEffect(()=>{
-  if (statusData) {
-    console.log(statusData , "statusData");
-    
-  }
-},[])
+  useEffect(() => {
+    if (statusData) {
+      const now = new Date();
+      const endDate = new Date(statusData.data.endDate);
+  
+      // تبدیل تاریخ‌ها به میلی‌ثانیه با استفاده از getTime()
+      const timeDiff = endDate.getTime() - now.getTime(); // تفاوت زمانی به میلی‌ثانیه
+  
+      if (timeDiff <= 0) {
+        setSubscriptionStatus('منقضی شده');
+        return;
+      }
+  
+      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // محاسبه تعداد روزها
+      setSubscriptionStatus(`${days} روز`);
+    }
+  }, [statusData]);
+  
   if (isLoading) return <div>loading ...</div>
   // ? Render(s)
   return (
@@ -92,7 +104,7 @@ useEffect(()=>{
               <div className="flex justify-between items-start gap-4">
                 <div className="p-1">
                   <h2 className="font-medium">اشتراک باقی مانده</h2>
-                  <p className="text-red-500 mt-1">20 روز</p>
+                  <p className="text-red-500 mt-1 farsi-digits">{subscriptionStatus}</p>
                 </div>
                 <img src="/static/analyze-data.png" alt="subscription" className="w-24" />
               </div>

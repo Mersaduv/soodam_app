@@ -79,13 +79,13 @@ const HousingCard: React.FC<Props> = (props) => {
           <hr className="border-[1px] border-[#E3E3E7] my-4" />
         </div>
         <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-          <div className="flex-center gap-1.5 text-xs font-medium">
+          <div className="flex-center gap-1.5 text-xs font-medium farsi-digits">
             <BedIcon width="21px" height="19px" /> {housing.bedrooms} <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>
           </div>
-          <div className="flex-center gap-1.5 font-medium text-xs">
+          <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
             <Grid2Icon width="16px" height="16px" /> {housing.cubicMeters} <span className="font-medium text-[#7A7A7A] text-xs">متر مربع</span>
           </div>
-          <div className="flex-center gap-1.5 font-medium text-xs">
+          <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
             <BulidingIcon width="16px" height="17px"/> طبقه {housing.onFloor} از {housing.floors}
           </div>
         </div>
