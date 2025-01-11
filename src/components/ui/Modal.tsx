@@ -57,6 +57,7 @@ const Modal: React.FC<ModalProps> = (props) => {
       className={`${
         isShow ? 'visible opacity-100' : 'invisible opacity-0 '
       } fixed inset-0 z-[99999] transition-all duration-500`}
+      style={{ pointerEvents: isShow ? 'auto' : 'none' }}
     >
       <div className="h-screen w-screen bg-[#1A1E2580]" onClick={onClose} />
       <div className={effectClasses}>
