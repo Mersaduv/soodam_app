@@ -12,21 +12,7 @@ const Modal: React.FC<ModalProps> = (props) => {
   const { isShow, onClose, effect, children } = props
 
   useEffect(() => {
-    if (isShow) {
-      // Fix for iOS Safari to prevent modal from getting stuck
-      document.body.style.position = 'fixed'
-      document.body.style.width = '100%'
-      // Store current scroll position
-      const scrollY = window.scrollY
-      document.body.style.top = `-${scrollY}px`
-    } else {
-      // Restore scroll position when modal closes
-      const scrollY = document.body.style.top
-      document.body.style.position = ''
-      document.body.style.width = ''
-      document.body.style.top = ''
-      window.scrollTo(0, parseInt(scrollY || '0') * -1)
-    }
+    document.body.style.overflow = isShow ? 'hidden' : 'unset'
   }, [isShow])
 
   useEffect(() => {
@@ -45,38 +31,48 @@ const Modal: React.FC<ModalProps> = (props) => {
     }
   }, [isShow, onClose])
 
-  const effectClasses = effect === 'buttom-to-fit' 
-    ? `
+  const effectClasses =
+    effect === 'bottom-to-top'
+      ? `
+      fixed left-0 right-0 mx-auto w-full lg:max-w-3xl
+      transform transition-transform duration-700
       ${isShow ? 'translate-y-0' : 'translate-y-full'}
-      fixed bottom-0 left-0 right-0 w-full h-fit lg:max-w-3xl mx-auto 
-      transform transition-transform duration-300 ease-in-out
-      z-[999999] will-change-transform
-    `
-    : effect === 'bottom-to-top'
-    ? `
-      ${isShow ? 'top-0' : '-bottom-full lg:top-60'}
-      fixed w-full h-fit lg:max-w-3xl mx-auto left-0 right-0
-      transition-all duration-300 ease-in-out
-    `
-    : `
-      ${isShow ? 'top-24 scale-100' : 'top-40 scale-50'}
-      fixed max-w-3xl mx-auto left-0 right-0
-      transform transition-all duration-300 ease-in-out
-    `
+      `
+      : effect === 'ease-out'
+      ? `
+      fixed left-0 right-0 mx-auto max-w-3xl top-24
+      transform transition-all duration-700
+      ${isShow ? 'scale-100' : 'scale-50'}
+      `
+      : effect === 'buttom-to-fit'
+      ? `
+      fixed left-0 right-0 bottom-0 mx-auto w-full lg:max-w-3xl
+      transform transition-transform duration-700 ease-in-out
+      ${isShow ? 'translate-y-0' : 'translate-y-full'}
+      `
+      : ''
 
   return (
     <div
       className={`
-        fixed inset-0 z-[99999]
-        transition-opacity duration-300 ease-in-out
+        fixed inset-0 z-[99999] transition-opacity duration-500
         ${isShow ? 'visible opacity-100' : 'invisible opacity-0'}
       `}
+      style={{
+        WebkitOverflowScrolling: 'touch',
+        height: '100%',
+      }}
     >
       <div 
-        className="h-screen w-screen bg-[#1A1E2580] backdrop-blur-sm"
-        onClick={onClose}
+        className="fixed inset-0 bg-[#1A1E2580]" 
+        onClick={onClose} 
       />
-      <div className={effectClasses}>
+      <div 
+        className={`${effectClasses} max-h-[90vh] overflow-y-auto`}
+        style={{
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
         {React.Children.map(children, (child) =>
           React.isValidElement(child)
             ? React.cloneElement(child as React.ReactElement<any>, {
