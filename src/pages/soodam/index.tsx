@@ -5,15 +5,17 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { ClientLayout } from '@/components/layouts'
 import { LogoutButton } from '@/components/user'
-import { ArrowLeftIcon, NotificationIcon } from '@/icons'
+import { ArrowLeftIcon, NotificationIcon, WalletRedIcon } from '@/icons'
+import { useAppSelector } from '@/hooks'
 
 const Soodam: NextPage = () => {
   // ? Assets
   const { query, events, back } = useRouter()
-
+  const { role, phoneNumber, fullName } = useAppSelector((state) => state.auth)
   const handleBack = () => {
     back()
   }
+  console.log(fullName , "fullName")
   // ? Render(s)
   return (
     <>
@@ -30,13 +32,29 @@ const Soodam: NextPage = () => {
             </button>
           </header>
           <div className="bg-[#D8DFF4] h-[200px] rounded-b-[24px] relative">
-            <div className="flex justify-center"><img className='w-[300px]' src="/static/Vector.png" alt="" /></div>
-            <div className="flex justify-center"><img className='w-[200px]' src="/static/Group 1000011048.png" alt="" /></div>
-            <div className="absolute bottom-0 flex gap-3 pb-7 px-4">
-              <div className="border-[3px] w-[64px] h-[64px] flex-center border-[#FFFFFF] rounded-full"><img className='w-[52px]' src="/static/OBJECTM.png" alt="" /></div>
-              <div className="flex flex-col gap-2">
-                <h1 className="text-base font-semibold">بی نام</h1>
-                <span className="text-sm text-[#5A5A5A] font-semibold farsi-digits">09338666666</span>
+            <div className="flex justify-center">
+              <img className="w-[300px]" src="/static/Vector.png" alt="" />
+            </div>
+            <div className="flex justify-center">
+              <img className="w-[200px]" src="/static/Group 1000011048.png" alt="" />
+            </div>
+            <div className="absolute bottom-0 flex items-center gap-3 pb-7 px-4 w-full">
+              <div className="relative w-[75px] h-[64px]">
+                <div className="border-[3px] border-[#FFFFFF] rounded-full w-[64px] h-[64px] absolute z-10"></div>
+                <img className="w-[53px] h-[53px] absolute right-[6px] top-[5.9px]" src="/static/OBJECTM.png" alt="" />
+              </div>
+              <div className="flex flex-col gap-2 w-full">
+                <h1 className="text-base font-semibold">{fullName !== null  ? fullName :"بی نام"}</h1>
+                <span className="text-sm text-[#5A5A5A] font-semibold farsi-digits">{phoneNumber}</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div>
+              <div><WalletRedIcon width="32px" height="32px" /></div>
+              <div>
+                <span className="text-xs font-normal text-[#5A5A5A]">کیف پول</span>
+                <div></div>
               </div>
             </div>
           </div>
