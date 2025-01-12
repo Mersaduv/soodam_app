@@ -10,10 +10,11 @@ import { FirstLoginModal, MemberUserLoginsModal } from '../modals'
 
 interface Props {
   title?: string
+  isProfile?:boolean
   children: React.ReactNode
 }
 
-const ClientLayout: React.FC<Props> = ({ children, title }) => {
+const ClientLayout: React.FC<Props> = ({ children, title,isProfile }) => {
   // const [showModal, setShowModal] = useState<boolean>(false)
   const [isShow, modalHandlers] = useDisclosure()
   const [isShowMemberUserGuid,memberUserGuidModalHandlers] = useDisclosure()
@@ -62,8 +63,7 @@ const ClientLayout: React.FC<Props> = ({ children, title }) => {
     
   return (
     <>
-      {title ? <FilterControlsHeader title={title} /> : <Header />}
-
+      {title && !isProfile ? <FilterControlsHeader title={title} /> : !isProfile && <Header />}
       <main className="h-full bg-[#F6F7FB]">
         {isShowLogin && <FirstLoginModal isShow={isShow} onClose={handleModalClose} />}
         {isMemberUserLogin && <MemberUserLoginsModal isShow={isShowMemberUserGuid} onClose={handleMemberUserModalClose} />}

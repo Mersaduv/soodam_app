@@ -924,7 +924,6 @@ const AdvertisementRegistrationForm: React.FC = () => {
                             }`}
                           />
                         </div>
-                        {/* Dropdown Content */}
                         {openDropdowns[item.id] && (
                           <div className="w-full mt-1.5 bg-[#FCFCFC] border border-[#E3E3E7] rounded-lg p-1">
                             {item.values.map((value) => (
@@ -934,10 +933,13 @@ const AdvertisementRegistrationForm: React.FC = () => {
                               >
                                 <div className="flex items-center cursor-pointer relative">
                                   <input
-                                    type="radio" // تغییر به نوع radio
-                                    name={`radio-${item.id}`} // استفاده از نام مشترک برای گروه بندی
-                                    checked={selectedValues[item.id] === value.id} // بررسی مقدار انتخاب‌شده
-                                    onChange={() => setSelectedValues((prev) => ({ ...prev, [item.id]: value.id }))}
+                                    type="radio"
+                                    name={`radio-${item.id}`}
+                                    checked={selectedValues[item.id] === value.id}
+                                    onChange={() => {
+                                      setSelectedValues((prev) => ({ ...prev, [item.id]: value.id }))
+                                      setValue(`features.${item.id}`, value.name) // مقداردهی به فرم
+                                    }}
                                     className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
                                     id={value.id}
                                   />
@@ -964,7 +966,6 @@ const AdvertisementRegistrationForm: React.FC = () => {
                           </div>
                         )}
                         <div className="w-fit" dir={'ltr'}>
-                          {' '}
                           <DisplayError adForm errors={errors.features?.[item.id]} />
                         </div>
                       </div>
