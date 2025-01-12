@@ -1263,7 +1263,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
       <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
         <Modal.Content
           onClose={handleModalClose}
-          className="flex h-full flex-col gap-y-5 bg-white p-4 rounded-2xl rounded-b-none"
+          className="flex h-full flex-col gap-y-5 bg-white p-4  pb-8  rounded-2xl rounded-b-none"
         >
           <Modal.Header right onClose={handleModalClose} />
           <Modal.Body>
