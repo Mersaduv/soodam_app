@@ -5,7 +5,16 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { ClientLayout } from '@/components/layouts'
 import { LogoutButton } from '@/components/user'
-import { ArrowLeftIcon, NotificationIcon, TicketStarIcon, WalletRedIcon } from '@/icons'
+import {
+  ArrowLeftIcon,
+  HeadphoneSmIcon,
+  NotificationIcon,
+  SettingSmIcon,
+  TicketStarIcon,
+  TicketStartSmIcon,
+  UserEditSmIcon,
+  WalletRedIcon,
+} from '@/icons'
 import { useAppSelector } from '@/hooks'
 import { useEffect, useState } from 'react'
 import { useGetSubscriptionStatusQuery } from '@/services'
@@ -26,8 +35,7 @@ const Soodam: NextPage = () => {
     if (statusData && Object.keys(statusData).length > 0) {
       console.log(statusData, 'statusData--statusData')
       setSubscriptionStatus(`${statusData.data.remainingViews}`)
-    }
-    else {
+    } else {
       setSubscriptionStatus(`0`)
     }
   }, [statusData])
@@ -86,13 +94,26 @@ const Soodam: NextPage = () => {
                 <span className="text-[11px] font-normal text-[#5A5A5A] line-clamp-1 overflow-hidden text-ellipsis mb-1">
                   اشتراک باقی مانده
                 </span>
-                <div className="farsi-digits font-bold text-sm line-clamp-1 overflow-hidden text-ellipsis">{subscriptionStatus} آگهی</div>
+                <div className="farsi-digits font-bold text-sm line-clamp-1 overflow-hidden text-ellipsis">
+                  {subscriptionStatus} آگهی
+                </div>
               </div>
             </div>
           </div>
           <h1>حساب کاربری</h1>
-          <TicketStarIcon width="32px" height="32px" />
-          <LogoutButton />
+          <div>
+            <div>
+              <div>
+                <UserEditSmIcon width="24px" height="24px" />
+                <div>اطلاعات حساب کاربری</div>
+              </div>
+            </div>
+          </div>
+          <TicketStartSmIcon width="24px" height="24px" />
+          <HeadphoneSmIcon width="24px" height="24px" />
+          <SettingSmIcon width="24px" height="24px" />
+          <TicketStartSmIcon width="24px" height="24px" />
+          <LogoutButton isProfile />
         </div>
       </ClientLayout>
     </>

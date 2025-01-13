@@ -5,8 +5,9 @@ import { HandleResponse } from '@/components/shared'
 import { Button } from '@/components/ui'
 import { clearCredentials } from '@/store'
 import { useRouter } from 'next/router'
+import { LogoutSmIcon } from '@/icons'
 
-export default function LogoutButton() {
+export default function LogoutButton({ isProfile }: { isProfile?: boolean }) {
   // ? Assets
   const { replace, query } = useRouter()
   const dispatch = useAppDispatch()
@@ -19,9 +20,15 @@ export default function LogoutButton() {
 
   return (
     <>
-      <Button className="w-full " onClick={handleLogout}>
-        خروج
-      </Button>
+      {isProfile ? (
+        <div className='flex items-center gap-2 text-sm text-[#D52133] font-medium cursor-pointer' onClick={handleLogout}>
+          <LogoutSmIcon /> خروج
+        </div>
+      ) : (
+        <Button className="w-full " onClick={handleLogout}>
+          خروج
+        </Button>
+      )}
     </>
   )
 }
