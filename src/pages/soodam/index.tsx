@@ -100,20 +100,33 @@ const Soodam: NextPage = () => {
               </div>
             </div>
           </div>
-          <h1>حساب کاربری</h1>
           <div>
-            <div>
-              <div>
+            <div className="px-4 space-y-2 mt-5 mb-10">
+              <div className="flex items-center gap-2 py-3 cursor-pointer">
                 <UserEditSmIcon width="24px" height="24px" />
-                <div>اطلاعات حساب کاربری</div>
+                <div className="font-medium text-sm">اطلاعات حساب کاربری</div>
+              </div>
+
+              <div className="flex items-center gap-2 py-3 cursor-pointer">
+                <TicketStartSmIcon width="24px" height="24px" />
+                <div className="font-medium text-sm">خرید اشتراک</div>
+              </div>
+
+              <div className="flex items-center gap-2 py-3 cursor-pointer">
+                <HeadphoneSmIcon width="24px" height="24px" />
+                <div className="font-medium text-sm">درخواست پشتیبانی</div>
+              </div>
+
+              <div className="flex items-center gap-2 py-3 cursor-pointer">
+                <SettingSmIcon width="24px" height="24px" />
+                <div className="font-medium text-sm">تنظیمات</div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <LogoutButton isProfile />
               </div>
             </div>
           </div>
-          <TicketStartSmIcon width="24px" height="24px" />
-          <HeadphoneSmIcon width="24px" height="24px" />
-          <SettingSmIcon width="24px" height="24px" />
-          <TicketStartSmIcon width="24px" height="24px" />
-          <LogoutButton isProfile />
         </div>
       </ClientLayout>
     </>
