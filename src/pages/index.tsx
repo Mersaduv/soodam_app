@@ -15,51 +15,64 @@ export default function Home() {
   const { query, events } = useRouter()
   const type = query?.type?.toString() ?? ''
   const role = query?.role?.toString() ?? ''
-  const { data: housingData, isFetching, ...housingQueryProps } = useGetHousingQuery({ ...query, type })
-
   const map = useAppSelector((state) => state.map)
+  const { housingMap } = useAppSelector((state) => state.statesData)
 
+  const { data: housingData, isFetching, ...housingQueryProps } = useGetHousingQuery({ ...query, type })
   useEffect(() => {
     if (role) {
-      localStorage.setItem('role', role);
+      localStorage.setItem('role', role)
     }
-  }, [role]);
-  
+  }, [role])
 
   if (isFetching) return <div>loading....</div>
 
   return (
     <ClientLayout>
       <main className="h-full">
-        {map.mode ? (
-          <div className="h-full" style={{ width: '100%' }}>
-            <LeafletMap housingData={housingData.data} />
+        <div className={`h-full ${!map.mode && 'hidden'}`} style={{ width: '100%' }}>
+          <LeafletMap housingData={housingData.data} />
+        </div>
+        <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length > 0 && "hidden"}`}>
+          <div className="flex items-center mb-6">
+            <ArchiveTickIcon />
+            <div className="border-r-[1.5px] text-[#1A1E25] border-[#7A7A7A] mr-1 pr-1.5 font-normal text-sm">
+              {housingData.data.length} مورد پیدا شد
+            </div>
           </div>
-        ) : (
-          <div className="pt-[147px] pb-36 px-4">
+          <DataStateDisplay
+            {...housingQueryProps}
+            isFetching={isFetching}
+            dataLength={housingData?.data ? housingData.data.length : 0}
+            loadingComponent={<HousingSkeleton />}
+            emptyComponent={<EmptyCustomList />}
+          >
+            {housingData && housingData.data.length > 0 && (
+              <section className="flex flex-wrap justify-center gap-3">
+                {housingData.data.map((item) => (
+                  <HousingCard housing={item} key={item.id} />
+                ))}
+              </section>
+            )}
+          </DataStateDisplay>
+        </div>
+
+        <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length === 0 && "hidden"}`}>
             <div className="flex items-center mb-6">
               <ArchiveTickIcon />
               <div className="border-r-[1.5px] text-[#1A1E25] border-[#7A7A7A] mr-1 pr-1.5 font-normal text-sm">
-                {housingData.data.length} مورد پیدا شد
+                {housingMap.length} مورد پیدا شد
               </div>
             </div>
-            <DataStateDisplay
-              {...housingQueryProps}
-              isFetching={isFetching}
-              dataLength={housingData?.data ? housingData.data.length : 0}
-              loadingComponent={<HousingSkeleton />}
-              emptyComponent={<EmptyCustomList />}
-            >
-              {housingData && housingData.data.length > 0 && (
-                <section className="flex flex-wrap justify-center gap-3">
-                  {housingData.data.map((item) => (
-                    <HousingCard housing={item} key={item.id} />
-                  ))}
-                </section>
-              )}
-            </DataStateDisplay>
+
+            {housingMap && (
+              <section className="flex flex-wrap justify-center gap-3">
+                {housingMap.map((item) => (
+                  <HousingCard housing={item} key={item.id} />
+                ))}
+              </section>
+            )}
           </div>
-        )}
       </main>
     </ClientLayout>
   )

@@ -7,6 +7,7 @@ import alertReducer from '../store/slices/alert.slice'
 import mapModeReducer from '../store/slices/mapMode.slice'
 import isShowLoginReducer from '../store/slices/loginModal.slice'
 import savedHousesReducer from '../store/slices/savedHouses.slice'
+import statesDataReducer from '../store/slices/statesData.slice'
 import apiSlice from '@/services/baseApi'
 
 // Actions
@@ -15,6 +16,7 @@ export * from '../store/slices/alert.slice'
 export * from '../store/slices/mapMode.slice'
 export * from '../store/slices/loginModal.slice'
 export * from '../store/slices/savedHouses.slice'
+export * from '../store/slices/statesData.slice'
 
 export const store = configureStore({
   reducer: {
@@ -23,6 +25,7 @@ export const store = configureStore({
     map: mapModeReducer,
     saveHouse: savedHousesReducer,
     isShowLogin: isShowLoginReducer,
+    statesData: statesDataReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
   middleware: (gDM) => gDM().concat(apiSlice.middleware),

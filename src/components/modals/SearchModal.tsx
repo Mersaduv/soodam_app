@@ -97,7 +97,7 @@ const SearchModal: React.FC<Props> = (props) => {
               <Search className="icon m-2 ml-2 mr-0 text-gray-500" />
             </div>
             <div className="absolute shadow-searchModal h-[500px] overflow-auto rounded-md rounded-t-none sm:top-12 right-0 left-0 bg-white w-full border border-gray-200   border-t-0 p-3 z-[9999]">
-              <DataStateDisplay
+              {/* <DataStateDisplay
                 {...housingQueryProps}
                 dataLength={data ? data.data.length : 0}
                 emptyComponent={<EmptySearchList />}
@@ -122,7 +122,7 @@ const SearchModal: React.FC<Props> = (props) => {
                       </div>
                     ))}
                 </div>
-              </DataStateDisplay>
+              </DataStateDisplay> */}
               {/* <EmptySearchList /> */}
               تاریخچه جستجو ..
             </div>
