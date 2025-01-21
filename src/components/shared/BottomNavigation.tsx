@@ -11,7 +11,7 @@ const BottomNavigation: React.FC = () => {
     { href: "/", icon: <SearchIcon width="24px" height="24px"/>, label: "جستجو" },
     { href: "/myCity", icon: <Home2Icon  width="24px" height="24px"/>, label: "شهر من" },
     { href: "/requests", icon: <SquareTaskIcon width="24px" height="24px" />, label: "درخواست‌ها" },
-    { href: "/memberShip", icon: <ProfileTick width="24px" height="24px" />, label: "عضویت" },
+    { href: "/marketer", icon: <ProfileTick width="24px" height="24px" />, label: "عضویت" },
     { href: "/soodam", icon: <MoreIcon width="24px" height="24px" />, label: "سودم" },
   ];
 
