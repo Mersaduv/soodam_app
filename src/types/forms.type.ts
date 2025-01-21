@@ -35,7 +35,7 @@ export interface AdFormValues {
 
   title?: string
   features: {
-    [key: string]: string 
+    [key: string]: string
   }
 
   media: {
@@ -55,54 +55,72 @@ export interface RequestFormValues {
   }
 
   priceRange?: {
-    from: number;
-    to: number;
-  };
+    from: number
+    to: number
+  }
 
   areaRange?: {
-    from: number;
-    to: number;
-  };
+    from: number
+    to: number
+  }
 
   buildYearRange?: {
-    from: number;
-    to: number;
-  };
+    from: number
+    to: number
+  }
 
   depositRange?: {
     from: number
-    to:number
+    to: number
   }
-  
+
   rent?: {
     from: number
-    to:number
+    to: number
   }
   convertible?: boolean
 
   producerProfitPercentage?: {
     from: number
-    to:number
+    to: number
   }
   ownerProfitPercentage?: {
     from: number
-    to:number
+    to: number
   }
 
   capacity?: {
     from: number
-    to:number
+    to: number
   }
   extraPeople?: {
     from: number
-    to:number
+    to: number
   }
 
   title?: string
   features: {
-    [key: string]: string | {
-      from: number;
-      to: number;
-    }
+    [key: string]:
+      | string
+      | {
+          from: number
+          to: number
+        }
   }
+}
+
+export interface MarketerUserForm {
+  fullName: string
+  fatherName: string
+  notionalCode: string
+  idCode: string
+  birthDate: string
+  bankAccountNumber: string
+  shabaNumber: string
+  maritalStatus: string
+  nationalCardFrontImage: File
+  nationalCardBackImage: File
+  IdImage: File
+  scannedImage?: File
+  agreeToTerms: boolean
 }

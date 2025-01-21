@@ -11,11 +11,12 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   compacted?:boolean
   isDynamic?:boolean
   isFromTo?:boolean
+  isMarketerForm?:boolean
 }
 
 const TextField: React.FC<Props> = (props) => {
   // ? Props
-  const { label, adForm, errors, inputMode,compacted, name,isDynamic,isFromTo, type = 'text', control, ...restProps } = props
+  const { label, adForm, errors, inputMode,compacted, name,isDynamic,isFromTo,isMarketerForm, type = 'text', control, ...restProps } = props
 
   // ? Form Hook
   const { field } = useController({ name, control, rules: { required: true } })
@@ -40,7 +41,7 @@ const TextField: React.FC<Props> = (props) => {
         <label
           className={`block ${label === 'isTo' && "h-5"} ${isFromTo && "-mr-4"} ${
             adForm ? 'text-sm font-normal mb-2' : 'text-xs mb-3'
-          }  text-gray-700 md:min-w-max lg:text-sm`}
+          }  text-gray-700 ${isMarketerForm && "mb-[4px]"} md:min-w-max lg:text-sm`}
           htmlFor={name}
         >
           {label !== 'isTo' && label}

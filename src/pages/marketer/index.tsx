@@ -4,11 +4,12 @@ import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { ClientLayout } from '@/components/layouts'
-import { ArrowLeftIcon } from '@/icons'
+import { AdsMIcon, ArrowLeftIcon, FaceScanIcon, PdfDownloadIcon, WalletAndCardIcon } from '@/icons'
+import { Button } from '@/components/ui'
 
 const Marketer: NextPage = () => {
   // ? Assets
-  const { query, events, back } = useRouter()
+  const { query, events, back, push } = useRouter()
 
   const handleBack = () => {
     back()
@@ -25,8 +26,61 @@ const Marketer: NextPage = () => {
           </button>{' '}
           <h1 className="font-bold text-lg">مراحل فعالیت به عنوان بازاریاب</h1>
         </div>
-        <div>ورود به عنوان بازاریاب</div>
+        <div className="flex flex-col gap-9 mt-2">
+          <div className="flex items-center gap-3 px-4">
+            <div>
+              <AdsMIcon width="54px" height="50px" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <h1 className="font-medium text-base">ورود به عنوان بازاریاب</h1>
+              <p className="text-[#5A5A5A] text-xs">
+                در ابتدا باید به عنوان بازاریاب وارد سودم شوید تا از پلن های درآمد زایی استفاده کنید.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 px-4">
+            <div>
+              <img src="/static/13724094091679983182 1.png" alt="" width="56px" height="56px" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <h1 className="font-medium text-base">احراز هویت</h1>
+              <p className="text-[#5A5A5A] text-xs">
+                در ابتدا باید به عنوان بازاریاب وارد سودم شوید تا از پلن های درآمد زایی استفاده کنید.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 px-4">
+            <div>
+              <PdfDownloadIcon width="56px" height="56px" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <h1 className="font-medium text-base">بارگزاری فایل ها</h1>
+              <p className="text-[#5A5A5A] text-xs">
+                در ابتدا باید به عنوان بازاریاب وارد سودم شوید تا از پلن های درآمد زایی استفاده کنید.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 px-4 pb-10">
+            <div>
+              <WalletAndCardIcon width="56px" height="56px" />
+            </div>
+            <div className="flex flex-col gap-2">
+              <h1 className="font-medium text-base">کسب درآمد و برداشت آن</h1>
+              <p className="text-[#5A5A5A] text-xs">
+                در ابتدا باید به عنوان بازاریاب وارد سودم شوید تا از پلن های درآمد زایی استفاده کنید.
+              </p>
+            </div>
+          </div>
+        </div>
       </main>
+      <div className="px-4 mt-10 pb-10">
+        <Button onClick={() => push('/marketer/register')} className="w-full font-bold text-sm rounded-lg">
+          شروع ثبت نام
+        </Button>
+      </div>
     </>
   )
 }

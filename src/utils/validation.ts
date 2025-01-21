@@ -155,7 +155,7 @@ export const validationRequestSchema = (contextData: { features: Feature[]; deal
     discount: Yup.number()
       .transform((value) => (isNaN(value) || value === '' ? undefined : value))
       .nullable(),
-  
+
     depositRange: Yup.object().shape({
       from: Yup.number()
         .transform((value) => (isNaN(value) || value === '' ? undefined : value))
@@ -263,3 +263,59 @@ export const validationRequestSchema = (contextData: { features: Feature[]; deal
     //       }, {} as Record<string, Yup.StringSchema>)
     // ),
   })
+
+export const marketerUserFormValidationSchema = Yup.object().shape({
+  fullName: Yup.string()
+    .required('نام و نام خانوادگی الزامی است'),
+
+  fatherName: Yup.string().required('نام پدر الزامی است').min(3, 'نام پدر باید حداقل ۳ کاراکتر باشد'),
+
+  notionalCode: Yup.string()
+    .required('کد ملی الزامی است')
+    .matches(/^[0-9]{10}$/, 'کد ملی باید ۱۰ رقم باشد')
+    .test('isValidNationalCode', 'کد ملی معتبر نیست', (value) => {
+      if (!value) return false
+      // الگوریتم اعتبارسنجی کد ملی
+      const check = +value[9]
+      let sum = 0
+      for (let i = 0; i < 9; i++) {
+        sum += +value[i] * (10 - i)
+      }
+      const remainder = sum % 11
+      return (remainder < 2 && check === remainder) || (remainder >= 2 && check === 11 - remainder)
+    }),
+
+  idCode: Yup.string()
+    .required('شماره شناسنامه الزامی است')
+    .matches(/^[0-9]{1,10}$/, 'شماره شناسنامه معتبر نیست'),
+
+  birthDate: Yup.string()
+    .required('تاریخ تولد الزامی است'),
+
+  bankAccountNumber: Yup.string()
+    .required('شماره حساب بانکی الزامی است')
+    .matches(/^[0-9]{1,30}$/, 'شماره حساب بانکی معتبر نیست'),
+
+  shabaNumber: Yup.string()
+    .required('شماره شبا الزامی است')
+    .matches(/^IR[0-9]{24}$/, 'شماره شبا معتبر نیست'),
+
+  maritalStatus: Yup.string()
+    .required('وضعیت تأهل الزامی است')
+    .oneOf(['متأهل', 'مجرد'], 'وضعیت تأهل باید "متأهل" یا "مجرد" باشد'),
+
+  nationalCardFrontImage: Yup.mixed()
+    .required('عکس روی کارت ملی الزامی است'),
+
+  nationalCardBackImage: Yup.mixed()
+    .required('عکس پشت کارت ملی الزامی است'),
+
+  IdImage: Yup.mixed()
+    .required('عکس شناسنامه الزامی است'),
+
+  scannedImage: Yup.mixed()
+    .optional(),
+
+  agreeToTerms: Yup.boolean().required('موافقت با قوانین الزامی است'),
+})
+     
