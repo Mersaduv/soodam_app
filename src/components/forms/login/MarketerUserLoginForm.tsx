@@ -18,6 +18,7 @@ import {
   VideoIcon,
   Cube3DSmIcon,
   Cube3DIcon,
+  UploadCloudIcon,
 } from '@/icons'
 import { Button, CustomCheckbox, DisplayError, Modal, TextField } from '@/components/ui'
 import * as yup from 'yup'
@@ -63,7 +64,10 @@ const MarketerUserLoginForm: React.FC = () => {
   const [openIndex, setOpenIndex] = useState(null)
   const [openDropdowns, setOpenDropdowns] = useState({})
   const [selectedValues, setSelectedValues] = useState({})
-  // ? Queries
+  const [selectedNotionalCardFrontFile, setSelectedNotionalCardFrontFiles] = useState<any[]>([])
+  const [selectedNotionalCardBackFile, setSelectedNotionalCardBackFiles] = useState<any[]>([])
+  const [selectedIdImageFile, setSelectedIdImageFiles] = useState<any[]>([])
+  const [selectedVideos, setSelectedVideos] = useState<File[]>([])
 
   const {
     handleSubmit,
@@ -104,6 +108,79 @@ const MarketerUserLoginForm: React.FC = () => {
 
   const handleBack = () => {
     back()
+  }
+
+  const handleNotionalCardFrontFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      const validFiles: any[] = []
+
+      Array.from(files).forEach((file) => {
+        const img = new Image()
+        img.src = URL.createObjectURL(file)
+
+        img.onload = () => {
+          URL.revokeObjectURL(img.src)
+          validFiles.push(file)
+          setValue('nationalCardFrontImage', file, { shouldValidate: true })
+          setSelectedNotionalCardFrontFiles([...validFiles])
+        }
+      })
+    }
+  }
+
+  const handleNotionalCardBackFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      const validFiles: any[] = []
+
+      Array.from(files).forEach((file) => {
+        const img = new Image()
+        img.src = URL.createObjectURL(file)
+
+        img.onload = () => {
+          URL.revokeObjectURL(img.src)
+          validFiles.push(file)
+          setValue('nationalCardBackImage', file, { shouldValidate: true })
+          setSelectedNotionalCardBackFiles([...validFiles])
+        }
+      })
+    }
+  }
+
+  const handleIdImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      const validFiles: any[] = []
+
+      Array.from(files).forEach((file) => {
+        const img = new Image()
+        img.src = URL.createObjectURL(file)
+
+        img.onload = () => {
+          URL.revokeObjectURL(img.src)
+          validFiles.push(file)
+          setValue('IdImage', file, { shouldValidate: true })
+          setSelectedIdImageFiles([...validFiles])
+        }
+      })
+    }
+  }
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      setSelectedVideos([...selectedVideos, ...Array.from(files)])
+    }
+  }
+
+  const handleDelete = (index: number) => {
+    setSelectedVideos((prevFiles) => {
+      const updatedFiles = [...prevFiles]
+      updatedFiles.splice(index, 1)
+      setValue('scannedImage', updatedFiles[0])
+      return updatedFiles
+    })
   }
 
   if (errors) {
@@ -320,7 +397,184 @@ const MarketerUserLoginForm: React.FC = () => {
             />
           </div>
 
-          
+          <div className="">
+            <input
+              type="file"
+              className="hidden"
+              id="thumbnail-1"
+              onChange={handleNotionalCardBackFileChange}
+              accept="image/jpeg"
+            />
+            <label htmlFor="thumbnail-1" className="block cursor-pointer text-sm font-normal">
+              <h3 className="text-start mb-1.5 font-normal">تصویر کارت ملی (پشت)</h3>
+              {selectedNotionalCardBackFile.length > 0 ? (
+                selectedNotionalCardBackFile.map((file: any, index: number) => (
+                  <div
+                    key={index}
+                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
+                  >
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="h-[190px] object-contain  rounded-md"
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center">
+                  <div className="flex flex-col gap-2 items-center">
+                    <UploadCloudIcon width="56px" height="48px" />
+                    <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">
+                      افزودن تصویر کارت ملی
+                    </h1>
+                  </div>
+                </div>
+              )}
+            </label>
+          </div>
+
+          <div className="">
+            <input
+              type="file"
+              className="hidden"
+              id="thumbnail-2"
+              onChange={handleNotionalCardFrontFileChange}
+              accept="image/jpeg"
+            />
+            <label htmlFor="thumbnail-2" className="block cursor-pointer text-sm font-normal">
+              <h3 className="text-start mb-1.5 font-normal">تصویر کارت ملی (رو)</h3>
+              {selectedNotionalCardFrontFile.length > 0 ? (
+                selectedNotionalCardFrontFile.map((file: any, index: number) => (
+                  <div
+                    key={index}
+                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
+                  >
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="h-[190px] object-contain  rounded-md"
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center">
+                  <div className="flex flex-col gap-2 items-center">
+                    <UploadCloudIcon width="56px" height="48px" />
+                    <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">
+                      افزودن تصویر کارت ملی
+                    </h1>
+                  </div>
+                </div>
+              )}
+            </label>
+          </div>
+
+          <div className="">
+            <input
+              type="file"
+              className="hidden"
+              id="thumbnail-3"
+              onChange={handleIdImageFileChange}
+              accept="image/jpeg"
+            />
+            <label htmlFor="thumbnail-3" className="block cursor-pointer text-sm font-normal">
+              <h3 className="text-start mb-1.5 font-normal">تصویر صفحه اول شناسنامه</h3>
+              {selectedIdImageFile.length > 0 ? (
+                selectedIdImageFile.map((file: any, index: number) => (
+                  <div
+                    key={index}
+                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
+                  >
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="h-[190px] object-contain  rounded-md"
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center">
+                  <div className="flex flex-col gap-2 items-center">
+                    <UploadCloudIcon width="56px" height="48px" />
+                    <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">
+                      افزودن تصویر شناسنامه
+                    </h1>
+                  </div>
+                </div>
+              )}
+            </label>
+          </div>
+
+          <div className=" pb-6">
+            <input type="file" accept="video/*" className="hidden" id="VideoThumbnail" onChange={handleVideoChange} />
+            <div className="text-start mb-1.5 font-normal flex text-sm">
+              اسکن تصویر( 5 ثانیه تصویر خود را اسکن کنید)<div className="text-[#7A7A7A] text-sm">(اختیاری)</div>
+            </div>
+
+            {selectedVideos.length > 0 ? (
+              selectedVideos.map((file, index) => (
+                <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
+                  <div className="relative">
+                    <video
+                      src={URL.createObjectURL(file)}
+                      className="h-[190px] w-full object-cover rounded-[4px]"
+                      id={`video-${index}`}
+                      onPlay={() => {
+                        const playButton = document.getElementById(`play-button-${index}`)
+                        playButton.innerHTML = `
+                                              <div class="w-1 h-3 bg-white mx-0.5"></div>
+                                              <div class="w-1 h-3 bg-white mx-0.5"></div>
+                                            `
+                      }}
+                      onPause={() => {
+                        const playButton = document.getElementById(`play-button-${index}`)
+                        playButton.innerHTML = `
+                                              <div class="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
+                                            `
+                      }}
+                    />
+                    <div
+                      className="absolute inset-0 flex items-center justify-center cursor-pointer"
+                      onClick={() => {
+                        const video = document.getElementById(`video-${index}`) as HTMLVideoElement
+                        if (video.paused) {
+                          video.play()
+                        } else {
+                          video.pause()
+                        }
+                      }}
+                    >
+                      <div className="w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                        <div id={`play-button-${index}`} className="flex items-center justify-center">
+                          <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="absolute -top-2 -right-2 border hover:bg-red-500 hover:text-white bg-gray-50 p-0.5 rounded-full text-gray-500"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      e.preventDefault()
+                      handleDelete(index)
+                    }}
+                  >
+                    <IoMdClose className="text-base" />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <label htmlFor="VideoThumbnail" className="block cursor-pointer text-sm font-normal">
+                <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center">
+                  <div className="flex flex-col gap-2 items-center">
+                    <UploadCloudIcon width="56px" height="48px" />
+                    <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">افزودن اسکن تصویر</h1>
+                  </div>
+                </div>
+              </label>
+            )}
+          </div>
         </div>
       </div>
       {/* Navigation Buttons */}
