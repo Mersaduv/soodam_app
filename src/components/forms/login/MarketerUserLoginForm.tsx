@@ -576,7 +576,7 @@ const MarketerUserLoginForm: React.FC = () => {
             )}
           </div>
 
-          <div className='px-4 pb-6'>
+          <div className=' pb-6'>
             <Controller
               name={`agreeToTerms`}
               control={control}

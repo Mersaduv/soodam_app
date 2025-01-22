@@ -66,22 +66,22 @@ const RequestRegistrationForm: React.FC = () => {
       parentCategoryName.includes('ساخت') ||
       parentCategoryName.includes('ساز')
     ) {
-      return 'constructionProjects' // اجاره کوتاه مدت
+      return 'constructionProjects' 
     }
 
     if (categoryName.includes('اجاره کوتاه مدت') || parentCategoryName.includes('اجاره کوتاه مدت')) {
-      return 'shortRent' // اجاره کوتاه مدت
+      return 'shortRent' 
     }
 
     if (categoryName.includes('اجاره') || parentCategoryName.includes('اجاره')) {
-      return 'rent' // اجاره بلندمدت
+      return 'rent'
     }
 
     if (categoryName.includes('خرید') || parentCategoryName.includes('خرید')) {
-      return 'sale' // فروش
+      return 'sale'
     }
 
-    return null // نامشخص
+    return null
   }
 
   const dealType = getDealTypeFromCategory(selectedCategory)
