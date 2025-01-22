@@ -575,11 +575,54 @@ const MarketerUserLoginForm: React.FC = () => {
               </label>
             )}
           </div>
+
+          <div className='px-4 pb-6'>
+            <Controller
+              name={`agreeToTerms`}
+              control={control}
+              defaultValue={false}
+              render={({ field: { onChange, value } }) => (
+                <label className="flex items-start cursor-pointer">
+                  <div className="flex items-start cursor-pointer relative">
+                    <input
+                      type="checkbox"
+                      className="peer h-[24px] w-[24px] cursor-pointer transition-all appearance-none rounded-lg border-[1.5px] checked:bg-[#D52133] checked:border-[#D52133]"
+                      checked={value === true}
+                      onChange={(e) => onChange(e.target.checked ? true : false)}
+                    />
+                    <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        ></path>
+                      </svg>
+                    </span>
+                  </div>
+                  <div className="font-medium text-xs text-[#5A5A5A] mr-2" style={{ lineHeight: '23px' }}>
+                    با ورود و ثبت‌نام در اپلیکیشن، با <span className='font-medium text-xs text-[#D52133] border-b border-[#D52133]'>قوانین سودم</span> موافقت می‌کنم.
+                  </div>
+                </label>
+              )}
+            />
+          </div>
         </div>
       </div>
       {/* Navigation Buttons */}
       <div className="px-4 mt-10 pb-10">
-        <Button onClick={() => push('/marketer/register')} className="w-full font-bold text-sm rounded-lg">
+        <Button
+          type="submit"
+          onClick={() => push('/marketer/register')}
+          className="w-full font-bold text-sm rounded-lg"
+        >
           ثبت نام به عنوان بازاریاب{' '}
         </Button>
       </div>
