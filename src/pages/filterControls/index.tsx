@@ -8,7 +8,7 @@ import { Button, CustomCheckbox, TextField } from '@/components/ui'
 import { Category, QueryParams } from '@/types'
 import { NextPage } from 'next'
 import { ClientLayout } from '@/components/layouts'
-import { useGetCategoriesQuery } from '@/services'
+import { useGetCategoriesQuery, useLazyGetFeaturesByCategoryQuery } from '@/services'
 import { Disclosure } from '@headlessui/react'
 import { ArrowLeftIcon } from '@/icons'
 import { useFilters } from '@/hooks/use-filter'
@@ -33,7 +33,7 @@ const FilterControls: NextPage = (props) => {
   // ? Props
 
   // ? Assets
-  const { query } = useRouter()
+  const { query, push, pathname } = useRouter()
   const inStockQuery = !!query?.inStock || false
   const discountQuery = !!query?.discount || false
   const minPriceQuery = query.price && +query.price.toString().split('-')[0]
@@ -48,6 +48,7 @@ const FilterControls: NextPage = (props) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   const { data: categoriesData, isFetching, ...categoryQueryProps } = useGetCategoriesQuery({ ...query })
+  const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
   // const [filters, setFilters] = useState({
   //   priceRange: { from: '', to: '' },
   //   depositRange: { from: '', to: '' },
@@ -69,26 +70,54 @@ const FilterControls: NextPage = (props) => {
   // }
   const { filters, updateFilters } = useFilters()
   const [tempFilters, setTempFilters] = useState<Partial<typeof filters>>(filters)
-  const handleTempFilterChange = (field: string, value: string, isFrom: boolean) => {
-    setTempFilters((prev) => ({
-      ...prev,
-      [`${field}${isFrom ? 'From' : 'To'}`]: value || undefined,
-    }))
+  const handleTempFilterChange = (field: string, value: string, isFrom: boolean, isDynamic?: boolean) => {
+    if (isDynamic) {
+      setTempFilters((prev) => ({
+        ...prev,
+        [`${field}-${isFrom ? 'From' : 'To'}`]: value || undefined,
+      }))
+    } else {
+      setTempFilters((prev) => ({
+        ...prev,
+        [`${field}${isFrom ? 'From' : 'To'}`]: value || undefined,
+      }))
+    }
   }
   useEffect(() => {
     setTempFilters(filters)
   }, [filters])
 
   const handleApplyFilters = () => {
-    // const cleanedFilters: QueryParams = Object.fromEntries(
-    //   Object.entries(tempFilters).map(([key, value]) => [
-    //     key,
-    //     Array.isArray(value) ? value[0] : value
-    //   ])
-    // )
+    const cleanedFilters = {
+      ...tempFilters,
+      category: selectedCategory?.id || undefined,
+    }
 
-    updateFilters(tempFilters)
+    const finalFilters = Object.fromEntries(
+      Object.entries(cleanedFilters).filter(([_, v]) => v !== undefined && v !== '')
+    )
+
+    updateFilters(finalFilters)
+
+    push({
+      pathname: '/',
+      query: {
+        ...query,
+        ...finalFilters,
+      },
+    })
   }
+
+  // const handleApplyFilters = () => {
+
+  //   updateFilters(tempFilters)
+  // }
+  // const cleanedFilters: QueryParams = Object.fromEntries(
+  //   Object.entries(tempFilters).map(([key, value]) => [
+  //     key,
+  //     Array.isArray(value) ? value[0] : value
+  //   ])
+  // )
   const getDealTypeFromCategory = (category: Category) => {
     if (!category) return null
 
@@ -121,8 +150,12 @@ const FilterControls: NextPage = (props) => {
 
   const handleSelectCategory = useCallback((category: Category) => {
     setSelectedCategory(category)
+    setTempFilters((prev) => ({
+      ...prev,
+      category: category.id,
+    }))
     setIsOpen(false)
-    setOpenIndex(null) // Reset open index when closing
+    setOpenIndex(null)
   }, [])
 
   const toggleDropdown = useCallback(() => {
@@ -144,6 +177,24 @@ const FilterControls: NextPage = (props) => {
     },
     [categoriesData?.data]
   )
+
+  useEffect(() => {
+    const fetchFeatures = async (category: Category | null, level = 0) => {
+      if (!category || level > 2) return
+
+      // Trigger the query manually
+      const fetchedFeatures = await triggerGetFeaturesByCategory(category.id)
+      if (fetchedFeatures?.data?.data?.length === 0 && category.parentCategory) {
+        // No features, try parent category
+        fetchFeatures(category.parentCategory, level + 1)
+      }
+    }
+
+    if (selectedCategory) {
+      fetchFeatures(selectedCategory)
+    }
+  }, [selectedCategory, triggerGetFeaturesByCategory])
+
   const dealType = getDealTypeFromCategory(selectedCategory)
 
   if (filters) {
@@ -469,6 +520,40 @@ const FilterControls: NextPage = (props) => {
                   ) : (
                     <div>نوع معامله مشخص نیست</div>
                   )}
+
+                  <div className="space-y-4 mt-4">
+                    {features?.data
+                      .filter((item) => item.type === '')
+                      .map((field) => (
+                        <div key={field.id} className="flex">
+                          <div className="flex gap-2 w-full">
+                            <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                            <FilterTextField
+                              isFromTo
+                              compacted
+                              label={field.name}
+                              type="number"
+                              value={tempFilters[`${field.id}-From`] || ''}
+                              onChange={(value) => handleTempFilterChange(field.id, value, true, true)}
+                              placeholder={field.placeholder}
+                            />
+                          </div>
+
+                          <div className="flex gap-2 w-full">
+                            <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                            <FilterTextField
+                              isFromTo
+                              compacted
+                              label="isTo"
+                              type="number"
+                              value={tempFilters[`${field.id}-To`] || ''}
+                              onChange={(value) => handleTempFilterChange(field.id, value, false, true)}
+                              placeholder={field.placeholder}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </>
             )}
