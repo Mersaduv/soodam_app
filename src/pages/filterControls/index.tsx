@@ -46,7 +46,7 @@ const FilterControls: NextPage = (props) => {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
-
+  const [openDropdowns, setOpenDropdowns] = useState({})
   const { data: categoriesData, isFetching, ...categoryQueryProps } = useGetCategoriesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
   // const [filters, setFilters] = useState({
@@ -162,6 +162,9 @@ const FilterControls: NextPage = (props) => {
     setIsOpen((prev) => !prev)
     setOpenIndex(null) // Reset open index when toggling
   }, [])
+  const toggleDropdownFeature = (id: string) => {
+    setOpenDropdowns((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
 
   const findParentIndex = useCallback(
     (category: Category) => {
@@ -550,6 +553,123 @@ const FilterControls: NextPage = (props) => {
                               onChange={(value) => handleTempFilterChange(field.id, value, false, true)}
                               placeholder={field.placeholder}
                             />
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                  <div className="space-y-4 mt-4">
+                    {features?.data
+                      .filter((item) => item.type === 'selective') // فیلتر برای ویژگی‌های انتخابی
+                      .map((field) => (
+                        <div key={field.id} className="w-full mb-3">
+                          <h1 className="font-normal text-sm mb-2">{field.name}</h1>
+
+                          {/* دکمه باز/بستن Dropdown */}
+                          <div
+                            className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-end items-center cursor-pointer"
+                            onClick={() => toggleDropdownFeature(field.id)}
+                          >
+                            <ArrowLeftIcon
+                              className={`w-5 h-5 text-[#9D9D9D] transition-transform ${
+                                openDropdowns[field.id] ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </div>
+
+                          {/* لیست گزینه‌ها */}
+                          {openDropdowns[field.id] && (
+                            <div className="w-full mt-1.5 bg-[#FCFCFC] border border-[#E3E3E7] rounded-lg p-1">
+                              {field.values.map((value) => (
+                                <label
+                                  key={value.id}
+                                  className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
+                                >
+                                  <div className="flex items-center cursor-pointer relative">
+                                    <input
+                                      type="radio"
+                                      name={`filter-${field.id}`}
+                                      checked={tempFilters[field.id] === value.id}
+                                      onChange={() => {
+                                        setTempFilters((prev) => ({
+                                          ...prev,
+                                          [field.id]: prev[field.id] === value.id ? undefined : value.id,
+                                        }))
+                                      }}
+                                      className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
+                                    />
+                                    {/* آیکون تیک */}
+                                    <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-3.5 w-3.5"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                    </span>
+                                  </div>
+                                  <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.name}</span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+
+                  <div className="space-y-4 mt-4">
+                    {features?.data
+                      .filter((item) => item.type === 'radio')
+                      .map((field) => (
+                        <div key={field.id} className="flex items-center justify-between bg-white rounded-lg mb-3">
+                          <span className="font-normal text-sm">{field.name}</span>
+                          <div className="flex gap-4">
+                            {/* گزینه اولویت دارد */}
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                className="hidden"
+                                checked={tempFilters[field.id] === 'اولویت دارد'}
+                                onChange={() => {
+                                  setTempFilters((prev) => ({
+                                    ...prev,
+                                    [field.id]: prev[field.id] === 'اولویت دارد' ? undefined : 'اولویت دارد',
+                                  }))
+                                }}
+                              />
+                              <div className="w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]">
+                                {tempFilters[field.id] === 'اولویت دارد' && (
+                                  <div className="w-3 h-3 rounded-full bg-[#D52133]" />
+                                )}
+                              </div>
+                              <span className="mr-2 font-normal text-xs">اولویت دارد</span>
+                            </label>
+
+                            {/* گزینه اولویت ندارد */}
+                            <label className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                className="hidden"
+                                checked={!tempFilters[field.id] || tempFilters[field.id] === 'اولویت ندارد'}
+                                onChange={() => {
+                                  setTempFilters((prev) => ({
+                                    ...prev,
+                                    [field.id]: prev[field.id] === 'اولویت ندارد' ? undefined : 'اولویت ندارد',
+                                  }))
+                                }}
+                              />
+                              <div className="w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]">
+                                {(tempFilters[field.id] === 'اولویت ندارد' || !tempFilters[field.id]) && (
+                                  <div className="w-3 h-3 rounded-full bg-[#D52133]" />
+                                )}
+                              </div>
+                              <span className="mr-2 font-normal text-xs">اولویت ندارد</span>
+                            </label>
                           </div>
                         </div>
                       ))}
