@@ -27,14 +27,16 @@ import {
 } from 'recharts'
 import moment from 'moment-jalaali'
 import { ArrowDownSmmIcon } from '@/icons'
+import { Button } from '@/components/ui'
 const VisitStatistics: NextPage = () => {
+  const { query, push } = useRouter()
   const { phoneNumber, user } = useAppSelector((state) => state.auth)
   const {
     data: viewedPropertiesData,
     isLoading,
     isError,
   } = useGetViewedPropertiesQuery(phoneNumber!, { skip: !phoneNumber })
-  
+
   // پردازش داده‌ها برای 6 هفته اخیر
   const processChartData = () => {
     if (!viewedPropertiesData?.data) return []
@@ -150,7 +152,7 @@ const VisitStatistics: NextPage = () => {
           </div>
         </div>
 
-        <div className="bg-white relative h-fit border border-[#E3E3E7] rounded-2xl mt-3.5 mb-[100px]">
+        <div className="bg-white relative h-fit border border-[#E3E3E7] rounded-2xl mt-3.5">
           <div className="px-4 pt-4 space-y-2">
             <div className="flex items-center gap-2">
               <div className="bg-[#17A586] w-[12px] h-[12px] rounded-[2px]" />
@@ -176,7 +178,7 @@ const VisitStatistics: NextPage = () => {
                   cy="50%"
                   innerRadius="44%"
                   outerRadius="70%"
-                  cornerRadius={8 }
+                  cornerRadius={8}
                   paddingAngle={2}
                   dataKey="value"
                   labelLine={true}
@@ -200,7 +202,7 @@ const VisitStatistics: NextPage = () => {
                   />
                   <Label
                     value={`${user.subscription.totalViews} آگهی`}
-                    className='farsi-digits'
+                    className="farsi-digits"
                     position="center"
                     fill="#353535"
                     fontSize={20}
@@ -223,6 +225,12 @@ const VisitStatistics: NextPage = () => {
               </PieChart>
             </ResponsiveContainer>
           </div>
+        </div>
+
+        <div className="mb-[100px] w-full mt-6">
+          <Button onClick={() => push('/subscription')} className="w-full">
+            خرید بسته
+          </Button>
         </div>
       </main>
     </ClientLayout>
