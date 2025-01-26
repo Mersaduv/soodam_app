@@ -11,6 +11,6 @@ export interface User {
     startDate: string
     endDate: string
     status: 'ACTIVE' | 'EXPIRED'
-    viewedProperties: string[]
-  },
+    viewedProperties: Array<{ propertyId: string; viewedDate: string }> 
+  }
 }

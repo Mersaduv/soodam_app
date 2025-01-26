@@ -33,24 +33,24 @@ export const subscriptionApiSlice = baseApi.injectEndpoints({
     }),
 
     viewProperty: builder.mutation<
-    ServiceResponse<{ remainingViews: number }>,
-    { phoneNumber: string; propertyId: string }
-  >({
-    query: (body) => ({
-      url: '/api/properties/view',
-      method: 'POST',
-      body,
-    }),
-    invalidatesTags: ['Subscription'],
-  }),
-      // Get viewed properties
-      getViewedProperties: builder.query<ServiceResponse<{ propertyId: string; viewDate: string }[]>, string>({
-        query: (phoneNumber) => ({
-          url: `/api/properties/viewed-properties?phoneNumber=${phoneNumber}`,
-          method: 'GET',
-        }),
-        providesTags: ['Subscription'],
+      ServiceResponse<{ remainingViews: number }>,
+      { phoneNumber: string; propertyId: string }
+    >({
+      query: (body) => ({
+        url: '/api/properties/view',
+        method: 'POST',
+        body,
       }),
+      invalidatesTags: ['Subscription'],
+    }),
+    // Get viewed properties
+    getViewedProperties: builder.query<ServiceResponse<{ propertyId: string; viewedDate: string }[]>, string>({
+      query: (phoneNumber) => ({
+        url: `/api/properties/viewed-properties?phoneNumber=${phoneNumber}`,
+        method: 'GET',
+      }),
+      providesTags: ['Subscription'],
+    }),
   }),
 })
 
@@ -59,5 +59,5 @@ export const {
   usePurchaseSubscriptionMutation,
   useGetSubscriptionStatusQuery,
   useViewPropertyMutation,
-  useGetViewedPropertiesQuery
+  useGetViewedPropertiesQuery,
 } = subscriptionApiSlice

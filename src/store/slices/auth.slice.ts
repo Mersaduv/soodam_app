@@ -1,3 +1,4 @@
+import { User } from '@/types'
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 interface AuthState {
@@ -5,11 +6,20 @@ interface AuthState {
   fullName: string | null
   role: string | null
   loggedIn: boolean
+  user: User | null
 }
 
 const getPhoneNumber = () => (typeof window !== 'undefined' && localStorage.getItem('phoneNumber')) || null
 const getFullName = () => (typeof window !== 'undefined' && localStorage.getItem('fullName')) || null
 const getRole = () => (typeof window !== 'undefined' && localStorage.getItem('role')) || null
+const getUser = () => {
+  if (typeof window !== 'undefined') {
+    const user = localStorage.getItem('user')
+    return user ? JSON.parse(user) : null
+  }
+  return null
+}
+
 
 const getLoggedIn = () => {
   if (typeof window !== 'undefined') {
@@ -23,6 +33,7 @@ const initialState: AuthState = {
   fullName: getFullName(),
   role: getRole(),
   loggedIn: getLoggedIn(),
+  user: getUser(),
 }
 
 const authSlice = createSlice({
