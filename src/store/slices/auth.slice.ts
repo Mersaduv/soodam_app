@@ -20,7 +20,6 @@ const getUser = () => {
   return null
 }
 
-
 const getLoggedIn = () => {
   if (typeof window !== 'undefined') {
     const loggedIn = localStorage.getItem('loggedIn')
@@ -61,6 +60,7 @@ const authSlice = createSlice({
       state.fullName = null
       state.role = null
       state.loggedIn = false
+      state.user = null
       if (typeof window !== 'undefined') {
         localStorage.removeItem('phoneNumber')
         localStorage.removeItem('fullName')
@@ -70,9 +70,12 @@ const authSlice = createSlice({
         localStorage.removeItem('user')
       }
     },
+    updateUser: (state, action: PayloadAction<User>) => {
+      state.user = action.payload
+    },
   },
 })
 
-export const { setCredentials, clearCredentials } = authSlice.actions
+export const { setCredentials, clearCredentials, updateUser } = authSlice.actions
 
 export default authSlice.reducer

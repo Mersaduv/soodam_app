@@ -28,9 +28,11 @@ import {
 import moment from 'moment-jalaali'
 import { ArrowDownSmmIcon } from '@/icons'
 import { Button } from '@/components/ui'
+import { useEffect, useState } from 'react'
 const VisitStatistics: NextPage = () => {
   const { query, push } = useRouter()
   const { phoneNumber, user } = useAppSelector((state) => state.auth)
+  const [hasSubscription, setHasSubscription] = useState(false)
   const {
     data: viewedPropertiesData,
     isLoading,
@@ -69,19 +71,38 @@ const VisitStatistics: NextPage = () => {
     console.log('Processed chart data:', chartData)
     return chartData
   }
-
   const chartData = processChartData()
-  // const dataPiChart = [
-  //   { name: 'آگهی های باقی مانده', value: user.subscription.remainingViews },
-  //   { name: 'آگهی های استفاده شده', value: user.subscription.totalViews - user.subscription.remainingViews },
-  // ]
-  const usedViews = user.subscription.totalViews - user.subscription.remainingViews
-
-  // داده‌های نمودار
+  useEffect(() => {
+    if (user?.subscription) {
+      setHasSubscription(true)
+    } else {
+      setHasSubscription(false)
+    }
+  }, [user])
+  if (!hasSubscription) {
+    return (
+      <ClientLayout>
+        <main className="mx-auto p-4 pt-[147px]">
+          <div className="mb-[100px] w-full mt-6">
+            <Button onClick={() => push('/subscription')} className="w-full">
+              خرید بسته
+            </Button>
+          </div>
+        </main>
+      </ClientLayout>
+    )
+  }
+  const safeSubscription = user?.subscription || {
+    totalViews: 0,
+    remainingViews: 0,
+    viewedProperties: [],
+  }
+  const usedViews = safeSubscription.totalViews - safeSubscription.remainingViews
   const dataPiChart = [
-    { name: 'Group A', value: user.subscription.remainingViews },
+    { name: 'Group A', value: safeSubscription.remainingViews },
     { name: 'Group B', value: usedViews },
   ]
+
   const total = dataPiChart.reduce((sum, item) => sum + item.value, 0)
   const COLORS = ['#D52133', '#17A586']
   if (isLoading) return <div className="text-center">در حال بارگذاری...</div>

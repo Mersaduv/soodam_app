@@ -5,7 +5,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { ClientLayout } from '@/components/layouts'
 import { useAppDispatch, useAppSelector } from '@/hooks'
-import { setIsShowLogin } from '@/store'
+import { setIsShowLogin, updateUser } from '@/store'
 import { ArrowLeftIcon, RegisterAdIcon, TicketStarIcon, InfoCircleMdIcon, TicketDiscountIcon } from '@/icons'
 import { useEffect, useState } from 'react'
 import { SubscriptionPlan } from '@/types'
@@ -46,7 +46,7 @@ const SubscriptionPage: NextPage = () => {
   const [referralCode, setReferralCode] = useState('')
   const [subscriptionStatus, setSubscriptionStatus] = useState('')
   // ? Queries
-  const {data : statusData , error} = useGetSubscriptionStatusQuery(phoneNumber)
+  const { data: statusData, error } = useGetSubscriptionStatusQuery(phoneNumber)
   const { data: subscriptionPlans, isLoading, isFetching } = useGetSubscriptionsQuery()
   const [purchaseSubscription, { isLoading: isPurchasing }] = usePurchaseSubscriptionMutation()
   // ? handlers
@@ -67,6 +67,7 @@ const SubscriptionPage: NextPage = () => {
       console.log(response, 'response--selectedPlan')
       if (response.data) {
         // Update auth state or show success message
+        dispatch(updateUser(response.data))
         toast.success(response.message)
         push('/')
       }
@@ -77,24 +78,23 @@ const SubscriptionPage: NextPage = () => {
   }
   useEffect(() => {
     if (statusData && Object.keys(statusData).length > 0) {
-      console.log(statusData, "statusData--statusData");
-      const now = new Date();
-      const endDate = new Date(statusData.data.endDate);
-  
+      console.log(statusData, 'statusData--statusData')
+      const now = new Date()
+      const endDate = new Date(statusData.data.endDate)
+
       // تبدیل تاریخ‌ها به میلی‌ثانیه با استفاده از getTime()
-      const timeDiff = endDate.getTime() - now.getTime(); // تفاوت زمانی به میلی‌ثانیه
-  
+      const timeDiff = endDate.getTime() - now.getTime() // تفاوت زمانی به میلی‌ثانیه
+
       if (timeDiff <= 0) {
-        setSubscriptionStatus('منقضی شده');
-        return;
+        setSubscriptionStatus('منقضی شده')
+        return
       }
-  
-      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // محاسبه تعداد روزها
-      setSubscriptionStatus(`${days} روز`);
+
+      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24)) // محاسبه تعداد روزها
+      setSubscriptionStatus(`${days} روز`)
     }
-  }, [statusData]);
-  
-  
+  }, [statusData])
+
   if (isLoading) return <div>loading ...</div>
   // ? Render(s)
   return (

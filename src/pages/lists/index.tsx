@@ -56,7 +56,7 @@ const Lists: NextPage = () => {
     <>
       <ClientLayout>
         <main className="">
-          {saveHousingData && (
+          {saveHousingData && saveHousingData.length > 0 && (
             <div className={`h-full ${!map.mode && 'hidden'}`} style={{ width: '100%' }}>
               <LeafletMap housingData={saveHousingData} />
             </div>
