@@ -361,60 +361,56 @@ const AdvertisementRegistrationForm: React.FC = () => {
             <div className=" mt-2 w-full z-10">
               <div className="flex flex-col gap-y-3.5 px-4 py-2">
                 {categoriesData.data.map((item, index) => (
-                  <Disclosure key={index}>
+                  <Disclosure key={item.id}>
                     {() => (
                       <>
                         <Disclosure.Button
-                          onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                          onClick={() => setOpenIndex((prev) => (prev === index ? null : index))}
                           className="!mt-0 flex w-full items-center justify-between py-2"
                         >
                           <div className="flex gap-x-1.5 items-center">
-                            <img className="w-[24px] h-[24px]" src={item.imageUrl} alt={item.name} />
+                            {item.imageUrl && <img className="w-[24px] h-[24px]" src={item.imageUrl} alt={item.name} />}
                             <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
-                              {mapCategoryName(item.name)}
+                              {item.name}
                             </span>
                           </div>
                           <ArrowLeftIcon
                             className={`w-5 h-5 ${openIndex === index ? '' : 'rotate-90 text-gray-700'} transition-all`}
                           />
                         </Disclosure.Button>
-                        {item.children.length > 0 && openIndex === index && (
+
+                        {item.children?.length > 0 && openIndex === index && (
                           <Disclosure.Panel className="-mt-2">
-                            {item.children.map((subItem, subIndex) => (
-                              <div key={subIndex}>
-                                {subItem.children && subItem.children.length > 0 ? (
+                            {item.children.map((subItem) => (
+                              <div key={subItem.id}>
+                                {subItem.children?.length > 0 ? (
                                   <Disclosure>
                                     {({ open: subOpen }) => (
                                       <>
                                         <Disclosure.Button
                                           className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                            selectedCategory && selectedCategory.id === subItem.id
-                                              ? 'bg-gray-50 rounded-lg'
-                                              : ''
+                                            selectedCategory?.id === subItem.id ? 'bg-gray-50 rounded-lg' : ''
                                           }`}
                                         >
-                                          <span className="font-light text-[14px] text-[#5A5A5A]">
-                                            {mapCategoryName(subItem.name)}
-                                          </span>
+                                          <span className="font-light text-[14px] text-[#5A5A5A]">{subItem.name}</span>
                                           <ArrowLeftIcon
                                             className={`w-5 h-5 ml-4 ${
                                               subOpen ? '' : 'rotate-90 text-gray-700'
                                             } transition-all`}
                                           />
                                         </Disclosure.Button>
+
                                         <Disclosure.Panel className="-mt-2">
-                                          {subItem.children.map((childItem, childIndex) => (
+                                          {subItem.children.map((childItem) => (
                                             <div
-                                              key={childIndex}
+                                              key={childItem.id}
                                               onClick={() => handleSelectCategory(childItem)}
                                               className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                                selectedCategory && selectedCategory.id === childItem.id
-                                                  ? 'bg-gray-50 rounded-lg'
-                                                  : ''
+                                                selectedCategory?.id === childItem.id ? 'bg-gray-50 rounded-lg' : ''
                                               }`}
                                             >
                                               <span className="font-light text-[14px] text-[#5A5A5A]">
-                                                {mapCategoryName(childItem.name)}
+                                                {childItem.name}
                                               </span>
                                             </div>
                                           ))}
@@ -426,14 +422,10 @@ const AdvertisementRegistrationForm: React.FC = () => {
                                   <div
                                     onClick={() => handleSelectCategory(subItem)}
                                     className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                      selectedCategory && selectedCategory.id === subItem.id
-                                        ? 'bg-gray-50 rounded-lg'
-                                        : ''
+                                      selectedCategory?.id === subItem.id ? 'bg-gray-50 rounded-lg' : ''
                                     }`}
                                   >
-                                    <span className="font-light text-[14px] text-[#5A5A5A]">
-                                      {mapCategoryName(subItem.name)}
-                                    </span>
+                                    <span className="font-light text-[14px] text-[#5A5A5A]">{subItem.name}</span>
                                   </div>
                                 )}
                               </div>
