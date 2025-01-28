@@ -50,6 +50,7 @@ const RequestRegistrationForm: React.FC = () => {
   const [openIndex, setOpenIndex] = useState(null)
   const [openDropdowns, setOpenDropdowns] = useState({})
   const [selectedValues, setSelectedValues] = useState({})
+  const [drawnPoints, setDrawnPoints] = useState([])
   // ? Queries
   const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
@@ -122,6 +123,11 @@ const RequestRegistrationForm: React.FC = () => {
     }
   }, [selectedLocation, setValue])
 
+  useEffect(() => {
+    if (drawnPoints) {
+      setValue('drawnPoints', drawnPoints)
+    }
+  }, [drawnPoints, setValue])
   // useEffect(() => {
   //   if (selectedCategory) {
   //     setValue('category', selectedCategory.id)
@@ -438,6 +444,8 @@ const RequestRegistrationForm: React.FC = () => {
                 label={'محدوده ملک'}
                 selectedLocation={selectedLocation}
                 handleLocationChange={handleLocationChange}
+                drawnPoints={drawnPoints}
+                setDrawnPoints={setDrawnPoints}
               />
             </div>
           )}

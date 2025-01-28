@@ -273,8 +273,10 @@ const DrawingControl = ({
       const polygon = turf.polygon([points])
       const itemsInArea = housingData.filter((property) => {
         const point = turf.point([property.location.lat, property.location.lng])
+        
         return turf.booleanPointInPolygon(point, polygon)
       })
+      console.log('points:', points, polygon,"polygon")
       setItemFiles(itemsInArea)
       dispatch(setStateData(itemsInArea))
       console.log('Items in area:', itemsInArea.length, itemsInArea)

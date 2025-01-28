@@ -34,7 +34,7 @@ interface Props {
     return (
       <>
         <ClientLayout title="جزییات ملک">
-          <main className="">
+          <main className="pt-[147px]">
           
           </main>
         </ClientLayout>

@@ -42,8 +42,10 @@ const rentalTerms = [
 ]
 
 const MapLocationPicker = dynamic(() => import('@/components/map/MapLocationPicker'), { ssr: false })
-
-const AdvertisementRegistrationForm: React.FC = () => {
+interface Props {
+  roleUser: string
+}
+const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   // ? Assets
   const { query } = useRouter()
   // ? States
@@ -66,6 +68,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
   const [selectedVideos, setSelectedVideos] = useState<File[]>([])
   const maxVideos = 3
   const [playingIndex, setPlayingIndex] = useState(null)
+  const [drawnPoints, setDrawnPoints] = useState([])
   // ? Queries
   const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
@@ -140,6 +143,12 @@ const AdvertisementRegistrationForm: React.FC = () => {
     }
   }, [selectedLocation, setValue])
 
+  useEffect(() => {
+    if (drawnPoints) {
+      setValue('drawnPoints', drawnPoints)
+    }
+  }, [drawnPoints, setValue])
+
   // useEffect(() => {
   //   if (selectedCategory) {
   //     setValue('category', selectedCategory.id)
@@ -179,7 +188,7 @@ const AdvertisementRegistrationForm: React.FC = () => {
 
   //? submit final step
   const onSubmit = (data: AdFormValues) => {
-    console.log('Form submitted:', data)
+    console.log('Form submitted:', data, roleUser)
   }
 
   const validateCurrentStep = async () => {
@@ -571,6 +580,8 @@ const AdvertisementRegistrationForm: React.FC = () => {
                 label={'لوکیشن دقیق ملک'}
                 selectedLocation={selectedLocation}
                 handleLocationChange={handleLocationChange}
+                drawnPoints={drawnPoints}
+                setDrawnPoints={setDrawnPoints}
               />
 
               <div className="space-y-31">
