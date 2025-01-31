@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Polygon } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Polygon, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import { LatLngTuple } from 'leaflet'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -809,6 +809,52 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
       console.log(housingMap, 'housingMap')
     }
   }, [housingMap])
+
+  // const ReverseGeocoding = ({ lat, lng, setAddress }) => {
+  //   useState(() => {
+  //     const fetchAddress = async () => {
+  //       try {
+  //         const response = await fetch(
+  //           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+  //         );
+  //         const data = await response.json();
+  //         console.log(data , "datamapppp ");
+          
+  //         setAddress(data.display_name || "آدرس یافت نشد");
+  //       } catch (error) {
+  //         console.error("خطا در دریافت آدرس:", error);
+  //       }
+  //     };
+  //     fetchAddress();
+  //   }, [lat, lng, setAddress]);
+  
+  //   return null;
+  // };
+  
+  //   const [selectedPosition, setSelectedPosition] = useState(null);
+  //   const [address, setAddress] = useState("");
+  
+  //   const LocationMarker = () => {
+  //     useMapEvents({
+  //       click(e) {
+  //         setSelectedPosition(e.latlng);
+  //       },
+  //     });
+  
+    //   return selectedPosition ? (
+    //     <Marker position={selectedPosition}>
+    //       <Popup>
+    //         <ReverseGeocoding
+    //           lat={selectedPosition.lat}
+    //           lng={selectedPosition.lng}
+    //           setAddress={setAddress}
+    //         />
+    //         {address || "در حال دریافت آدرس..."}
+    //       </Popup>
+    //     </Marker>
+    //   ) : null;
+    // };
+
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
       <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] right-4 z-[1000]">
@@ -908,6 +954,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
               : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }
         />
+         {/* <LocationMarker /> */}
         {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
 
         {housingData.map((property) => (
