@@ -12,24 +12,24 @@ const Contacts: NextPage = () => {
   const { query, push } = useRouter()
   const { phoneNumber, user } = useAppSelector((state) => state.auth)
 
- const {
-    handleSubmit,
-    control,
-    register,
-    trigger,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm<ContactUsForm>({
-    resolver: yupResolver(validationSchema({ features: featureData, dealType })) as unknown as Resolver<ContactUsForm>,
-  })
+//  const {
+//     handleSubmit,
+//     control,
+//     register,
+//     trigger,
+//     setValue,
+//     getValues,
+//     formState: { errors },
+//   } = useForm<ContactUsForm>({
+//     resolver: yupResolver(validationSchema({ features: featureData, dealType })) as unknown as Resolver<ContactUsForm>,
+//   })
 
-   const onSubmit = (data: ContactUsForm) => {
-      console.log('Form submitted:', data, roleUser)
-    }
+//    const onSubmit = (data: ContactUsForm) => {
+//       console.log('Form submitted:', data, roleUser)
+//     }
   return (
-    <ClientLayout>
-      <main className="mx-auto p-4 pt-[147px]">
+    <ClientLayout title="مجله خیر">
+      <main className="mx-auto p-4 pt-[92px]">
         <div className="bg-white relative h-full border border-[#E3E3E7] rounded-2xl">
           <div className="px-4 pt-6">
             <div className="relative h-[215px]">
@@ -67,7 +67,7 @@ const Contacts: NextPage = () => {
           </div>
 
           <form action="">
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <Controller
                 name="phoneNumber"
                 control={control}
@@ -114,7 +114,7 @@ const Contacts: NextPage = () => {
                   />
                 )}
               />
-            </div>
+            </div> */}
           </form>
         </div>
         <div className="mb-[100px] w-full mt-6">

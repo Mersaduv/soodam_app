@@ -5,7 +5,7 @@ export type * from './Feature.type'
 export type * from './Request.type'
 export type * from './User.type'
 export type * from './SubscriptionPlan.type'
-
+export type * from './News.type'
 
 export type { default as QueryParams } from './QueryParams.type'
 export type { default as ServiceResponse } from './ServiceResponse.type'

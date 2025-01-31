@@ -15,7 +15,8 @@ const apiSlice = createApi({
     'Category',
     'Feature',
     'Request',
-    'Subscription'
+    'Subscription',
+    'News'
   ],
   endpoints: (builder) => ({}),
 })

@@ -87,13 +87,91 @@ const newsData = [
   {
     id: '1',
     title: 'آموزش انجام معامله ی امن و دریافت پول',
-    image: '/static/ads/R.jfif',
+    image: '/static/R.jfif',
     descriptions: '',
     category: 'آموزش',
     keyword: '',
     viewCount: '20',
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
+  },
+  {
+    id: '2',
+    title: 'پاسخ به همه سوال هایی که درباره پرداخت امن دارید',
+    image: '/static/R2.jpg',
+    descriptions: '',
+    category: 'داستان کاربران',
+    keyword: '',
+    viewCount: '16',
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+  },
+  {
+    id: '3',
+    title: 'دسترسی پذیری درگاه های پرداختی ',
+    image: '/static/R (1).jfif',
+    descriptions: '',
+    category: 'آپدیت',
+    keyword: '',
+    viewCount: '20',
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+  },
+  {
+    id: '4',
+    title: 'افزونه آگاپه در اپلیکیشن اهدای هوشمند کالا به نیازمندان ',
+    image: '/static/smart-house-cover.jpg',
+    descriptions: '',
+    category: 'آپدیت',
+    keyword: '',
+    viewCount: '20',
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+  },
+
+  {
+    id: '5',
+    title: 'آموزش انجام معامله ی امن و دریافت پول',
+    image: '/static/R.jfif',
+    descriptions: '',
+    category: 'آموزش',
+    keyword: '',
+    viewCount: '20',
+    created: '2024-12-07T09:21:45.625Z',
+    updated: '2024-12-07T09:21:45.625Z',
+  },
+  {
+    id: '6',
+    title: 'پاسخ به همه سوال هایی که درباره پرداخت امن دارید',
+    image: '/static/R2.jpg',
+    descriptions: '',
+    category: 'داستان کاربران',
+    keyword: '',
+    viewCount: '16',
+    created: '2024-12-07T09:21:45.625Z',
+    updated: '2024-12-07T09:21:45.625Z',
+  },
+  {
+    id: '7',
+    title: 'دسترسی پذیری درگاه های پرداختی ',
+    image: '/static/R (1).jfif',
+    descriptions: '',
+    category: 'آپدیت',
+    keyword: '',
+    viewCount: '20',
+    created: '2024-12-07T09:21:45.625Z',
+    updated: '2024-12-07T09:21:45.625Z',
+  },
+  {
+    id: '8',
+    title: 'افزونه آگاپه در اپلیکیشن اهدای هوشمند کالا به نیازمندان ',
+    image: '/static/smart-house-cover.jpg',
+    descriptions: '',
+    category: 'آپدیت',
+    keyword: '',
+    viewCount: '20',
+    created: '2024-12-07T09:21:45.625Z',
+    updated: '2024-12-07T09:21:45.625Z',
   },
 ]
 
@@ -1792,6 +1870,19 @@ export const handlers = [
 
     if (name) {
       filtered = filtered.filter((item) => item.name.toLowerCase().includes(name.toLowerCase()))
+    }
+
+    return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
+  }),
+
+  rest.get('/api/all-news', (req, res, ctx) => {
+    const searchParams = req.url.searchParams
+    const title = searchParams.get('title')
+
+    let filtered = [...newsData]
+
+    if (title) {
+      filtered = filtered.filter((item) => item.title.toLowerCase().includes(title.toLowerCase()))
     }
 
     return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
