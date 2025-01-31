@@ -120,6 +120,7 @@ const menuItems = [
       { title: 'پرداختی‌های من', icon: null, path: '/' },
       { title: 'علاقمندی ها', icon: null, path: '/lists' },
       { title: 'آمار بازدید', icon: null, path: '/visitStatistics' },
+      { title: 'پنل املاک من', icon: null, path: '/' },
     ],
   },
   {
@@ -150,12 +151,12 @@ const menuItems = [
     title: 'مجله خبر',
     icon: <NoteTxIcon width="24px" height="24px" />,
     subItems: [],
-    path: '/',
+    path: '/news',
   },
   {
     title: 'ارتباط ما',
     icon: <SmsEditIcon width="24px" height="24px" />,
     subItems: [],
-    path: '/',
+    path: '/contacts',
   },
 ]

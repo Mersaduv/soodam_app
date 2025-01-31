@@ -16,6 +16,11 @@ export const advertisementRegistrationFormSchema = Yup.object().shape({
   discount: Yup.string().optional(),
 })
 
+export const contactUsFormSchema = Yup.object().shape({
+  fullName: Yup.string().required('نام خانوادگی الزامی است'),
+  discount: Yup.string().optional(),
+})
+
 export const validationSchema = (contextData: { features: Feature[]; dealType: string }) =>
   Yup.object().shape({
     // مرحله 1

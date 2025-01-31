@@ -122,7 +122,7 @@ const Soodam: NextPage = () => {
                 <div className="font-medium text-sm">تنظیمات</div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pb-20">
                 <LogoutButton isProfile />
               </div>
             </div>

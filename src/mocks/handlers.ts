@@ -83,6 +83,20 @@ function getFeaturesByCategory(categoryId: string): Feature[] {
   return features.filter((feature) => categoryFeatures.has(feature.id))
 }
 
+const newsData = [
+  {
+    id: '1',
+    title: 'آموزش انجام معامله ی امن و دریافت پول',
+    image: '/static/ads/R.jfif',
+    descriptions: '',
+    category: 'آموزش',
+    keyword: '',
+    viewCount: '20',
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+  },
+]
+
 const housing = [
   {
     id: '1',
@@ -1349,6 +1363,7 @@ const manualData = [
   { propertyId: 'prop-1002', viewedDate: '2024-12-16T23:35:45.000Z' },
   { propertyId: 'prop-1001', viewedDate: '2024-12-16T22:30:40.000Z' },
 ]
+
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0

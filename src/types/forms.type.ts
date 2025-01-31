@@ -124,3 +124,10 @@ export interface MarketerUserForm {
   scannedImage?: File
   agreeToTerms: boolean
 }
+
+export interface ContactUsForm {
+  fullName: string
+  mobileNumber: string
+  address: string
+  description: string
+}
