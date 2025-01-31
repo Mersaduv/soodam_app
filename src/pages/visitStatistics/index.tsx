@@ -109,8 +109,8 @@ const VisitStatistics: NextPage = () => {
   if (isError) return <div className="text-center">خطا در دریافت اطلاعات</div>
 
   return (
-    <ClientLayout>
-      <main className="mx-auto p-4 pt-[147px]">
+    <ClientLayout title='آمار بازدید آگهی ها'>
+      <main className="mx-auto p-4 pt-[92px]">
         <div className="bg-white relative h-fit border border-[#E3E3E7] rounded-2xl" style={{ height: '312px' }}>
           <div className="px-4 pt-5 flex justify-between">
             <div className="space-y-1">
@@ -161,10 +161,10 @@ const VisitStatistics: NextPage = () => {
               <Line
                 type="monotone"
                 dataKey="count"
-                stroke="#ff0000"
-                strokeWidth={2}
-                dot={{ fill: '#ff0000', r: 3 }}
-                activeDot={{ r: 6 }}
+                stroke="#D52133"
+                strokeWidth={1}
+                dot={{ fill: '#D52133', r: 2 }}
+                activeDot={{ r: 4 }}
               />
             </LineChart>
           </ResponsiveContainer>
