@@ -3,30 +3,31 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { ClientLayout } from '@/components/layouts'
 import { useAppSelector } from '@/hooks'
-import { Button } from '@/components/ui'
+import { Button, DisplayError, TextField } from '@/components/ui'
 import { CallXsIcon, LocationMdIcon, SMSEditXsIcon } from '@/icons'
-import { Resolver, useForm } from 'react-hook-form'
+import { Controller, Resolver, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { ContactUsForm } from '@/types'
+import { contactUsFormSchema } from '@/utils'
 const Contacts: NextPage = () => {
   const { query, push } = useRouter()
   const { phoneNumber, user } = useAppSelector((state) => state.auth)
 
-//  const {
-//     handleSubmit,
-//     control,
-//     register,
-//     trigger,
-//     setValue,
-//     getValues,
-//     formState: { errors },
-//   } = useForm<ContactUsForm>({
-//     resolver: yupResolver(validationSchema({ features: featureData, dealType })) as unknown as Resolver<ContactUsForm>,
-//   })
+  const {
+    handleSubmit,
+    control,
+    register,
+    trigger,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<ContactUsForm>({
+    resolver: yupResolver(contactUsFormSchema) as unknown as Resolver<ContactUsForm>,
+  })
 
-//    const onSubmit = (data: ContactUsForm) => {
-//       console.log('Form submitted:', data, roleUser)
-//     }
+  //    const onSubmit = (data: ContactUsForm) => {
+  //       console.log('Form submitted:', data, roleUser)
+  //     }
   return (
     <ClientLayout title="مجله خیر">
       <main className="mx-auto p-4 pt-[92px]">
@@ -66,59 +67,71 @@ const Contacts: NextPage = () => {
             </div>
           </div>
 
-          <form action="">
-            {/* <div className="space-y-4">
+          <form action="" className='pt-5'>
+            <div className="space-y-4 px-4 pb-4">
+              <Controller
+                name="fullName"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    adForm
+                    isDarker
+                    label="نام و نام خانوادگی"
+                    type="text"
+                    {...field}
+                    control={control}
+                    errors={errors.fullName}
+                  />
+                )}
+              />
+
               <Controller
                 name="phoneNumber"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     adForm
-                    label="شماره تماس مالک"
+                    isDarker
+                    label="شماره تماس "
                     type="number"
                     {...field}
                     control={control}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     errors={errors.phoneNumber}
-                    placeholder="شماره تماس مالک (اجباری)"
                   />
                 )}
               />
 
               <Controller
-                name="nationalCode"
+                name="address"
                 control={control}
                 render={({ field }) => (
-                  <TextField
-                    adForm
-                    label="کد ملی مالک"
-                    type="number"
-                    {...field}
-                    control={control}
-                    errors={errors.nationalCode}
-                    placeholder="کد ملی (اختیاری)"
-                  />
+                  <TextField adForm isDarker label="آدرس" {...field} control={control} errors={errors.address} />
                 )}
               />
-
-              <Controller
-                name="postalCode"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    adForm
-                    label="کد پستی"
-                    {...field}
-                    control={control}
-                    errors={errors.postalCode}
-                    placeholder="کد پستی (اجباری)"
-                  />
-                )}
-              />
-            </div> */}
+              <div className="space-y-31">
+                <label
+                  className="block text-sm font-normal mb-2 text-gray-700 md:min-w-max lg:text-sm"
+                  htmlFor="address"
+                >
+                  توضیحات
+                </label>
+                <textarea
+                  className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-[#FCFCFCCC] placeholder:text-xs pr-2"
+                  id="address"
+                  {...register('address')}
+                />
+                <div className="w-fit" dir={'ltr'}>
+                  {' '}
+                  <DisplayError adForm errors={errors.description} />
+                </div>
+              </div>
+            </div>
           </form>
         </div>
-        <div className="mb-[100px] w-full mt-6">
-          <Button onClick={() => push('/subscription')} className="w-full">
+        <div className="mb-[120px] w-full mt-6">
+          <Button className="w-full">
             ثبت درخواست
           </Button>
         </div>

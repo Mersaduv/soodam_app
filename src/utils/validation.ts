@@ -18,7 +18,11 @@ export const advertisementRegistrationFormSchema = Yup.object().shape({
 
 export const contactUsFormSchema = Yup.object().shape({
   fullName: Yup.string().required('نام خانوادگی الزامی است'),
-  discount: Yup.string().optional(),
+  mobileNumber: Yup.string()
+    .required('شماره تماس الزامی است')
+    .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
+  address: Yup.string().optional(),
+  description: Yup.string().optional(),
 })
 
 export const validationSchema = (contextData: { features: Feature[]; dealType: string }) =>
@@ -270,8 +274,7 @@ export const validationRequestSchema = (contextData: { features: Feature[]; deal
   })
 
 export const marketerUserFormValidationSchema = Yup.object().shape({
-  fullName: Yup.string()
-    .required('نام و نام خانوادگی الزامی است'),
+  fullName: Yup.string().required('نام و نام خانوادگی الزامی است'),
 
   fatherName: Yup.string().required('نام پدر الزامی است'),
 
@@ -283,31 +286,23 @@ export const marketerUserFormValidationSchema = Yup.object().shape({
     .required('شماره شناسنامه الزامی است')
     .matches(/^[0-9]{1,10}$/, 'شماره شناسنامه معتبر نیست'),
 
-  birthDate: Yup.string()
-    .required('تاریخ تولد الزامی است'),
+  birthDate: Yup.string().required('تاریخ تولد الزامی است'),
 
   bankAccountNumber: Yup.string()
     .required('شماره حساب بانکی الزامی است')
     .matches(/^[0-9]{1,30}$/, 'شماره حساب بانکی معتبر نیست'),
 
-  shabaNumber: Yup.string()
-    .required('شماره شبا الزامی است'),
+  shabaNumber: Yup.string().required('شماره شبا الزامی است'),
 
-  maritalStatus: Yup.string()
-    .required('وضعیت تأهل الزامی است'),
+  maritalStatus: Yup.string().required('وضعیت تأهل الزامی است'),
 
-  nationalCardFrontImage: Yup.mixed()
-    .required('عکس روی کارت ملی الزامی است'),
+  nationalCardFrontImage: Yup.mixed().required('عکس روی کارت ملی الزامی است'),
 
-  nationalCardBackImage: Yup.mixed()
-    .required('عکس پشت کارت ملی الزامی است'),
+  nationalCardBackImage: Yup.mixed().required('عکس پشت کارت ملی الزامی است'),
 
-  IdImage: Yup.mixed()
-    .required('عکس شناسنامه الزامی است'),
+  IdImage: Yup.mixed().required('عکس شناسنامه الزامی است'),
 
-  scannedImage: Yup.mixed()
-    .optional(),
+  scannedImage: Yup.mixed().optional(),
 
   agreeToTerms: Yup.boolean().required('موافقت با قوانین الزامی است'),
 })
-     

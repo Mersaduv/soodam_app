@@ -8,15 +8,30 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string
   control: Control<any>
   adForm?: boolean
-  compacted?:boolean
-  isDynamic?:boolean
-  isFromTo?:boolean
-  isMarketerForm?:boolean
+  compacted?: boolean
+  isDynamic?: boolean
+  isFromTo?: boolean
+  isMarketerForm?: boolean
+  isDarker?: boolean
 }
 
 const TextField: React.FC<Props> = (props) => {
   // ? Props
-  const { label, adForm, errors, inputMode,compacted, name,isDynamic,isFromTo,isMarketerForm, type = 'text', control, ...restProps } = props
+  const {
+    label,
+    adForm,
+    errors,
+    inputMode,
+    compacted,
+    name,
+    isDynamic,
+    isFromTo,
+    isDarker,
+    isMarketerForm,
+    type = 'text',
+    control,
+    ...restProps
+  } = props
 
   // ? Form Hook
   const { field } = useController({ name, control, rules: { required: true } })
@@ -36,19 +51,19 @@ const TextField: React.FC<Props> = (props) => {
 
   // ? Render(s)
   return (
-    <div className={`${isFromTo && "flex-1"}`}>
+    <div className={`${isFromTo && 'flex-1'}`}>
       {label && (
         <label
-          className={`block ${label === 'isTo' && "h-5"} ${isFromTo && "-mr-4"} ${
+          className={`block ${isDarker && 'text-sm font-normal'} ${label === 'isTo' && 'h-5'} ${isFromTo && '-mr-4'} ${
             adForm ? 'text-sm font-normal mb-2' : 'text-xs mb-3'
-          }  text-gray-700 ${isMarketerForm && "mb-[4px]"} md:min-w-max lg:text-sm`}
+          }  text-[#1A1E25] ${isMarketerForm && 'mb-[4px]'} md:min-w-max`}
           htmlFor={name}
         >
           {label !== 'isTo' && label}
         </label>
       )}
       <input
-        className={`block farsi-digits w-full border ${
+        className={`block ${isDarker && 'bg-[#FCFCFCCC]'} farsi-digits w-full border ${
           adForm
             ? 'h-[40px] placeholder:text-xs font-normal px-2 border-[#E3E3E7] rounded-[8px]'
             : 'h-[48px] px-4 border-[#767372] rounded-[10px]'

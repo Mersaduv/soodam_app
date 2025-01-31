@@ -127,7 +127,7 @@ export interface MarketerUserForm {
 
 export interface ContactUsForm {
   fullName: string
-  mobileNumber: string
+  phoneNumber: string
   address: string
   description: string
 }
