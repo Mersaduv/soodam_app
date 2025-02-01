@@ -40,7 +40,7 @@ const Modal: React.FC<ModalProps> = (props) => {
       `
       : effect === 'ease-out'
       ? `
-      fixed left-0 right-0 mx-auto max-w-3xl top-24
+      fixed left-0 right-0 mx-auto max-w-3xl top-16
       transform transition-all duration-700
       ${isShow ? 'scale-100' : 'scale-50'}
       `

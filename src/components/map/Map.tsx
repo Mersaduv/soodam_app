@@ -273,10 +273,10 @@ const DrawingControl = ({
       const polygon = turf.polygon([points])
       const itemsInArea = housingData.filter((property) => {
         const point = turf.point([property.location.lat, property.location.lng])
-        
+
         return turf.booleanPointInPolygon(point, polygon)
       })
-      console.log('points:', points, polygon,"polygon")
+      console.log('points:', points, polygon, 'polygon')
       setItemFiles(itemsInArea)
       dispatch(setStateData(itemsInArea))
       console.log('Items in area:', itemsInArea.length, itemsInArea)
@@ -611,6 +611,8 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   const [selectedProperty, setSelectedProperty] = useState<Housing>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [userLocation, setUserLocation] = useState(null)
+  const [position, setPosition] = useState(null)
+  const [address, setAddress] = useState('')
   const mapStyle = {
     width: '100%',
     height: '100%',
@@ -809,51 +811,34 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
       console.log(housingMap, 'housingMap')
     }
   }, [housingMap])
+  const getAddress = async (lat, lon) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=fa`
+      )
+      const data = await response.json()
+      console.log(data, 'data ----------- data')
 
-  // const ReverseGeocoding = ({ lat, lng, setAddress }) => {
-  //   useState(() => {
-  //     const fetchAddress = async () => {
-  //       try {
-  //         const response = await fetch(
-  //           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
-  //         );
-  //         const data = await response.json();
-  //         console.log(data , "datamapppp ");
-          
-  //         setAddress(data.display_name || "آدرس یافت نشد");
-  //       } catch (error) {
-  //         console.error("خطا در دریافت آدرس:", error);
-  //       }
-  //     };
-  //     fetchAddress();
-  //   }, [lat, lng, setAddress]);
-  
-  //   return null;
-  // };
-  
-  //   const [selectedPosition, setSelectedPosition] = useState(null);
-  //   const [address, setAddress] = useState("");
-  
-  //   const LocationMarker = () => {
-  //     useMapEvents({
-  //       click(e) {
-  //         setSelectedPosition(e.latlng);
-  //       },
-  //     });
-  
-    //   return selectedPosition ? (
-    //     <Marker position={selectedPosition}>
-    //       <Popup>
-    //         <ReverseGeocoding
-    //           lat={selectedPosition.lat}
-    //           lng={selectedPosition.lng}
-    //           setAddress={setAddress}
-    //         />
-    //         {address || "در حال دریافت آدرس..."}
-    //       </Popup>
-    //     </Marker>
-    //   ) : null;
-    // };
+      if (data.display_name) {
+        setAddress(data.display_name)
+      } else {
+        setAddress('آدرس یافت نشد')
+      }
+    } catch (error) {
+      console.error('خطا در دریافت آدرس:', error)
+      setAddress('خطا در دریافت آدرس')
+    }
+  }
+  const MapClickHandler = () => {
+    useMapEvents({
+      click(e) {
+        const { lat, lng } = e.latlng
+        setPosition([lat, lng])
+        getAddress(lat, lng)
+      },
+    })
+    return null
+  }
 
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
@@ -954,7 +939,15 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
               : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }
         />
-         {/* <LocationMarker /> */}
+        <MapClickHandler />
+        {/* {position && (
+          <Marker position={position}>
+            <Popup>
+              <strong>آدرس:</strong> {address} <br />
+              <strong>مختصات:</strong> {position[0]}, {position[1]}
+            </Popup>
+          </Marker>
+        )} */}
         {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
 
         {housingData.map((property) => (
