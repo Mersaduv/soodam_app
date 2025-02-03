@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 
-import { useDisclosure } from '@/hooks'
+import { useAppDispatch, useDisclosure } from '@/hooks'
 
 import { Disclosure } from '@headlessui/react'
 import {
@@ -16,9 +16,24 @@ import {
   PeopleIcon,
   UserEdit,
 } from '@/icons'
+import { useRouter } from 'next/router'
+import { setIsShowLogin } from '@/store'
 
 export default function Sidebar() {
   const [isSidebar, sidebarHandlers] = useDisclosure()
+  const { query, push } = useRouter()
+  const dispatch = useAppDispatch()
+
+  const handleClickNav = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    if (user && user.role !== 'marketer') {
+      push('/marketer')
+    } else if (user && user.role === 'marketer') {
+      push('/housing/ad/new')
+    } else {
+      dispatch(setIsShowLogin(true))
+    }
+  }
 
   useEffect(() => {
     if (isSidebar) document.body.style.overflow = 'hidden'
@@ -54,21 +69,35 @@ export default function Sidebar() {
           <div className="flex flex-col gap-y-3.5">
             {menuItems.map((item, index) => {
               if (item.subItems.length === 0) {
-                return (
-                  <Link key={index} href={item.path} className="!mt-0 flex w-full items-center justify-between py-2">
-                    <div className="flex gap-x-2.5 items-end">
-                      {item.icon}
-                      <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
-                        {item.title}
-                      </span>
+                if (item.title === 'ثبت نام به عنوان بازاریاب') {
+                  return (
+                    <div
+                      key={index}
+                      onClick={handleClickNav}
+                      className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
+                    >
+                      <div className="flex gap-x-2.5 items-end">
+                        {item.icon}
+                        <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
+                          {item.title}
+                        </span>
+                      </div>
+                      <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
                     </div>
-                    <ArrowLeftIcon
-                          width="24px"
-                          height="24px"
-                          className={`${!open ? 'text-red-400' : 'text-gray-700 rotate-90'} transition-all`}
-                        />
-                  </Link>
-                )
+                  )
+                } else {
+                  return (
+                    <Link key={index} href={item.path} className="!mt-0 flex w-full items-center justify-between py-2">
+                      <div className="flex gap-x-2.5 items-end">
+                        {item.icon}
+                        <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
+                          {item.title}
+                        </span>
+                      </div>
+                      <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
+                    </Link>
+                  )
+                }
               }
               return (
                 <Disclosure key={index}>
@@ -110,7 +139,6 @@ export default function Sidebar() {
     </>
   )
 }
-
 const menuItems = [
   {
     title: 'مدیریت حساب من',

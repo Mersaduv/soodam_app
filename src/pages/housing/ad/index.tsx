@@ -14,9 +14,9 @@ const AdPage: NextPage = () => {
   const handleClickNav = () => {
     const user = JSON.parse(localStorage.getItem('user'))
     if (user && user.role !== 'marketer') {
-      dispatch(setIsShowLogin(true))
+      push('/marketer')
     } else {
-      push('/housing/ad')
+      push('/housing/ad/new')
     }
   }
   return (
