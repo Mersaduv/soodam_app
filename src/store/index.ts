@@ -9,6 +9,7 @@ import isShowLoginReducer from '../store/slices/loginModal.slice'
 import savedHousesReducer from '../store/slices/savedHouses.slice'
 import statesDataReducer from '../store/slices/statesData.slice'
 import apiSlice from '@/services/baseApi'
+import { authApiSlice } from '@/services'
 
 // Actions
 export * from '../store/slices/auth.slice'
@@ -27,8 +28,10 @@ export const store = configureStore({
     isShowLogin: isShowLoginReducer,
     statesData: statesDataReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
+    // [authApiSlice.reducerPath]: authApiSlice.reducer,
   },
   middleware: (gDM) => gDM().concat(apiSlice.middleware),
+  // middleware: (gDM) => gDM().concat(apiSlice.middleware, authApiSlice.middleware),
 })
 
 export type AppDispatch = typeof store.dispatch

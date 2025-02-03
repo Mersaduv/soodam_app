@@ -192,11 +192,37 @@ const createIconWithPrice = (
   )
   return L.divIcon({ html, className: 'custom-icon', iconSize: [50, 50] })
 }
-const ZoomHandler: React.FC<{ setZoomLevel: (zoom: number) => void }> = ({ setZoomLevel }) => {
+
+interface ZoomHandlerProps {
+  setZoomLevel: (zoom: number) => void
+}
+const ZoomHandler: React.FC<ZoomHandlerProps> = ({ setZoomLevel }) => {
+  const role = localStorage.getItem('role')
+  const user = JSON.parse(localStorage.getItem('user'))
   useMapEvents({
     zoomend: (e) => {
       const map = e.target
-      setZoomLevel(map.getZoom())
+      let newZoom = map.getZoom()
+      if (user && user.role === 'marketer' && user.subscription == undefined && newZoom > 13) {
+        newZoom = 13
+        map.setZoom(13)
+      }
+      if (user && user.subscription && user.subscription.status !== 'ACTIVE' && newZoom > 13) {
+        newZoom = 13
+        map.setZoom(13)
+      }
+
+      if (user && user.role === 'memberUser' && user.subscription == undefined && newZoom > 13) {
+        newZoom = 13
+        map.setZoom(13)
+      }
+
+      if (role === 'user' && newZoom > 13) {
+        newZoom = 13
+        map.setZoom(13)
+      }
+
+      setZoomLevel(newZoom)
     },
   })
 
@@ -776,35 +802,36 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   }
 
   const handleMarkerClick = async (property: Housing) => {
-    if (!phoneNumber) {
-      toast.error('لطفا ابتدا وارد شوید')
-      dispatch(setIsShowLogin(true))
-      return
-    }
+    // if (!phoneNumber) {
+    //   toast.error('لطفا ابتدا وارد شوید')
+    //   dispatch(setIsShowLogin(true))
+    //   return
+    // }
 
     setSelectedProperty(property)
-    try {
-      const response = await viewProperty({
-        phoneNumber,
-        propertyId: property.id,
-      }).unwrap()
+    setIsModalOpen(true)
+    // try {
+    //   const response = await viewProperty({
+    //     phoneNumber,
+    //     propertyId: property.id,
+    //   }).unwrap()
 
-      if (response.status === 201) {
-        setViewedProperties((prev) => [...prev, property.id])
-        setIsModalOpen(true)
-        toast.success(response.message)
-      } else {
-        setIsModalOpen(true)
-        toast.warning(response.message)
-      }
-    } catch (error: any) {
-      if (error.status === 403) {
-        toast.error('لطفا اشتراک تهیه کنید')
-        push('/subscription')
-      } else {
-        toast.error(error.data?.message || 'خطا در بازدید ملک')
-      }
-    }
+    //   if (response.status === 201) {
+    //     setViewedProperties((prev) => [...prev, property.id])
+    //     setIsModalOpen(true)
+    //     toast.success(response.message)
+    //   } else {
+    //     setIsModalOpen(true)
+    //     toast.warning(response.message)
+    //   }
+    // } catch (error: any) {
+    //   if (error.status === 403) {
+    //     toast.error('لطفا اشتراک تهیه کنید')
+    //     push('/subscription')
+    //   } else {
+    //     toast.error(error.data?.message || 'خطا در بازدید ملک')
+    //   }
+    // }
   }
   useEffect(() => {
     if (housingMap) {
