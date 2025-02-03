@@ -789,15 +789,13 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
 
   const handleNavigate = (): void => {
     const logged = localStorage.getItem('loggedIn')
+
     if (role === 'User') {
       dispatch(setIsShowLogin(true))
     } else if (logged === 'true') {
       push('/housing/ad')
     } else {
-      push({
-        pathname: '/authentication/login',
-        query: { redirectTo: '/housing/ad' },
-      })
+      dispatch(setIsShowLogin(true))
     }
   }
 

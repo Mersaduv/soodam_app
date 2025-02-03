@@ -18,7 +18,7 @@ function LoginPage() {
   const [step, setStep] = useState(1)
   const [phoneNumber, setPhoneNumber] = useState('')
   // ? Assets
-  const { replace, query } = useRouter()
+  const { replace, query, push } = useRouter()
   const dispatch = useAppDispatch()
   // ? Login User
   const [login, { data, isSuccess, isError, isLoading, error }] = useLoginMutation()
@@ -44,7 +44,6 @@ function LoginPage() {
   }
 
   const submitVerificationCodeHandler: SubmitHandler<CodeFormValues> = ({ code }) => {
-
     verificationCode({
       code,
       phoneNumber,
@@ -63,12 +62,15 @@ function LoginPage() {
       replace(query?.redirectTo?.toString() || '/')
       localStorage.setItem('hasSeenModal', 'true')
       dispatch(setIsShowLogin(false))
+      if (query?.role === roles.Marketer) {
+        push('/marketer')
+      }
       if (query?.role === roles.MemberUser) {
         dispatch(setIsMemberUserLogin(true))
       }
     }, 1000)
   }
-  
+
   // if (query) {
   //   console.log(query, 'query')
   // }
