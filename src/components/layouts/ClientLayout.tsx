@@ -10,16 +10,17 @@ import { FirstLoginModal, MemberUserLoginsModal } from '../modals'
 
 interface Props {
   title?: string
-  isProfile?:boolean
+  isProfile?: boolean
   children: React.ReactNode
 }
 
-const ClientLayout: React.FC<Props> = ({ children, title,isProfile }) => {
+const ClientLayout: React.FC<Props> = ({ children, title, isProfile }) => {
   // const [showModal, setShowModal] = useState<boolean>(false)
   const [isShow, modalHandlers] = useDisclosure()
-  const [isShowMemberUserGuid,memberUserGuidModalHandlers] = useDisclosure()
-  const { isShowLogin,isMemberUserLogin } = useAppSelector((state) => state.isShowLogin)
-   const dispatch = useAppDispatch()
+  const [isShowMemberUserGuid, memberUserGuidModalHandlers] = useDisclosure()
+  const { isShowLogin, isMemberUserLogin } = useAppSelector((state) => state.isShowLogin)
+  const { user } = useAppSelector((state) => state.auth)
+  const dispatch = useAppDispatch()
   useEffect(() => {
     let hasSeenModal = localStorage.getItem('hasSeenModal')
 
@@ -44,6 +45,7 @@ const ClientLayout: React.FC<Props> = ({ children, title,isProfile }) => {
     dispatch(setIsMemberUserLogin(false))
     memberUserGuidModalHandlers.close()
   }
+  
 
   useEffect(() => {
     if (isShowLogin) {
@@ -52,7 +54,7 @@ const ClientLayout: React.FC<Props> = ({ children, title,isProfile }) => {
       modalHandlers.close()
     }
   }, [isShowLogin])
-    
+
   useEffect(() => {
     if (isMemberUserLogin) {
       memberUserGuidModalHandlers.open()
@@ -60,13 +62,15 @@ const ClientLayout: React.FC<Props> = ({ children, title,isProfile }) => {
       memberUserGuidModalHandlers.close()
     }
   }, [isMemberUserLogin])
-    
+  console.log(user , 'user---user');
   return (
     <>
       {title && !isProfile ? <FilterControlsHeader title={title} /> : !isProfile && <Header />}
       <main className="h-full bg-[#F6F7FB]">
         {isShowLogin && <FirstLoginModal isShow={isShow} onClose={handleModalClose} />}
-        {isMemberUserLogin && <MemberUserLoginsModal isShow={isShowMemberUserGuid} onClose={handleMemberUserModalClose} />}
+        {isMemberUserLogin && (
+          <MemberUserLoginsModal isShow={isShowMemberUserGuid} onClose={handleMemberUserModalClose} />
+        )}
         {children}
       </main>
       <BottomNavigation />

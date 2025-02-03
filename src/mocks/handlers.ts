@@ -1490,7 +1490,7 @@ export const handlers = [
     }
     verificationCodes.clear()
 
-    return res(ctx.status(200), ctx.json({ message: 'ورود موفقیت‌آمیز بود', phoneNumber, role }))
+    return res(ctx.status(200), ctx.json({ message: 'ورود موفقیت‌آمیز بود', phoneNumber, role, user }))
   }),
 
   // Handler for purchasing subscription
