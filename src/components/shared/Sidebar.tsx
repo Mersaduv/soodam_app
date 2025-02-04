@@ -24,14 +24,22 @@ export default function Sidebar() {
   const { query, push } = useRouter()
   const dispatch = useAppDispatch()
 
-  const handleClickNav = () => {
+  const handleClickNewAdAsMarketerNav = () => {
     const user = JSON.parse(localStorage.getItem('user'))
     if (user && user.role !== 'marketer') {
       push('/marketer')
-    } else if (user && user.role === 'marketer') {
-      push('/housing/ad/new')
     } else {
+      push('/soodam')
+    }
+  }
+
+  const handleClickNewAdNav = () => {
+    // const user = JSON.parse(localStorage.getItem('user'))
+    const role = localStorage.getItem('role')
+    if (role === null || role === 'user') {
       dispatch(setIsShowLogin(true))
+    } else {
+      push('/housing/ad/new')
     }
   }
 
@@ -73,7 +81,23 @@ export default function Sidebar() {
                   return (
                     <div
                       key={index}
-                      onClick={handleClickNav}
+                      onClick={handleClickNewAdAsMarketerNav}
+                      className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
+                    >
+                      <div className="flex gap-x-2.5 items-end">
+                        {item.icon}
+                        <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
+                          {item.title}
+                        </span>
+                      </div>
+                      <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
+                    </div>
+                  )
+                } else if (item.title === 'ثبت آگهی') {
+                  return (
+                    <div
+                      key={index}
+                      onClick={handleClickNewAdNav}
                       className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
                     >
                       <div className="flex gap-x-2.5 items-end">
