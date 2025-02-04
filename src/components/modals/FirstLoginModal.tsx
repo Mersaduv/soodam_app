@@ -82,7 +82,7 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
-                <p className="text-sm">ورود به عنوان بنگاه املاک</p>
+                <p className="text-sm">ورود به عنوان مشاور املاک</p>
               </div>
               <Image src="/static/business-deal.png" alt="املاک" layout="intrinsic" width={95} height={95} />
             </Link>
