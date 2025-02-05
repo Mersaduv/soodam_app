@@ -69,6 +69,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   const maxVideos = 3
   const [playingIndex, setPlayingIndex] = useState(null)
   const [drawnPoints, setDrawnPoints] = useState([])
+  const [selectedNames, setSelectedNames] = useState({})
+
   // ? Queries
   const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
@@ -918,9 +920,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       <div key={item.id} className="w-full mb-3">
                         <h1 className="font-normal text-sm mb-2">{item.name}</h1>
                         <div
-                          className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-end items-center cursor-pointer"
+                          className="bg-white px-4 h-[ب40px] rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer"
                           onClick={() => toggleDropdown(item.id)}
                         >
+                          {selectedNames[item.id] ? (
+                            <span className="text-sm text-gray-700">{selectedNames[item.id]}</span>
+                          ) : <span>انتخاب کنید</span>}{' '}
                           <ArrowLeftIcon
                             className={`w-5 h-5 text-[#9D9D9D] transition-transform ${
                               openDropdowns[item.id] ? 'rotate-180' : ''
@@ -941,6 +946,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                     checked={selectedValues[item.id] === value.id}
                                     onChange={() => {
                                       setSelectedValues((prev) => ({ ...prev, [item.id]: value.id }))
+                                      setSelectedNames((prev) => ({ ...prev, [item.id]: value.name }))
                                       setValue(`features.${item.id}`, value.name) // مقداردهی به فرم
                                     }}
                                     className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"

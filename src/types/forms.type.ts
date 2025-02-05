@@ -100,12 +100,7 @@ export interface RequestFormValues {
 
   title?: string
   features: {
-    [key: string]:
-      | string
-      | {
-          from: number
-          to: number
-        }
+    [key: string]: string | string[] | { from: number; to: number }
   }
 }
 
