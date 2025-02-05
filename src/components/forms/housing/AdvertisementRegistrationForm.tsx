@@ -920,7 +920,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       <div key={item.id} className="w-full mb-3">
                         <h1 className="font-normal text-sm mb-2">{item.name}</h1>
                         <div
-                          className="bg-white px-4 h-[ب40px] rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer"
+                          className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer"
                           onClick={() => toggleDropdown(item.id)}
                         >
                           {selectedNames[item.id] ? (

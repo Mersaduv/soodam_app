@@ -124,11 +124,6 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
           }, {} as Record<string, Yup.StringSchema>)
     ),
 
-    // مرحله 4
-    media: Yup.object().shape({
-      images: Yup.array().min(1, 'حداقل یک تصویر الزامی است'),
-      video: Yup.mixed().optional(),
-    }),
   })
 
 export const validationRequestSchema = (contextData: { features: Feature[]; dealType: string }) =>
