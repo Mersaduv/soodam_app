@@ -50,6 +50,7 @@ const RequestRegistrationForm: React.FC = () => {
   const [openIndex, setOpenIndex] = useState(null)
   const [openDropdowns, setOpenDropdowns] = useState({})
   const [selectedValues, setSelectedValues] = useState({})
+  const [selectedLabels, setSelectedLabels] = useState<Record<string, string>>({})
   const [drawnPoints, setDrawnPoints] = useState([])
   // ? Queries
   const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
@@ -903,76 +904,103 @@ const RequestRegistrationForm: React.FC = () => {
                 </div>
 
                 {features &&
-  features.data
-    .filter((item) => item.type === 'selective')
-    .map((item) => (
-      <div key={item.id} className="w-full mb-3">
-        <h1 className="font-normal text-sm mb-2">{item.name}</h1>
-        <div
-          className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-end items-center cursor-pointer"
-          onClick={() => toggleDropdown(item.id)}
-        >
-          <ArrowLeftIcon
-            className={`w-5 h-5 text-[#9D9D9D] transition-transform ${
-              openDropdowns[item.id] ? 'rotate-180' : ''
-            }`}
-          />
-        </div>
-        {openDropdowns[item.id] && (
-          <div className="w-full mt-1.5 bg-[#FCFCFC] border border-[#E3E3E7] rounded-lg p-1">
-            {item.values.map((value) => (
-              <label
-                key={value.id}
-                className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
-              >
-                <div className="flex items-center cursor-pointer relative">
-                  <input
-                    type="checkbox"
-                    name={`checkbox-${item.id}`}
-                    checked={selectedValues[item.id]?.includes(value.id) || false}
-                    onChange={() => {
-                      setSelectedValues((prev) => {
-                        const updatedValues = prev[item.id] ? [...prev[item.id]] : [];
-                        if (updatedValues.includes(value.id)) {
-                          updatedValues.splice(updatedValues.indexOf(value.id), 1);
-                        } else {
-                          updatedValues.push(value.id);
-                        }
-                        setValue(`features.${item.id}`, updatedValues); // مقداردهی به فرم
-                        return { ...prev, [item.id]: updatedValues };
-                      });
-                    }}
-                    className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
-                    id={value.id}
-                  />
-                  <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3.5 w-3.5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      ></path>
-                    </svg>
-                  </span>
-                </div>
-                <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.name}</span>
-              </label>
-            ))}
-          </div>
-        )}
-        <div className="w-fit" dir={'ltr'}>
-          <DisplayError adForm errors={errors.features?.[item.id]} />
-        </div>
-      </div>
-    ))}
+                  features.data
+                    .filter((item) => item.type === 'selective')
+                    .map((item) => (
+                      <div key={item.id} className="w-full mb-3">
+                        <h1 className="font-normal text-sm mb-2">{item.name}</h1>
+                        <div
+                          className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer"
+                          onClick={() => toggleDropdown(item.id)}
+                        >
+                          <div className="flex items-center space-x-1 overflow-hidden">
+                            {selectedValues[item.id]?.length > 0 ? (
+                              selectedValues[item.id].map((selectedId, index) => {
+                                const selectedItem = item.values.find((v) => v.id === selectedId)
+                                return (
+                                  <span key={index} className="text-sm text-gray-700 truncate">
+                                    {selectedItem?.name}
+                                    {index < selectedValues[item.id].length - 1 && ', '}
+                                  </span>
+                                )
+                              })
+                            ) : (
+                              <span className="text-sm text-gray-400">انتخاب کنید</span>
+                            )}
+                          </div>
+                          <ArrowLeftIcon
+                            className={`w-5 h-5 text-[#9D9D9D] transition-transform ${
+                              openDropdowns[item.id] ? 'rotate-180' : ''
+                            }`}
+                          />
+                        </div>
 
+                        {openDropdowns[item.id] && (
+                          <div className="w-full mt-1.5 bg-[#FCFCFC] border border-[#E3E3E7] rounded-lg p-1">
+                            {item.values.map((value) => (
+                              <label
+                                key={value.id}
+                                className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
+                              >
+                                <div className="flex items-center cursor-pointer relative">
+                                  <input
+                                    type="checkbox"
+                                    name={`checkbox-${item.id}`}
+                                    checked={selectedValues[item.id]?.includes(value.id) || false}
+                                    onChange={() => {
+                                      setSelectedValues((prev) => {
+                                        const updatedValues = Array.isArray(prev[item.id]) ? [...prev[item.id]] : []
+
+                                        if (updatedValues.includes(value.id)) {
+                                          updatedValues.splice(updatedValues.indexOf(value.id), 1)
+                                        } else {
+                                          updatedValues.push(value.id)
+                                        }
+
+                                        // به‌روز کردن استیت نمایش نام‌ها
+                                        setSelectedLabels((prevLabels) => {
+                                          const selectedItems = item.values
+                                            .filter((v) => updatedValues.includes(v.id)) // پیدا کردن مقادیر انتخاب‌شده
+                                            .map((v) => v.name)
+                                            .join(', ') // نمایش به‌صورت لیست جداشده با کاما
+
+                                          return { ...prevLabels, [item.id]: selectedItems || 'انتخاب کنید' }
+                                        })
+
+                                        setValue(`features.${item.id}`, updatedValues as string[])
+                                        return { ...prev, [item.id]: updatedValues }
+                                      })
+                                    }}
+                                    className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
+                                    id={value.id}
+                                  />
+                                  <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-3.5 w-3.5"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                      stroke="currentColor"
+                                      strokeWidth="1"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      ></path>
+                                    </svg>
+                                  </span>
+                                </div>
+                                <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                        <div className="w-fit" dir={'ltr'}>
+                          <DisplayError adForm errors={errors.features?.[item.id]} />
+                        </div>
+                      </div>
+                    ))}
 
                 <div className="space-y-4 mt-5">
                   {features &&
