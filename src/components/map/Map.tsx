@@ -104,7 +104,7 @@ const createIconWithPrice = (
   })()
   const html = ReactDOMServer.renderToString(
     zoom > 12 ? (
-      <div className="w-fit relative">
+      <div className="w-fit relative mt-5 -mr-4">
         <div
           style={{
             backgroundColor: isViewed ? '#D52133' : 'white',
@@ -119,7 +119,7 @@ const createIconWithPrice = (
             width: 'fit-content',
             height: '16px',
             fontFamily: 'estedad',
-            marginBottom: '-22px',
+            // marginBottom: '-22px',
             zIndex: 10,
           }}
         >
@@ -183,7 +183,8 @@ const createIconWithPrice = (
           margin: 'auto',
           left: '0',
           right: '0',
-          top: '-8.2px',
+          top: '0',
+          bottom: '0',
         }}
       >
         <HomeIcon width="16px" height="16px" />
@@ -330,20 +331,20 @@ const DrawingControl = ({
 
       if (points.length < 3) return
 
-      const bounds = map.getBounds()
-      const outerCoords = [
-        [bounds.getNorth(), bounds.getWest()],
-        [bounds.getNorth(), bounds.getEast()],
-        [bounds.getSouth(), bounds.getEast()],
-        [bounds.getSouth(), bounds.getWest()],
-        [bounds.getNorth(), bounds.getWest()],
-      ]
+      const maxBounds = [
+        [90, -180],
+        [90, 180], 
+        [-90, 180],
+        [-90, -180],
+        [90, -180] 
+      ];
 
-      const overlay = L.polygon([outerCoords, points], {
+      const overlay = L.polygon([maxBounds, points], {
         color: 'none',
         fillColor: '#1A1E2566',
-        fillOpacity: 0.45,
+        fillOpacity: 0.5,
         interactive: false,
+        smoothFactor: 0
       }).addTo(map)
 
       overlayRef.current = overlay
@@ -351,6 +352,37 @@ const DrawingControl = ({
     [map]
   )
 
+  useEffect(() => {
+    if (!map || !isDrawing) return
+
+    const handleMapChange = debounce(() => {
+      if (drawnPoints.length >= 3) {
+        updateOverlay(drawnPoints)
+      }
+    }, 100) 
+
+    map.on('zoom', handleMapChange)
+    map.on('moveend', handleMapChange)
+    map.on('resize', handleMapChange)
+
+    return () => {
+      map.off('zoom', handleMapChange)
+      map.off('moveend', handleMapChange)
+      map.off('resize', handleMapChange)
+    }
+  }, [map, isDrawing, drawnPoints, updateOverlay])
+
+  function debounce(func, wait) {
+    let timeout
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout)
+        func(...args)
+      }
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
+    }
+  }
   const updatePolyline = useCallback(
     (points) => {
       if (polylineRef.current) {
@@ -375,6 +407,29 @@ const DrawingControl = ({
       updateOverlay(points)
     }, 16),
     [updatePolyline, updateOverlay]
+  )
+
+  const completeDrawing = useCallback(
+    (points) => {
+      if (points.length > 2) {
+        // Calculate distance between first and last point
+        const firstPoint = L.latLng(points[0])
+        const lastPoint = L.latLng(points[points.length - 1])
+        const distance = getPointDistance(firstPoint, lastPoint)
+
+        // If the end point is close enough to the start point, use the start point
+        // Otherwise, add the start point to close the polygon
+        const closedPoints = distance < minDistance * 2 ? [...points.slice(0, -1), points[0]] : [...points, points[0]]
+
+        updateOverlay(closedPoints)
+        updatePolyline(closedPoints) // Update the polyline to show the closing line
+        countItemsInArea(closedPoints)
+        onDrawingComplete()
+        return closedPoints
+      }
+      return points
+    },
+    [getPointDistance, minDistance, updateOverlay, updatePolyline, countItemsInArea, onDrawingComplete]
   )
 
   const handleDrawingMove = useCallback(
@@ -437,16 +492,7 @@ const DrawingControl = ({
       isDrawingRef.current = false
       lastPointRef.current = null
 
-      setDrawnPoints((prev) => {
-        if (prev.length > 2) {
-          const closedPoints = [...prev, prev[0]]
-          updateOverlay(closedPoints)
-          countItemsInArea(closedPoints)
-          onDrawingComplete() // فراخوانی تابع بعد از اتمام drawing
-          return closedPoints
-        }
-        return prev
-      })
+      setDrawnPoints((prev) => completeDrawing(prev))
     }
 
     // Mouse Events
@@ -468,16 +514,7 @@ const DrawingControl = ({
       isDrawingRef.current = false
       lastPointRef.current = null
 
-      setDrawnPoints((prev) => {
-        if (prev.length > 2) {
-          const closedPoints = [...prev, prev[0]]
-          updateOverlay(closedPoints)
-          countItemsInArea(closedPoints)
-          onDrawingComplete() // فراخوانی تابع بعد از اتمام drawing
-          return closedPoints
-        }
-        return prev
-      })
+      setDrawnPoints((prev) => completeDrawing(prev))
     }
 
     // Add event listeners
