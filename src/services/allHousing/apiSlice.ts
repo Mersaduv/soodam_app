@@ -26,7 +26,7 @@ export const housingApiSlice = baseApi.injectEndpoints({
           : ['Housing'],
     }),
 
-    getSingleHousing: builder.query<ServiceResponse<Housing>, string>({
+    getSingleHousing: builder.query<Housing, string>({
       query: (query) => ({
         url: `/api/housing/${query}`,
         method: 'GET',

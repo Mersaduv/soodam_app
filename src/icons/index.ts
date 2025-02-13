@@ -16,7 +16,7 @@ import { HiOutlineUser, HiOutlineUsers } from 'react-icons/hi'
 import { IoSearch, IoImagesOutline } from 'react-icons/io5'
 import { BiAbacus, BiCategory } from 'react-icons/bi'
 import { TfiLayoutSlider } from 'react-icons/tfi'
-import { IoIosList } from "react-icons/io";
+import { IoIosList } from 'react-icons/io'
 
 import {
   RiArrowDropLeftLine,
@@ -172,3 +172,13 @@ export { default as ArrowDownSmmIcon } from './svgs/Vector 395.svg'
 export { default as LocationMdIcon } from './svgs/location2.svg'
 export { default as CallXsIcon } from './svgs/call.svg'
 export { default as SMSEditXsIcon } from './svgs/sms-edit1.svg'
+export { default as LocationTitleIcon } from './svgs/location22.svg'
+export { default as MoneyMdIcon } from './svgs/Group 7.svg'
+export { default as WarningSmIcon } from './svgs/warning-22.svg'
+export { default as CubeMdIcon } from './svgs/3dcube2.svg'
+export { default as ClockSmIcon } from './svgs/clock2.svg'
+export { default as EyeSmIcon } from './svgs/eye.svg'
+export { default as SaveSmIcon } from './svgs/archive-tick2.svg'
+export { default as LocationRedMdIcon } from './svgs/locationred.svg'
+export { default as CircleMdIcon } from './svgs/mirror (1).svg'
+export { default as HeartMdIcon } from './svgs/heart 1.svg'

@@ -147,6 +147,38 @@ const DrawingControl = ({
     [map]
   )
 
+  useEffect(() => {
+    if (!map || !isDrawing) return
+
+    const handleMapChange = debounce(() => {
+      if (drawnPoints.length >= 3) {
+        updateOverlay(drawnPoints)
+      }
+    }, 100)
+
+    map.on('zoom', handleMapChange)
+    map.on('moveend', handleMapChange)
+    map.on('resize', handleMapChange)
+
+    return () => {
+      map.off('zoom', handleMapChange)
+      map.off('moveend', handleMapChange)
+      map.off('resize', handleMapChange)
+    }
+  }, [map, isDrawing, drawnPoints, updateOverlay])
+
+  function debounce(func, wait) {
+    let timeout
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout)
+        func(...args)
+      }
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
+    }
+  }
+
   const updatePolyline = useCallback(
     (points) => {
       if (polylineRef.current) {
@@ -171,6 +203,29 @@ const DrawingControl = ({
       updateOverlay(points)
     }, 16),
     [updatePolyline, updateOverlay]
+  )
+
+  const completeDrawing = useCallback(
+    (points) => {
+      if (points.length > 2) {
+        // Calculate distance between first and last point
+        const firstPoint = L.latLng(points[0])
+        const lastPoint = L.latLng(points[points.length - 1])
+        const distance = getPointDistance(firstPoint, lastPoint)
+
+        // If the end point is close enough to the start point, use the start point
+        // Otherwise, add the start point to close the polygon
+        const closedPoints = distance < minDistance * 2 ? [...points.slice(0, -1), points[0]] : [...points, points[0]]
+
+        updateOverlay(closedPoints)
+        updatePolyline(closedPoints) // Update the polyline to show the closing line
+        countItemsInArea(closedPoints)
+        onDrawingComplete()
+        return closedPoints
+      }
+      return points
+    },
+    [getPointDistance, minDistance, updateOverlay, updatePolyline, countItemsInArea, onDrawingComplete]
   )
 
   const handleDrawingMove = useCallback(
@@ -240,16 +295,7 @@ const DrawingControl = ({
       isDrawingRef.current = false
       lastPointRef.current = null
 
-      setDrawnPoints((prev) => {
-        if (prev.length > 2) {
-          const closedPoints = [...prev, prev[0]]
-          updateOverlay(closedPoints)
-          countItemsInArea(closedPoints)
-          onDrawingComplete() // فراخوانی تابع بعد از اتمام drawing
-          return closedPoints
-        }
-        return prev
-      })
+      setDrawnPoints((prev) => completeDrawing(prev))
     }
 
     // Mouse Events
@@ -282,16 +328,7 @@ const DrawingControl = ({
       isDrawingRef.current = false
       lastPointRef.current = null
 
-      setDrawnPoints((prev) => {
-        if (prev.length > 2) {
-          const closedPoints = [...prev, prev[0]]
-          updateOverlay(closedPoints)
-          countItemsInArea(closedPoints)
-          onDrawingComplete() // فراخوانی تابع بعد از اتمام drawing
-          return closedPoints
-        }
-        return prev
-      })
+      setDrawnPoints((prev) => completeDrawing(prev))
     }
 
     // Add event listeners
@@ -378,7 +415,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationChange }) => 
 }
 
 const MapLocationPicker = (props: Props) => {
-  const { selectedLocation, handleLocationChange, label,drawnPoints,setDrawnPoints } = props
+  const { selectedLocation, handleLocationChange, label, drawnPoints, setDrawnPoints } = props
   const { query, push } = useRouter()
   const { role, phoneNumber } = useAppSelector((state) => state.auth)
   const { housingMap } = useAppSelector((state) => state.statesData)

@@ -98,7 +98,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
       return 'rent' // اجاره بلندمدت
     }
 
-    if (categoryName.includes('خرید') || parentCategoryName.includes('خرید')) {
+    if (categoryName.includes('فروش') || parentCategoryName.includes('فروش')) {
       return 'sale' // فروش
     }
 

@@ -79,7 +79,7 @@ const RequestRegistrationForm: React.FC = () => {
       return 'rent'
     }
 
-    if (categoryName.includes('خرید') || parentCategoryName.includes('خرید')) {
+    if (categoryName.includes('فروش') || parentCategoryName.includes('فروش')) {
       return 'sale'
     }
 

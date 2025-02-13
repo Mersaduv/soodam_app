@@ -31,7 +31,7 @@ import { setIsShowLogin, setStateData } from '@/store'
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
-import { IRAN_PROVINCES } from '@/utils'
+import { formatPrice, IRAN_PROVINCES } from '@/utils'
 interface Props {
   housingData: Housing[]
 }
@@ -46,7 +46,7 @@ interface Location {
 interface Property {
   id: string
   title: string
-  sellingPrice: number
+  price: number
   rent: number
   deposit: number
   location: Location
@@ -58,15 +58,7 @@ interface ModalSelectHousing {
   isModalOpen: boolean
 }
 
-const formatPrice = (price: number): string => {
-  if (price >= 1_000_000_000) {
-    return (price / 1_000_000_000).toFixed(3)
-  } else if (price >= 1_000_000) {
-    return (price / 1_000_000).toFixed(0)
-  } else {
-    return price.toString()
-  }
-}
+
 
 const formatPriceLoc = (price: number): string => {
   if (price >= 1_000_000_000) {
@@ -588,7 +580,7 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
   if (!isModalOpen) return null
   console.log(housing, 'property--property')
   const province = getProvinceFromCoordinates(housing.location.lat, housing.location.lng)
-  const isSelling = housing.sellingPrice > 0
+  const isSelling = housing.price > 0
   return (
     <div className="fixed w-full inset-0 z-[9999] flex items-end mb-[85px] justify-center" onClick={onClose}>
       <div className="bg-white rounded-lg p-4 shadow-lg max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
@@ -617,7 +609,7 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
               <div>
                 {isSelling ? (
                   <div className="text-xs font-normal text-[#5A5A5A] farsi-digits mt-2.5">
-                    قیمت: {formatPriceLoc(housing.sellingPrice)}
+                    قیمت: {formatPriceLoc(housing.price)}
                   </div>
                 ) : (
                   <div className="space-y-2 mt-2.5">
@@ -635,7 +627,7 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
 
           {/* Property Details */}
           <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-            <div className="flex-center gap-1.5 text-xs font-medium farsi-digits">
+            {/* <div className="flex-center gap-1.5 text-xs font-medium farsi-digits">
               <BedIcon width="21px" height="19px" /> {housing.bedrooms}{' '}
               <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>
             </div>
@@ -645,7 +637,17 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
             </div>
             <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
               <BulidingIcon width="16px" height="17px" /> طبقه {housing.onFloor} از {housing.floors}
-            </div>
+            </div> */}
+            {housing.highlightFeatures &&
+            housing.highlightFeatures.map((feature) => {
+              return (
+                <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                  {' '}
+                  <img className="w-[16px]" src={feature.image} alt="" /> {feature.value}{' '}
+                  <span className="font-medium text-[#7A7A7A] text-xs">{feature.title}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -1017,7 +1019,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
             key={property.id}
             position={[property.location.lat, property.location.lng]}
             icon={createIconWithPrice(
-              formatPrice(property.sellingPrice),
+              formatPrice(property.price),
               formatPrice(property.rent),
               formatPrice(property.deposit),
               property.created,

@@ -24,6 +24,7 @@ export default function Home() {
       localStorage.setItem('role', role)
     }
   }, [role])
+  
 
   if (isFetching) return <div>loading....</div>
 
