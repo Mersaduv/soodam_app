@@ -32,6 +32,7 @@ import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewProp
 import { toast } from 'react-toastify'
 import Image from 'next/image'
 import { formatPrice, IRAN_PROVINCES } from '@/utils'
+import Link from 'next/link'
 interface Props {
   housingData: Housing[]
 }
@@ -58,8 +59,6 @@ interface ModalSelectHousing {
   isModalOpen: boolean
 }
 
-
-
 const formatPriceLoc = (price: number): string => {
   if (price >= 1_000_000_000) {
     return `${(price / 1_000_000_000).toFixed(3)} میلیارد تومان`
@@ -85,7 +84,8 @@ const createIconWithPrice = (
   created: string,
   zoom: number,
   propertyId: string,
-  isViewed: boolean
+  isViewed: boolean,
+  property: Housing
 ): L.DivIcon => {
   const iconColor = '#D52133'
   const isNew = (() => {
@@ -96,7 +96,11 @@ const createIconWithPrice = (
   })()
   const html = ReactDOMServer.renderToString(
     zoom > 12 ? (
-      <div className="w-fit relative mt-5 -mr-4">
+      <div
+        className={`w-fit relative  mt-5 ${property.price > 0 ? 'mr-1' : '-mr-4'} ${
+          property.ownerProfitPercentage > 0 || property.producerProfitPercentage > 0 ? '-mr-7' : '-mr-4'
+        } `}
+      >
         <div
           style={{
             backgroundColor: isViewed ? '#D52133' : 'white',
@@ -118,7 +122,7 @@ const createIconWithPrice = (
           <div className="flex items-center gap-1">
             {isViewed && <CheckSmIcon width="7px" height="6px" />}
             {isNew && !isViewed && <ArrowDownTickIcon width="6px" height="8px" />}
-            {price > '0' ? (
+            {/* {price > '0' ? (
               <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits pb-[1px]`}>
                 {price}
               </span>
@@ -132,6 +136,83 @@ const createIconWithPrice = (
                   <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>{rent}</span>
                   <span className={`text-[8px] font-normal ${isViewed && 'text-white'}`}>اجاره</span>
                 </div>
+              </div>
+            )} */}
+            {property.price > 0 ? (
+              <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits pb-[1px]`}>
+                {' '}
+                {formatPrice(property.price)}
+              </span>
+            ) : property.deposit > 0 || property.rent > 0 ? (
+              <div className={`flex-center gap-x-1`}>
+                {property.deposit > 0 && (
+                  <div className="flex-center gap-x-0.5">
+                    <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits`}>
+                      {formatPrice(property.deposit)}
+                    </span>
+                    <span className={`text-[8px] font-normal ${isViewed && 'text-white'}`}>رهن</span>
+                  </div>
+                )}{' '}
+                {property.rent > 0 && (
+                  <div className="flex-center gap-x-0.5">
+                    <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
+                      {formatPrice(property.rent)}
+                    </span>
+                    <span className={`text-[8px] font-normal ${isViewed && 'text-white'}`}>اجاره</span>
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            {(property.ownerProfitPercentage > 0 || property.producerProfitPercentage > 0) && (
+              <div className={`flex-center gap-x-1`}>
+                {property.ownerProfitPercentage > 0 && (
+                  <div className="flex-center gap-x-0.5">
+                    <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
+                      {property.ownerProfitPercentage}
+                    </span>
+                    <span className={`text-[8px] font-normal ${isViewed && 'text-white'} whitespace-nowrap`}>
+                      سود مالک
+                    </span>
+                  </div>
+                )}
+                {property.producerProfitPercentage > 0 && (
+                  <div className="flex-center gap-x-0.5">
+                    <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
+                      {property.producerProfitPercentage}
+                    </span>
+                    <span className={`text-[8px] font-normal ${isViewed && 'text-white'} whitespace-nowrap`}>
+                      سود سازنده
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {(property.capacity > 0 ||
+              property.extraPeople > 0 ||
+              (property.rentalTerm && property.rentalTerm.name)) && (
+              <div className={`flex-center gap-x-1`}>
+                {property.capacity > 0 && (
+                  <div className="flex-center gap-x-0.5">
+                    <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
+                      {property.capacity}
+                    </span>
+                    <span className={`text-[8px] font-normal ${isViewed && 'text-white'} whitespace-nowrap`}>
+                      ظرفیت
+                    </span>
+                  </div>
+                )}
+                {property.extraPeople > 0 && (
+                  <div className="flex-center gap-x-0.5">
+                    <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
+                      {property.extraPeople}
+                    </span>
+                    <span className={`text-[8px] font-normal ${isViewed && 'text-white'} whitespace-nowrap`}>
+                      نفرات اضافه
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -325,18 +406,18 @@ const DrawingControl = ({
 
       const maxBounds = [
         [90, -180],
-        [90, 180], 
+        [90, 180],
         [-90, 180],
         [-90, -180],
-        [90, -180] 
-      ];
+        [90, -180],
+      ]
 
       const overlay = L.polygon([maxBounds, points], {
         color: 'none',
         fillColor: '#1A1E2566',
         fillOpacity: 0.5,
         interactive: false,
-        smoothFactor: 0
+        smoothFactor: 0,
       }).addTo(map)
 
       overlayRef.current = overlay
@@ -351,7 +432,7 @@ const DrawingControl = ({
       if (drawnPoints.length >= 3) {
         updateOverlay(drawnPoints)
       }
-    }, 100) 
+    }, 100)
 
     map.on('zoom', handleMapChange)
     map.on('moveend', handleMapChange)
@@ -585,7 +666,7 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
     <div className="fixed w-full inset-0 z-[9999] flex items-end mb-[85px] justify-center" onClick={onClose}>
       <div className="bg-white rounded-lg p-4 shadow-lg max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col">
-          <div className="flex gap-2">
+          <Link href={`/housing/${housing.adCode}`} className="flex gap-2">
             {housing.images.length > 0 && (
               <div className=" bg-gray-200 rounded-[10px] mb-4">
                 <Image
@@ -604,26 +685,57 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
               </div>
 
               <div className="line-clamp-1 overflow-hidden text-ellipsis text-base font-normal mt-1">
-                {housing.category},{housing.address}
+                {housing.title}
               </div>
-              <div>
-                {isSelling ? (
-                  <div className="text-xs font-normal text-[#5A5A5A] farsi-digits mt-2.5">
-                    قیمت: {formatPriceLoc(housing.price)}
+              <div className="mt-2">
+                {/* نمایش قیمت فروش یا رهن و اجاره */}
+                {housing.price > 0 ? (
+                  <div className="text-sm farsi-digits text-[#5A5A5A] font-normal flex gap-1">
+                    <div className="font-normal "> {formatPriceLoc(housing.price)}</div>
                   </div>
-                ) : (
-                  <div className="space-y-2 mt-2.5">
-                    <p className="text-xs font-normal text-[#5A5A5A] farsi-digits">
-                      رهن: {formatPriceLoc(housing.deposit)}
-                    </p>
-                    <p className="text-xs font-normal text-[#5A5A5A] farsi-digits">
-                      اجاره: {formatPriceLoc(housing.rent)}
-                    </p>
+                ) : housing.deposit > 0 || housing.rent > 0 ? (
+                  <div className="text-[16px] farsi-digits text-[#5A5A5A] font-normal space-y-2">
+                    {housing.deposit > 0 && (
+                      <div className="flex gap-1 text-xs">
+                        {' '}
+                        رهن: <div className="font-normal">{formatPriceLoc(housing.deposit)}</div>{' '}
+                      </div>
+                    )}{' '}
+                    {housing.rent > 0 && (
+                      <div className="flex gap-1 text-xs">
+                        اجاره: <div className="font-normal">{formatPriceLoc(housing.rent)} </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+
+                {/* نمایش درصد سود مالک و سازنده */}
+                {(housing.ownerProfitPercentage > 0 || housing.producerProfitPercentage > 0) && (
+                  <div className="text-[13px] space-y-1">
+                    {housing.ownerProfitPercentage > 0 && (
+                      <p className="text-[#5A5A5A]">سود مالک: {housing.ownerProfitPercentage}%</p>
+                    )}
+                    {housing.producerProfitPercentage > 0 && (
+                      <p className="text-[#5A5A5A]">سود سازنده: {housing.producerProfitPercentage}%</p>
+                    )}
+                  </div>
+                )}
+
+                {/* نمایش ظرفیت و نفرات اضافه */}
+                {(housing.capacity > 0 ||
+                  housing.extraPeople > 0 ||
+                  (housing.rentalTerm && housing.rentalTerm.name)) && (
+                  <div className=" text-[13px] text-[#7A7A7A]">
+                    {housing.capacity > 0 && <p className="text-[#5A5A5A]">ظرفیت: {housing.capacity} نفر</p>}
+                    {/* {housing.extraPeople > 0 && <p>نفرات اضافه: {housing.extraPeople} نفر</p>} */}
+                    {housing.rentalTerm?.name && (
+                      <p className="text-[#5A5A5A]">نوع قرارداد: {housing.rentalTerm.name}</p>
+                    )}
                   </div>
                 )}
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* Property Details */}
           <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
@@ -639,15 +751,15 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
               <BulidingIcon width="16px" height="17px" /> طبقه {housing.onFloor} از {housing.floors}
             </div> */}
             {housing.highlightFeatures &&
-            housing.highlightFeatures.map((feature) => {
-              return (
-                <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
-                  {' '}
-                  <img className="w-[16px]" src={feature.image} alt="" /> {feature.value}{' '}
-                  <span className="font-medium text-[#7A7A7A] text-xs">{feature.title}</span>
-                </div>
-              )
-            })}
+              housing.highlightFeatures.map((feature) => {
+                return (
+                  <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                    {' '}
+                    <img className="w-[16px]" src={feature.image} alt="" /> {feature.value}{' '}
+                    <span className="font-medium text-[#7A7A7A] text-xs">{feature.title}</span>
+                  </div>
+                )
+              })}
           </div>
         </div>
       </div>
@@ -1025,7 +1137,8 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
               property.created,
               zoomLevel,
               property.id,
-              viewedProperties.includes(property.id)
+              viewedProperties.includes(property.id),
+              property
             )}
             title={property.title}
             eventHandlers={{
