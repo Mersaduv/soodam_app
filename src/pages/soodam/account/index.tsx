@@ -13,7 +13,7 @@ import {
   PdfDownloadIcon,
   WalletAndCardIcon,
 } from '@/icons'
-import { Button, SelectBox, TextField } from '@/components/ui'
+import { Button, DisplayError, SelectBox, TextField } from '@/components/ui'
 import { Controller, Resolver, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { userInfoFormValidationSchema } from '@/utils'
@@ -100,8 +100,7 @@ const Account: NextPage = () => {
     setSelectedProvince(option)
   }
   if (errors) {
-     console.log(errors , "errors");
-     
+    console.log(errors, 'errors')
   }
   // ? Render(s)
   return (
@@ -143,6 +142,9 @@ const Account: NextPage = () => {
                       </div>
                     )}
                   </label>
+                  <div dir={'ltr'} className="w-fit">
+                    <DisplayError adForm errors={errors.image} />
+                  </div>
                 </div>
               </div>
 
