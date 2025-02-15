@@ -120,6 +120,22 @@ export interface MarketerUserForm {
   agreeToTerms: boolean
 }
 
+export interface UserInfoForm {
+  image: File
+  fullName: string
+  fatherName: string
+  notionalCode: string
+  email: string
+  mobileNumber: string
+  province: {
+    id?: number
+    name: string
+    slug?: string
+  }
+  birthDate: string
+  gender: string
+}
+
 export interface ContactUsForm {
   fullName: string
   phoneNumber: string

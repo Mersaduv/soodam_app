@@ -301,3 +301,35 @@ export const marketerUserFormValidationSchema = Yup.object().shape({
 
   agreeToTerms: Yup.boolean().required('موافقت با قوانین الزامی است'),
 })
+
+export const userInfoFormValidationSchema = Yup.object().shape({
+  image: Yup.mixed()
+    .required('عکس الزامی است'),
+
+  fullName: Yup.string()
+    .required('نام و نام خانوادگی الزامی است'), // فقط حروف فارسی مجاز هستند
+
+  fatherName: Yup.string()
+    .required('نام پدر الزامی است'), // فقط حروف فارسی مجاز هستند
+
+  notionalCode: Yup.string()
+    .required('کد ملی الزامی است')
+    .matches(/^[0-9]{10}$/, 'کد ملی باید ۱۰ رقم باشد'), // دقیقاً ۱۰ رقم
+
+  email: Yup.string()
+    .required('ایمیل الزامی است')
+    .email('ایمیل معتبر نیست'), // اعتبارسنجی فرمت ایمیل
+
+  mobileNumber: Yup.string()
+    .required('شماره موبایل الزامی است')
+    .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'), // شروع با 09 و ۱۱ رقم
+
+  province: Yup.object()
+    .required('استان الزامی است'), // کل شیء province الزامی است
+
+  birthDate: Yup.string()
+    .required('تاریخ تولد الزامی است'), // فرمت تاریخ YYYY-MM-DD
+
+  gender: Yup.string()
+    .required('جنسیت الزامی است'), // فقط مقادیر male یا female مجاز هستند
+})

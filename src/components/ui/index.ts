@@ -9,6 +9,7 @@ export { default as DisplayError } from './DisplayError'
 export { default as TextField } from './TextField'
 export { default as Alert } from './Alert'
 export { default as Skeleton } from './Skeleton'
+export { default as SelectBox } from './SelectBox'
 
 export * from './Buttons'
 export * from './Checkbox'
