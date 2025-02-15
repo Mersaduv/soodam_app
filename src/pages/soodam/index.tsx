@@ -102,10 +102,10 @@ const Soodam: NextPage = () => {
           </div>
           <div>
             <div className="px-4 space-y-2 mt-5 mb-10">
-              <div className="flex items-center gap-2 py-3 cursor-pointer">
+              <Link href={'/soodam/account'} className="flex items-center gap-2 py-3 cursor-pointer">
                 <UserEditSmIcon width="24px" height="24px" />
                 <div className="font-medium text-sm">اطلاعات حساب کاربری</div>
-              </div>
+              </Link>
 
               <div className="flex items-center gap-2 py-3 cursor-pointer">
                 <TicketStartSmIcon width="24px" height="24px" />
