@@ -20,6 +20,10 @@ const Header = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
+    const role = localStorage.getItem('role')
+    if (role === 'user' || !role) {
+      setIsVisible(true)
+    }
     if (user && user.role === 'memberUser' && user.subscription == undefined) {
       setIsVisible(true)
     }
