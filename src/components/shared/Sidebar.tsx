@@ -174,7 +174,7 @@ const menuItems = [
     title: 'مدیریت حساب من',
     icon: <CardTrickIcon width="24px" height="24px" />,
     subItems: [
-      { title: 'آگهی‌های من', icon: null, path: '/' },
+      { title: 'آگهی‌های من', icon: null, path: '/housing/my-ads' },
       { title: 'پرداختی‌های من', icon: null, path: '/' },
       { title: 'علاقمندی ها', icon: null, path: '/lists' },
       { title: 'آمار بازدید', icon: null, path: '/visitStatistics' },

@@ -1,6 +1,9 @@
 import { AdvertisementRegistrationForm } from '@/components/forms'
 import { ClientLayout } from '@/components/layouts'
+import { Button } from '@/components/ui'
+import { useAppDispatch, useAppSelector } from '@/hooks'
 import { SmallArrowLeftIcon } from '@/icons'
+import { setAdConfirmExit } from '@/store'
 import { NextPage } from 'next'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
@@ -9,13 +12,49 @@ import { useRouter } from 'next/router'
 
 const NewAdPage: NextPage = () => {
   // ? Assets
-  const { query } = useRouter()
+  const { query, back } = useRouter()
   const roleQuery = (query.role as string) ?? ''
+  const { adConfirmExit } = useAppSelector((state) => state.statesData)
+  const dispatch = useAppDispatch()
   return (
-    <ClientLayout title={`${query.role === 'Marketer' ? 'ثبت آگهی به عنوان بازاریاب' : 'ثبت آگهی شخصی'}`}>
+    <ClientLayout
+      isAdConfirmExit={true}
+      title={`${query.role === 'Marketer' ? 'ثبت آگهی به عنوان بازاریاب' : 'ثبت آگهی شخصی'}`}
+    >
       <div className="pt-[90px] px-4">
         {/* {query.role === 'Marketer' ? <AdvertisementRegistrationForm /> : <AdvertisementRegistrationForm />} */}
-        <AdvertisementRegistrationForm roleUser={roleQuery} />
+        {adConfirmExit === '0' ? (
+          <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7] ">
+            <div className="flex justify-center mt-12">
+              <img className="w-[180px]" src="/static/Document_empty.png" alt="" />
+            </div>
+            <div className="mt-8 flex flex-col justify-center items-center gap-2">
+              <h1 className="font-medium text-sm">آیا از ثبت آگهی خود منصرف شده اید؟</h1>
+              <p className="text-[#7A7A7A] text-[13px] font-medium">
+                با بازگشت به صفحه قبل مواردی که وارد کرده اید پاک می شوند.
+              </p>
+            </div>
+            <div className="mx-4 mt-8 mb-4 flex gap-3">
+              <Button
+                onClick={() => {
+                  dispatch(setAdConfirmExit(''))
+                  back()
+                }}
+                className="w-full rounded-[10px] font-bold text-sm py-[14px] bg-white text-[#D52133] border border-[#D52133]"
+              >
+                بله
+              </Button>
+              <Button
+                onClick={() => dispatch(setAdConfirmExit(''))}
+                className="w-full rounded-[10px] font-bold text-sm"
+              >
+                خیر
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <AdvertisementRegistrationForm roleUser={roleQuery} />
+        )}
       </div>
     </ClientLayout>
   )

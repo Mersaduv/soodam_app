@@ -3,10 +3,12 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
 interface State {
   housingMap: Housing[]
+  adConfirmExit: string
 }
 
 const initialState: State = {
-    housingMap: [],
+  housingMap: [],
+  adConfirmExit: '',
 }
 
 const updateSlice = createSlice({
@@ -16,8 +18,11 @@ const updateSlice = createSlice({
     setStateData: (state, action: PayloadAction<Housing[]>) => {
       state.housingMap = action.payload
     },
+    setAdConfirmExit: (state, action: PayloadAction<string>) => {
+      state.adConfirmExit = action.payload
+    },
   },
 })
 
-export const { setStateData } = updateSlice.actions
+export const { setStateData, setAdConfirmExit } = updateSlice.actions
 export default updateSlice.reducer

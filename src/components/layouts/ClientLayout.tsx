@@ -11,10 +11,11 @@ import { FirstLoginModal, MemberUserLoginsModal } from '../modals'
 interface Props {
   title?: string
   isProfile?: boolean
+  isAdConfirmExit?: boolean
   children: React.ReactNode
 }
 
-const ClientLayout: React.FC<Props> = ({ children, title, isProfile }) => {
+const ClientLayout: React.FC<Props> = ({ children, title, isProfile, isAdConfirmExit }) => {
   // const [showModal, setShowModal] = useState<boolean>(false)
   const [isShow, modalHandlers] = useDisclosure()
   const [isShowMemberUserGuid, memberUserGuidModalHandlers] = useDisclosure()
@@ -45,7 +46,6 @@ const ClientLayout: React.FC<Props> = ({ children, title, isProfile }) => {
     dispatch(setIsMemberUserLogin(false))
     memberUserGuidModalHandlers.close()
   }
-  
 
   useEffect(() => {
     if (isShowLogin) {
@@ -62,10 +62,14 @@ const ClientLayout: React.FC<Props> = ({ children, title, isProfile }) => {
       memberUserGuidModalHandlers.close()
     }
   }, [isMemberUserLogin])
-  console.log(user , 'user---user');
+  console.log(user, 'user---user')
   return (
     <>
-      {title && !isProfile ? <FilterControlsHeader title={title} /> : !isProfile && <Header />}
+      {title && !isProfile ? (
+        <FilterControlsHeader title={title} isAdConfirmExit={isAdConfirmExit} />
+      ) : (
+        !isProfile && <Header />
+      )}
       <main className="h-full bg-[#F6F7FB]">
         {isShowLogin && <FirstLoginModal isShow={isShow} onClose={handleModalClose} />}
         {isMemberUserLogin && (
