@@ -26,6 +26,12 @@ export default function Sidebar() {
 
   const handleClickNewAdAsMarketerNav = () => {
     const user = JSON.parse(localStorage.getItem('user'))
+    const role = localStorage.getItem('role')
+
+    if (role === 'user' || !role) {
+      push('/authentication/login?role=marketer')
+      return
+    }
     if (user && user.role !== 'marketer') {
       push('/marketer')
     } else {

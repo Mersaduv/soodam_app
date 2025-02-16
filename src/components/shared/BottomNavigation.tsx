@@ -6,10 +6,10 @@ import { useAppDispatch, useAppSelector } from '@/hooks'
 import { setIsShowLogin } from '@/store'
 
 const BottomNavigation: React.FC = () => {
-  const router = useRouter();
-  const dispatch = useAppDispatch();
-  const { pathname } = router;
-  const { role, phoneNumber } = useAppSelector((state) => state.auth);
+  const router = useRouter()
+  const dispatch = useAppDispatch()
+  const { pathname } = router
+  const { role, phoneNumber } = useAppSelector((state) => state.auth)
 
   const navItems = [
     { href: '/', icon: <SearchIcon width="24px" height="24px" />, label: 'جستجو' },
@@ -17,11 +17,11 @@ const BottomNavigation: React.FC = () => {
     { href: '/requests', icon: <SquareTaskIcon width="24px" height="24px" />, label: 'درخواست‌ها' },
     { href: '/marketer', icon: <ProfileTick width="24px" height="24px" />, label: 'عضویت' },
     { href: '/soodam', icon: <MoreIcon width="24px" height="24px" />, label: 'سودم' },
-  ];
+  ]
 
   const handleShowModalClick = () => {
-    dispatch(setIsShowLogin(true));
-  };
+    dispatch(setIsShowLogin(true))
+  }
 
   return (
     <nav className="fixed z-[999] bottom-0 left-0 right-0 bg-white shadow-nav border-t border-gray-200 h-[68px] flex items-start w-full">
@@ -35,9 +35,16 @@ const BottomNavigation: React.FC = () => {
               }`}
               passHref
               onClick={(e) => {
+                const role = localStorage.getItem('role')
+                if (item.href === '/soodam') {
+                  if (role === 'user' || !role) {
+                    e.preventDefault()
+                    handleShowModalClick()
+                  }
+                }
                 if (item.href === '/marketer') {
-                  e.preventDefault();
-                  handleShowModalClick();
+                  e.preventDefault()
+                  handleShowModalClick()
                 }
               }}
             >
@@ -58,7 +65,7 @@ const BottomNavigation: React.FC = () => {
         ))}
       </ul>
     </nav>
-  );
-};
+  )
+}
 
-export default BottomNavigation;
+export default BottomNavigation

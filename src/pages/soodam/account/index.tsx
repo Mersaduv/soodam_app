@@ -242,7 +242,7 @@ const Account: NextPage = () => {
                       </label>
                       <div className="select-container flex items-center gap-1 w-full">
                         <select
-                          className="w-full border border-[#E3E3E7] bg-[#FCFCFC] rounded-lg h-[40px]"
+                          className="w-full border text-sm border-[#E3E3E7] bg-[#FCFCFC] rounded-lg h-[40px]"
                           onChange={(e) => handleDateChange('day', e.target.value)}
                           value={field.value?.split('/')[2] || ''}
                         >
@@ -255,7 +255,7 @@ const Account: NextPage = () => {
                         </select>
                         <span className="text-[#7A7A7A] font-normal text-[20px]">/</span>
                         <select
-                          className="w-full border border-[#E3E3E7] bg-[#FCFCFC] rounded-lg h-[40px]"
+                          className="w-full border text-sm border-[#E3E3E7] bg-[#FCFCFC] rounded-lg h-[40px]"
                           onChange={(e) => handleDateChange('month', e.target.value)}
                           value={field.value?.split('/')[1] || ''}
                         >
@@ -268,7 +268,7 @@ const Account: NextPage = () => {
                         </select>
                         <span className="text-[#7A7A7A] font-normal text-[20px]">/</span>
                         <select
-                          className="w-full border border-[#E3E3E7] bg-[#FCFCFC] rounded-lg h-[40px]"
+                          className="w-full border text-sm border-[#E3E3E7] bg-[#FCFCFC] rounded-lg h-[40px]"
                           onChange={(e) => handleDateChange('year', e.target.value)}
                           value={field.value?.split('/')[0] || ''}
                         >
