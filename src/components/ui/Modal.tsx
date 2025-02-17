@@ -63,11 +63,8 @@ const Modal: React.FC<ModalProps> = (props) => {
         height: '100%',
       }}
     >
-      <div 
-        className="fixed inset-0 bg-[#1A1E2580]" 
-        onClick={onClose} 
-      />
-      <div 
+      <div className="fixed inset-0 bg-[#1A1E2580]" onClick={onClose} />
+      <div
         className={`${effectClasses} max-h-[90vh] overflow-y-auto`}
         style={{
           WebkitOverflowScrolling: 'touch',
@@ -117,20 +114,30 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = (props) => {
   // ? Props
   const { onClose, children, right } = props
+  console.log(children, 'childrenf')
 
   // ? Render(s)
   return (
     <>
       {right ? (
-        <div className="flex relative items-center justify-center  py-4">
-          <button type='button' onClick={onClose} className="p-0.5 right-0 text-white bg-black absolute border-[1.8px] border-black rounded-full">
+        <div className={`flex relative items-center justify-center ${children === undefined && ' py-4'}`}>
+          {children}
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-0.5 right-0 text-white bg-black absolute border-[1.8px] border-black rounded-full"
+          >
             <Close className="" />
           </button>
         </div>
       ) : (
         <div className="flex relative items-center justify-center  pb-2">
           <h2 className="font-medium">{children}</h2>
-          <button type='button' onClick={onClose} className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full">
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full"
+          >
             <Close className="" />
           </button>
         </div>

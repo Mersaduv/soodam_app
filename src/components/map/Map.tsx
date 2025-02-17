@@ -3,6 +3,7 @@ import L from 'leaflet'
 import { LatLngTuple } from 'leaflet'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
+import * as turf from '@turf/turf'
 import {
   HomeIcon,
   MapIcon,
@@ -26,7 +27,6 @@ import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
 import { Housing } from '@/types'
 import { useRouter } from 'next/router'
-import * as turf from '@turf/turf'
 import { setIsShowLogin, setStateData } from '@/store'
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'

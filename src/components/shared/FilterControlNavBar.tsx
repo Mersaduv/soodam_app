@@ -19,7 +19,7 @@ const FilterControlNavBar: React.FC = () => {
 
   // ? State
   const [activeType, setActiveType] = useState<string>(type)
-
+const [isShow, modalHandlers] = useDisclosure()
   // ? Handlers
   const handleChange = (item: string) => {
     const newType = activeType === item ? '' : item
@@ -58,9 +58,46 @@ const FilterControlNavBar: React.FC = () => {
     push('/filterControls')
   }
 
+
+  const handleModalClose = (): void => {
+    modalHandlers.close()
+  }
+
+  const handleApply = (): void => {
+    modalHandlers.close()
+  }
+
   // ? Render(s)
   return (
     <div ref={containerRef} className="flex gap-x-2 hide-scrollbar cursor-grab pr-4" onMouseDown={handleMouseDown}>
+      <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
+              <Modal.Content
+                onClose={handleModalClose}
+                className="flex h-full flex-col gap-y-5 bg-white p-4  pb-8  rounded-2xl rounded-b-none"
+              >
+                <Modal.Header right onClose={handleModalClose} ><div className='text-black'>قیمت</div></Modal.Header>
+                <Modal.Body>
+                  <div className="space-y-4">
+                    <div className="flex flex-row-reverse items-center gap-2 w-full">
+                      {/* <CustomCheckbox
+                        name={`satellite-view`}
+                        checked={isSatelliteView}
+                        onChange={() => setIsSatelliteView((prev) => !prev)}
+                        label=""
+                        customStyle="bg-sky-500"
+                      />
+                      <label htmlFor="satellite-view" className="flex items-center gap-2 w-full">
+                        <SatelliteIcon width="24px" height="24px" />
+                        نمای ماهواره ای
+                      </label> */}
+                    </div>
+                  </div>
+                  <button onClick={handleApply} className="w-full py-2 bg-red-600 text-white rounded-lg">
+                    اعمال
+                  </button>
+                </Modal.Body>
+              </Modal.Content>
+            </Modal>
       <div
         onClick={handleNavigate}
         className="w-fit cursor-pointer whitespace-nowrap my-[12px] flex-center px-4 font-normal text-[16px] border rounded-[59px] h-[40px] text-[#7A7A7A]"
@@ -97,10 +134,7 @@ const FilterControlNavBar: React.FC = () => {
           رهن و اجاره
         </span>
       </div>
-      <div className="w-fit whitespace-nowrap my-[12px] flex-center px-4 font-normal text-[16px] border rounded-[59px] h-[40px] text-[#7A7A7A] cursor-pointer">
-        نوع ملک
-      </div>
-      <div className="w-fit whitespace-nowrap my-[12px] flex-center px-4 font-normal text-[16px] border rounded-[59px] h-[40px] text-[#7A7A7A] cursor-pointer">
+      <div onClick={modalHandlers.open} className="w-fit whitespace-nowrap my-[12px] flex-center px-4 font-normal text-[16px] border rounded-[59px] h-[40px] text-[#7A7A7A] cursor-pointer">
         قیمت
       </div>
       <div className="w-fit whitespace-nowrap my-[12px] flex-center px-4 font-normal text-[16px] border rounded-[59px] h-[40px] text-[#7A7A7A] cursor-pointer">
