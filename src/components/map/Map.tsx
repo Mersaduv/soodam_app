@@ -1116,14 +1116,6 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           }
         />
         <MapClickHandler />
-        {/* {position && (
-          <Marker position={position}>
-            <Popup>
-              <strong>آدرس:</strong> {address} <br />
-              <strong>مختصات:</strong> {position[0]}, {position[1]}
-            </Popup>
-          </Marker>
-        )} */}
         {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
 
         {housingData.map((property) => (

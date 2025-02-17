@@ -81,14 +81,22 @@ const VisitStatistics: NextPage = () => {
   }, [user])
   if (!hasSubscription) {
     return (
-      <ClientLayout>
-        <main className="mx-auto p-4 pt-[147px]">
-          <div className="mb-[100px] w-full mt-6">
-            <Button onClick={() => push('/subscription')} className="w-full">
-              خرید بسته
-            </Button>
-          </div>
-        </main>
+      <ClientLayout title='آمار بازدید آگهی ها'>
+        <main className="pt-[87px] relative">
+            <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7] ">
+              <div className="flex justify-center mt-8">
+                <img className="w-[180px] h-[180px]" src="/static/Document_empty.png" alt="" />
+              </div>
+              <div className="mt-8 flex flex-col justify-center items-center gap-2">
+                <h1 className="font-medium text-sm">شما تاکنون بسته خریداری نکردید. ابتدا باید بسته خریداری کنید.</h1>
+              </div>
+              <div className="mx-4 mt-8 mb-7 flex gap-3">
+                <Button onClick={() => push('/subscription')} className="w-full rounded-[10px] font-bold text-sm">
+                خرید بسته
+                </Button>
+              </div>
+            </div>
+          </main>
       </ClientLayout>
     )
   }

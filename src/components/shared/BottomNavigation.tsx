@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { Home2Icon, MoreIcon, ProfileTick, SearchIcon, SquareTaskIcon } from '@/icons'
+import { Home2Icon, MoreIcon, ProfileNoTick, ProfileTick, ProfileTickGreen, SearchIcon, SquareTaskIcon } from '@/icons'
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { setIsShowLogin } from '@/store'
 
@@ -9,13 +9,24 @@ const BottomNavigation: React.FC = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { pathname } = router
-  const { role, phoneNumber } = useAppSelector((state) => state.auth)
+  const { role, phoneNumber, user } = useAppSelector((state) => state.auth)
 
   const navItems = [
     { href: '/', icon: <SearchIcon width="24px" height="24px" />, label: 'جستجو' },
     { href: '/myCity', icon: <Home2Icon width="24px" height="24px" />, label: 'شهر من' },
     { href: '/requests', icon: <SquareTaskIcon width="24px" height="24px" />, label: 'درخواست‌ها' },
-    { href: '/marketer', icon: <ProfileTick width="24px" height="24px" />, label: 'عضویت' },
+    {
+      href: '/marketer',
+      icon:
+        role === 'user' || !role ? (
+          <ProfileNoTick width="24px" height="24px" />
+        ) : user && user.subscription && user.subscription.status === 'ACTIVE' ? (
+          <ProfileTickGreen width="24px" height="24px" />
+        ) : (
+          <ProfileTick width="24px" height="24px" />
+        ),
+      label: 'عضویت',
+    },
     { href: '/soodam', icon: <MoreIcon width="24px" height="24px" />, label: 'سودم' },
   ]
 
