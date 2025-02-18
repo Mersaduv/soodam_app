@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Polygon, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import { LatLngTuple } from 'leaflet'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import * as turf from '@turf/turf'
 import {
@@ -27,7 +27,7 @@ import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
 import { Housing } from '@/types'
 import { useRouter } from 'next/router'
-import { setIsShowLogin, setStateData } from '@/store'
+import { setCenter, setIsShowLogin, setStateData, setZoom } from '@/store'
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
@@ -35,6 +35,7 @@ import { formatPrice, IRAN_PROVINCES } from '@/utils'
 import Link from 'next/link'
 interface Props {
   housingData: Housing[]
+  onBoundsChanged: (newBounds: any) => void
 }
 
 // نوع داده برای مکان‌ها
@@ -267,12 +268,11 @@ const createIconWithPrice = (
   return L.divIcon({ html, className: 'custom-icon', iconSize: [50, 50] })
 }
 
-interface ZoomHandlerProps {
-  setZoomLevel: (zoom: number) => void
-}
-const ZoomHandler: React.FC<ZoomHandlerProps> = ({ setZoomLevel }) => {
+const ZoomHandler: React.FC = () => {
+  const dispatch = useAppDispatch()
   const role = localStorage.getItem('role')
   const user = JSON.parse(localStorage.getItem('user'))
+
   useMapEvents({
     zoomend: (e) => {
       const map = e.target
@@ -295,8 +295,7 @@ const ZoomHandler: React.FC<ZoomHandlerProps> = ({ setZoomLevel }) => {
         newZoom = 13
         map.setZoom(13)
       }
-
-      setZoomLevel(newZoom)
+      dispatch(setZoom(newZoom))
     },
   })
 
@@ -766,18 +765,53 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
     </div>
   )
 }
-const LeafletMap: React.FC<Props> = ({ housingData }) => {
+
+const BoundsFetcher = ({ onBoundsChanged }) => {
+  const map = useMap()
+
+  useEffect(() => {
+    const updateBounds = () => {
+      onBoundsChanged(map.getBounds())
+    }
+
+    map.on('moveend', updateBounds)
+    // فراخوانی اولیه برای تنظیم bounds
+    updateBounds()
+
+    return () => {
+      map.off('moveend', updateBounds)
+    }
+  }, [map, onBoundsChanged])
+
+  return null
+}
+const MapController = () => {
+  const dispatch = useAppDispatch()
+  useMapEvents({
+    moveend: (e) => {
+      const map = e.target
+      const newCenter = map.getCenter()
+      const newZoom = map.getZoom()
+      dispatch(setCenter([newCenter.lat, newCenter.lng]))
+      dispatch(setZoom(newZoom))
+    },
+  })
+  return null
+}
+const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   // ? Assets
   const { query, push } = useRouter()
   const { role, phoneNumber } = useAppSelector((state) => state.auth)
   const { housingMap } = useAppSelector((state) => state.statesData)
+  const center = useAppSelector((state) => state.statesData.center)
+  const zoom = useAppSelector((state) => state.statesData.zoom)
   const dispatch = useAppDispatch()
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
   const [itemFiles, setItemFiles] = useState([])
   const [isSatelliteView, setIsSatelliteView] = useState(false)
   const [tileLayerUrl, setTileLayerUrl] = useState('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
-  const [zoomLevel, setZoomLevel] = useState(12)
+  // const [zoomLevel, setZoomLevel] = useState(12)
   const [isDrawing, setIsDrawing] = useState(false)
   const [drawnPoints, setDrawnPoints] = useState([])
   const [selectedArea, setSelectedArea] = useState(null)
@@ -1015,6 +1049,10 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
     })
     return null
   }
+  const initialCenter =
+    housingData && housingData.length > 0
+      ? [housingData[0].location.lat, housingData[0].location.lng]
+      : [35.745929, 51.402726]
 
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
@@ -1094,7 +1132,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           </Modal.Body>
         </Modal.Content>
       </Modal>
-      <MapContainer center={getCenterOfData(housingData)} zoom={12} style={mapStyle} ref={mapRef}>
+      <MapContainer center={center as LatLngTuple} zoom={zoom} style={mapStyle} ref={mapRef}>
         <DrawingControl
           isDrawing={isDrawing}
           drawnPoints={drawnPoints}
@@ -1106,7 +1144,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
           mode={mode}
           setMode={setMode}
         />
-        <ZoomHandler setZoomLevel={setZoomLevel} />
+        <ZoomHandler />
         <TileLayer
           url={tileLayerUrl}
           attribution={
@@ -1115,7 +1153,12 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
               : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }
         />
-        <MapClickHandler />
+        <MapController />
+
+        {/* کامپوننتی برای دریافت bounds (در صورت نیاز) */}
+        {onBoundsChanged && <BoundsFetcher onBoundsChanged={onBoundsChanged} />}
+        {/* <BoundsFetcher onBoundsChanged={onBoundsChanged} /> */}
+        {/* <MapClickHandler /> */}
         {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
 
         {housingData.map((property) => (
@@ -1127,7 +1170,7 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
               formatPrice(property.rent),
               formatPrice(property.deposit),
               property.created,
-              zoomLevel,
+              zoom,
               property.id,
               viewedProperties.includes(property.id),
               property
@@ -1143,4 +1186,4 @@ const LeafletMap: React.FC<Props> = ({ housingData }) => {
   )
 }
 
-export default LeafletMap
+export default React.memo(LeafletMap)

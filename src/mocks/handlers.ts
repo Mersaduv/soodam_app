@@ -1795,24 +1795,35 @@ export const handlers = [
   }),
 
   rest.get('/api/all-housing', (req, res, ctx) => {
-    const searchParams = req.url.searchParams
-    const title = searchParams.get('title')
-    const type = searchParams.get('type')
-
-    let filteredHousing = [...housing]
-
-    if (title) {
-      filteredHousing = filteredHousing.filter((item) => item.title.toLowerCase().includes(title.toLowerCase()))
+    const searchParams = req.url.searchParams;
+    const title = searchParams.get('title');
+    const type = searchParams.get('type');
+  
+    // دریافت پارامترهای bounds در صورت وجود
+    const swLat = searchParams.get('swLat');
+    const swLng = searchParams.get('swLng');
+    const neLat = searchParams.get('neLat');
+    const neLng = searchParams.get('neLng');
+  
+    let filteredHousing = [...housing];
+  
+    // فیلتر کردن بر اساس محدوده جغرافیایی در صورت ارسال پارامترها
+    if (swLat && swLng && neLat && neLng) {
+      const swLatNum = parseFloat(swLat);
+      const swLngNum = parseFloat(swLng);
+      const neLatNum = parseFloat(neLat);
+      const neLngNum = parseFloat(neLng);
+  
+      filteredHousing = filteredHousing.filter((item) => {
+        const lat = item.location.lat;
+        const lng = item.location.lng;
+        return lat >= swLatNum && lat <= neLatNum && lng >= swLngNum && lng <= neLngNum;
+      });
     }
-
-    if (type === 'rent') {
-      filteredHousing = filteredHousing.filter((item) => item.deposit > 0 || item.rent > 0)
-    } else if (type === 'sale') {
-      filteredHousing = filteredHousing.filter((item) => item.price && item.price > 0)
-    }
-
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredHousing }))
+  
+    return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredHousing }));
   }),
+  
 
   rest.get('/api/housing/:adCode', (req, res, ctx) => {
     const { adCode } = req.params

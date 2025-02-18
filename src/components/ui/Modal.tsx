@@ -114,7 +114,6 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = (props) => {
   // ? Props
   const { onClose, children, right } = props
-  console.log(children, 'childrenf')
 
   // ? Render(s)
   return (
