@@ -392,6 +392,34 @@ const DrawingControl = ({
     },
     [map]
   )
+  useEffect(() => {
+    if (mode === 'drawing') {
+      const maxBounds: any[] = [
+        [90, -180],
+        [90, 180],
+        [-90, 180],
+        [-90, -180],
+        [90, -180],
+      ]
+
+      if (overlayRef.current) {
+        // به‌روزرسانی مختصات overlay موجود
+        overlayRef.current.setLatLngs([maxBounds])
+      } else {
+        const overlay = L.polygon([maxBounds], {
+          color: 'none',
+          fillColor: '#1A1E2566',
+          fillOpacity: 0.5,
+          interactive: false,
+          smoothFactor: 0,
+        }).addTo(map)
+        overlayRef.current = overlay
+      }
+    } else if (overlayRef.current) {
+      overlayRef.current.remove()
+      overlayRef.current = null
+    }
+  }, [mode, drawnPoints, map])
 
   const updateOverlay = useCallback(
     (points) => {
@@ -403,7 +431,7 @@ const DrawingControl = ({
 
       if (points.length < 3) return
 
-      const maxBounds = [
+      const maxBounds: any[] = [
         [90, -180],
         [90, 180],
         [-90, 180],
@@ -411,7 +439,7 @@ const DrawingControl = ({
         [90, -180],
       ]
 
-      const overlay = L.polygon([maxBounds, points], {
+      const overlay = L.polygon([maxBounds], {
         color: 'none',
         fillColor: '#1A1E2566',
         fillOpacity: 0.5,
@@ -456,13 +484,13 @@ const DrawingControl = ({
     }
   }
   const updatePolyline = useCallback(
-    (points) => {
+    (points, lineColor = '#f1071e') => {
       if (polylineRef.current) {
         polylineRef.current.remove()
       }
 
       const polyline = L.polyline(points, {
-        color: 'white',
+        color: lineColor,
         weight: 5,
         smoothFactor: 1,
         interactive: false,
@@ -484,17 +512,17 @@ const DrawingControl = ({
   const completeDrawing = useCallback(
     (points) => {
       if (points.length > 2) {
-        // Calculate distance between first and last point
+        // محاسبه فاصله بین اولین و آخرین نقطه
         const firstPoint = L.latLng(points[0])
         const lastPoint = L.latLng(points[points.length - 1])
         const distance = getPointDistance(firstPoint, lastPoint)
 
-        // If the end point is close enough to the start point, use the start point
-        // Otherwise, add the start point to close the polygon
+        // اگر نقطه پایانی به اندازه کافی به نقطه شروع نزدیک باشد، نقطه شروع را مجدداً اضافه می‌کنیم
+        // در غیر این صورت، نقطه شروع را به انتها اضافه می‌کنیم تا چندضلعی بسته شود
         const closedPoints = distance < minDistance * 2 ? [...points.slice(0, -1), points[0]] : [...points, points[0]]
 
         updateOverlay(closedPoints)
-        updatePolyline(closedPoints) // Update the polyline to show the closing line
+        updatePolyline(closedPoints, 'white') // تغییر رنگ به سفید در حالت تکمیل رسم
         countItemsInArea(closedPoints)
         onDrawingComplete()
         return closedPoints

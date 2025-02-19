@@ -3,9 +3,10 @@ import { HousingCard } from '@/components/housing'
 import { ClientLayout } from '@/components/layouts'
 import { DataStateDisplay } from '@/components/shared'
 import { HousingSkeleton } from '@/components/skeleton'
-import { useAppSelector } from '@/hooks'
+import { useAppDispatch, useAppSelector } from '@/hooks'
 import { ArchiveTickIcon } from '@/icons'
 import { useGetHousingQuery } from '@/services'
+import { setRefetchMap } from '@/store'
 import { Housing } from '@/types'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
@@ -13,20 +14,16 @@ import { useCallback, useEffect, useState } from 'react'
 const LeafletMap = dynamic(() => import('@/components/map/Map'), { ssr: false })
 export default function Home() {
   // ? Assets
-  const { query, events } = useRouter()
+  const router = useRouter()
+  const { query, events, replace, asPath } = router
   const [housingState, setHousingState] = useState<Housing[]>()
   const type = query?.type?.toString() ?? ''
   const role = query?.role?.toString() ?? ''
   const map = useAppSelector((state) => state.map)
-  const { housingMap } = useAppSelector((state) => state.statesData)
-  // const handleBoundsChanged = useCallback((newBounds) => {
-  //   setBounds((prevBounds) => {
-  //     if (prevBounds && prevBounds.equals(newBounds)) {
-  //       return prevBounds;
-  //     }
-  //     return newBounds;
-  //   });
-  // }, []);
+  const dispatch = useAppDispatch()
+  const { housingMap, refetchMap } = useAppSelector((state) => state.statesData)
+  // dispatch(setRefetchMap(false))
+
   const [bounds, setBounds] = useState(null)
   const handleBoundsChanged = useCallback((newBounds) => {
     setBounds(newBounds)
@@ -49,6 +46,9 @@ export default function Home() {
     }
   }, [role])
 
+  const [mapKey, setMapKey] = useState(0);
+
+
   const housingList = housingData?.data || []
   // if (isFetching) return <div>loading....</div>
 
@@ -56,7 +56,7 @@ export default function Home() {
     <ClientLayout>
       <main className="h-full">
         <div className={`h-full ${!map.mode && 'hidden'}`} style={{ width: '100%' }}>
-          <LeafletMap housingData={housingList} onBoundsChanged={handleBoundsChanged} />
+          <LeafletMap key={mapKey} housingData={housingList} onBoundsChanged={handleBoundsChanged} />
         </div>
         <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length > 0 && 'hidden'}`}>
           <div className="flex items-center mb-6">

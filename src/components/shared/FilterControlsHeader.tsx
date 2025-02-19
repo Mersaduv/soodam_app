@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { ArrowLeftIcon, NotificationIcon } from '@/icons'
-import { setAdConfirmExit } from '@/store'
+import { setAdConfirmExit, setMapMode, setRefetchMap } from '@/store'
 import { useRouter } from 'next/router'
 
 interface Props {
@@ -13,6 +13,7 @@ const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmEx
   const dispatch = useAppDispatch()
   const { adConfirmExit } = useAppSelector((state) => state.statesData)
   const handleBack = () => {
+    dispatch(setMapMode(true))
     if (isAdConfirmExit && adConfirmExit === '') {
       dispatch(setAdConfirmExit('0'))
       return
