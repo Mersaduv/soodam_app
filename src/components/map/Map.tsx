@@ -35,7 +35,7 @@ import { formatPrice, IRAN_PROVINCES } from '@/utils'
 import Link from 'next/link'
 interface Props {
   housingData: Housing[]
-  onBoundsChanged: (newBounds: any) => void
+  onBoundsChanged?: (newBounds: any) => void
 }
 
 // نوع داده برای مکان‌ها
@@ -785,6 +785,7 @@ const BoundsFetcher = ({ onBoundsChanged }) => {
 
   return null
 }
+
 const MapController = () => {
   const dispatch = useAppDispatch()
   useMapEvents({

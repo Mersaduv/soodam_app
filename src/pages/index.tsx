@@ -27,41 +27,45 @@ export default function Home() {
   //     return newBounds;
   //   });
   // }, []);
-  const [bounds, setBounds] = useState(null);
+  const [bounds, setBounds] = useState(null)
   const handleBoundsChanged = useCallback((newBounds) => {
-    setBounds(newBounds);
-  }, []);
-  const { data: housingData, isFetching } = useGetHousingQuery({
+    setBounds(newBounds)
+  }, [])
+  const {
+    data: housingData,
+    isFetching,
+    ...housingQueryProps
+  } = useGetHousingQuery({
     ...query,
     type,
     swLat: bounds ? bounds.getSouthWest().lat : undefined,
     swLng: bounds ? bounds.getSouthWest().lng : undefined,
     neLat: bounds ? bounds.getNorthEast().lat : undefined,
     neLng: bounds ? bounds.getNorthEast().lng : undefined,
-  });
+  })
   useEffect(() => {
     if (role) {
       localStorage.setItem('role', role)
     }
   }, [role])
 
-  const housingList = housingData?.data || [];
-  if (isFetching) return <div>loading....</div>
+  const housingList = housingData?.data || []
+  // if (isFetching) return <div>loading....</div>
 
   return (
     <ClientLayout>
       <main className="h-full">
         <div className={`h-full ${!map.mode && 'hidden'}`} style={{ width: '100%' }}>
-        <LeafletMap housingData={housingList} onBoundsChanged={handleBoundsChanged} />
+          <LeafletMap housingData={housingList} onBoundsChanged={handleBoundsChanged} />
         </div>
         <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length > 0 && 'hidden'}`}>
           <div className="flex items-center mb-6">
             <ArchiveTickIcon />
             <div className="border-r-[1.5px] text-[#1A1E25] border-[#7A7A7A] mr-1 pr-1.5 font-normal text-sm">
-              {housingData.data.length} مورد پیدا شد
+              {housingList.length} مورد پیدا شد
             </div>
           </div>
-          {/* <DataStateDisplay
+          <DataStateDisplay
             {...housingQueryProps}
             isFetching={isFetching}
             dataLength={housingData?.data ? housingData.data.length : 0}
@@ -75,7 +79,7 @@ export default function Home() {
                 ))}
               </section>
             )}
-          </DataStateDisplay> */}
+          </DataStateDisplay>
         </div>
 
         <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length === 0 && 'hidden'}`}>
