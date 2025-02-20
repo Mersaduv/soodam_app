@@ -827,6 +827,18 @@ const MapController = () => {
   })
   return null
 }
+const ResizeHandler = () => {
+  const map = useMap()
+
+  useEffect(() => {
+    // کمی تأخیر برای اطمینان از نمایش کامل container
+    setTimeout(() => {
+      map.invalidateSize()
+    }, 0)
+  }, [map])
+
+  return null
+}
 const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   // ? Assets
   const { query, push } = useRouter()
@@ -1162,6 +1174,7 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
         </Modal.Content>
       </Modal>
       <MapContainer center={center as LatLngTuple} zoom={zoom} style={mapStyle} ref={mapRef}>
+        
         <DrawingControl
           isDrawing={isDrawing}
           drawnPoints={drawnPoints}

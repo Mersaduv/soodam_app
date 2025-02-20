@@ -48,7 +48,8 @@ const DataStateDisplay: React.FC<Props> = (props) => {
       ) : isSuccess && dataLength > 0 ? (
         <>{children}</>
       ) : isSuccess && dataLength === 0 ? // <div>{emptyComponent}</div>
-      null : null}
+      null 
+      : null}
     </section>
   )
 }

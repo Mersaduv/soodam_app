@@ -10,7 +10,7 @@ import { setRefetchMap } from '@/store'
 import { Housing } from '@/types'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 const LeafletMap = dynamic(() => import('@/components/map/Map'), { ssr: false })
 export default function Home() {
   // ? Assets
@@ -23,11 +23,9 @@ export default function Home() {
   const dispatch = useAppDispatch()
   const { housingMap, refetchMap } = useAppSelector((state) => state.statesData)
   // dispatch(setRefetchMap(false))
+  const leafletMapRef = useRef<any>(null)
 
   const [bounds, setBounds] = useState(null)
-  const handleBoundsChanged = useCallback((newBounds) => {
-    setBounds(newBounds)
-  }, [])
   const {
     data: housingData,
     isFetching,
@@ -40,24 +38,40 @@ export default function Home() {
     neLat: bounds ? bounds.getNorthEast().lat : undefined,
     neLng: bounds ? bounds.getNorthEast().lng : undefined,
   })
+  const handleBoundsChanged = useCallback((newBounds) => {
+    setBounds((prevBounds) => {
+      if (prevBounds && prevBounds.equals(newBounds)) {
+        return prevBounds
+      }
+      return newBounds
+    })
+  }, [])
   useEffect(() => {
     if (role) {
       localStorage.setItem('role', role)
     }
   }, [role])
-
-  const [mapKey, setMapKey] = useState(0);
-
+  useEffect(() => {
+    if (map.mode && leafletMapRef.current) {
+      leafletMapRef.current.invalidateSize()
+    }
+  }, [map.mode])
 
   const housingList = housingData?.data || []
-  // if (isFetching) return <div>loading....</div>
 
   return (
     <ClientLayout>
       <main className="h-full">
         <div className={`h-full ${!map.mode && 'hidden'}`} style={{ width: '100%' }}>
-          <LeafletMap key={mapKey} housingData={housingList} onBoundsChanged={handleBoundsChanged} />
+          {map.mode && (
+            <LeafletMap
+              key={`leaflet-map-${map.mode}`}
+              housingData={housingList}
+              onBoundsChanged={handleBoundsChanged}
+            />
+          )}
         </div>
+
         <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length > 0 && 'hidden'}`}>
           <div className="flex items-center mb-6">
             <ArchiveTickIcon />
