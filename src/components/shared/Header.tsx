@@ -13,6 +13,7 @@ const Header = () => {
   const [isVisible, setIsVisible] = useState(false)
 
   const dispatch = useAppDispatch()
+  const { zoomModal } = useAppSelector((state) => state.statesData)
 
   const handleInVisible = () => {
     setIsVisible(false)
@@ -47,6 +48,17 @@ const Header = () => {
         <MapMode />
       </div>
       <FilterControlNavBar />
+      {zoomModal && (
+        <div className="bg-[#222222]  relative pl-4">
+          <div
+            onClick={handleNavigate}
+            className="text-xs text-white font-normal px-3.5 py-3 flex flex-wrap cursor-pointer"
+          >
+            {' '}
+            شما زیاد از نقشه دور هستید لطفا نزدیک تر شوید.
+          </div>
+        </div>
+      )}
       {isVisible && (
         <div className="bg-[#222222]  relative pl-4">
           <div

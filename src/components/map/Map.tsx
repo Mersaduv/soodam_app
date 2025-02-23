@@ -27,7 +27,7 @@ import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
 import { Housing } from '@/types'
 import { useRouter } from 'next/router'
-import { setCenter, setIsShowLogin, setStateData, setZoom } from '@/store'
+import { setAddress, setCenter, setIsShowLogin, setShowZoomModal, setStateData, setZoom } from '@/store'
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
@@ -375,10 +375,10 @@ const DrawingControl = ({
 
         return turf.booleanPointInPolygon(point, polygon)
       })
-      console.log('points:', points, polygon, 'polygon')
+      // console.log('points:', points, polygon, 'polygon')
       setItemFiles(itemsInArea)
       dispatch(setStateData(itemsInArea))
-      console.log('Items in area:', itemsInArea.length, itemsInArea)
+      // console.log('Items in area:', itemsInArea.length, itemsInArea)
     },
     [housingData]
   )
@@ -686,7 +686,7 @@ const getProvinceFromCoordinates = (lat, lng) => {
 const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
   const { housing, isModalOpen, onClose } = props
   if (!isModalOpen) return null
-  console.log(housing, 'property--property')
+  // console.log(housing, 'property--property')
   const province = getProvinceFromCoordinates(housing.location.lat, housing.location.lng)
   const isSelling = housing.price > 0
   return (
@@ -795,24 +795,24 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
 }
 
 const BoundsFetcher = ({ onBoundsChanged }) => {
-  const map = useMap()
-
+  const map = useMap();
   useEffect(() => {
     const updateBounds = () => {
-      onBoundsChanged(map.getBounds())
-    }
-
-    map.on('moveend', updateBounds)
-    // فراخوانی اولیه برای تنظیم bounds
-    updateBounds()
-
+      const currentZoom = map.getZoom();
+      // اگر سطح زوم کمتر از ۱۱ است، به‌روزرسانی bounds انجام نمی‌شود.
+      if (currentZoom < 11) return;
+      onBoundsChanged(map.getBounds());
+    };
+    map.on('moveend', updateBounds);
+    // فراخوانی اولیه
+    updateBounds();
     return () => {
-      map.off('moveend', updateBounds)
-    }
-  }, [map, onBoundsChanged])
+      map.off('moveend', updateBounds);
+    };
+  }, [map, onBoundsChanged]);
+  return null;
+};
 
-  return null
-}
 
 const MapController = () => {
   const dispatch = useAppDispatch()
@@ -825,18 +825,6 @@ const MapController = () => {
       dispatch(setZoom(newZoom))
     },
   })
-  return null
-}
-const ResizeHandler = () => {
-  const map = useMap()
-
-  useEffect(() => {
-    // کمی تأخیر برای اطمینان از نمایش کامل container
-    setTimeout(() => {
-      map.invalidateSize()
-    }, 0)
-  }, [map])
-
   return null
 }
 const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
@@ -864,7 +852,7 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [userLocation, setUserLocation] = useState(null)
   const [position, setPosition] = useState(null)
-  const [address, setAddress] = useState('')
+  // const [address, setAddress] = useState('')
   const mapStyle = {
     width: '100%',
     height: '100%',
@@ -1062,38 +1050,78 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
       console.log(housingMap, 'housingMap')
     }
   }, [housingMap])
+  // const getAddress = async (lat, lon) => {
+  //   try {
+  //     const response = await fetch(
+  //       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=fa`
+  //     )
+  //     const data = await response.json()
+  //     console.log(data, 'data ----------- data')
+
+  //     if (data.display_name) {
+  //       setAddress(data.display_name)
+  //     } else {
+  //       setAddress('آدرس یافت نشد')
+  //     }
+  //   } catch (error) {
+  //     console.error('خطا در دریافت آدرس:', error)
+  //     setAddress('خطا در دریافت آدرس')
+  //   }
+  // }
+
   const getAddress = async (lat, lon) => {
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=fa`
-      )
+      const response = await fetch(`https://map.ir/reverse?lat=${lat}&lon=${lon}`, {
+        headers: {
+          'x-api-key':
+            'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImE1NDg1MzhjNGMwNTAyMzZhMTQwYzI0NDEyNjg2N2JiYjY0Y2E1Y2NkOWIwZDNhYzAxNDIyMTY2ZTU4MzlhN2U5NTkzZTcyNTYwMzcxN2JiIn0.eyJhdWQiOiIzMTIxMyIsImp0aSI6ImE1NDg1MzhjNGMwNTAyMzZhMTQwYzI0NDEyNjg2N2JiYjY0Y2E1Y2NkOWIwZDNhYzAxNDIyMTY2ZTU4MzlhN2U5NTkzZTcyNTYwMzcxN2JiIiwiaWF0IjoxNzQwMjQ2MDQ2LCJuYmYiOjE3NDAyNDYwNDYsImV4cCI6MTc0Mjc1MTY0Niwic3ViIjoiIiwic2NvcGVzIjpbImJhc2ljIl19.XdRHii5Ce3c9e4NRPXNkZWLjHsx0oN8zFBiI39YPGcAKjyycGzSg7IhrkYPaVvSkqvWTRdXyVR5pfX8TZ1z4NXSw1mQJqYoGDx-Vpx4SHCE7LR4nXNlleRDo75q0NuC9hVPWwtEvNb-hdHZ-QyXvtypOl6m11jXNEi28t_AxpxLXNiBq24f9u3X6Y7xkBp_cNYiUA0cZdrTgxnM3rz2cb3tI7tZnGosUpb2suAhPR28X41rpo-Nm2xQaVcG-vsxjZprQ31110rzIIgB1TGqMYRQ2lZvy9N2Spg3-b7FKIdRyuUpUnF6pjW-IYdaeT_g7Sn9_5Eggxtsrnu2BIJgVvw',
+        },
+      })
       const data = await response.json()
-      console.log(data, 'data ----------- data')
+      console.log(data, 'response')
 
-      if (data.display_name) {
-        setAddress(data.display_name)
+      if (data && data.address_compact) {
+        dispatch(setAddress(data.address_compact))
       } else {
-        setAddress('آدرس یافت نشد')
+        dispatch(setAddress('آدرس یافت نشد'))
       }
     } catch (error) {
-      console.error('خطا در دریافت آدرس:', error)
-      setAddress('خطا در دریافت آدرس')
+      console.log('خطا در دریافت آدرس:', error)
+      dispatch(setAddress('خطا در دریافت آدرس'))
     }
   }
-  const MapClickHandler = () => {
-    useMapEvents({
-      click(e) {
-        const { lat, lng } = e.latlng
-        setPosition([lat, lng])
-        getAddress(lat, lng)
+
+  const MapEvents = () => {
+    const map = useMapEvents({
+      moveend: () => {
+        const newCenter = map.getCenter()
+        const currentZoom = map.getZoom() // دریافت سطح زوم فعلی
+        dispatch(setCenter([newCenter.lat, newCenter.lng]))
+
+        // بررسی سطح زوم
+        if (currentZoom >= 11) {
+          getAddress(newCenter.lat, newCenter.lng) // دریافت آدرس فقط در زوم کافی
+          dispatch(setShowZoomModal(false)) // بستن مودال
+        } else {
+          dispatch(setShowZoomModal(true)) // نمایش مودال
+          // dispatch(setAddress('لطفا نزدیک‌تر شوید')) // تنظیم پیام موقت
+        }
       },
     })
     return null
   }
-  const initialCenter =
-    housingData && housingData.length > 0
-      ? [housingData[0].location.lat, housingData[0].location.lng]
-      : [35.745929, 51.402726]
+  useEffect(() => {
+    // فراخوانی تابع getAddress هنگام لود اولیه
+    const initialCenter = center as LatLngTuple;
+    const initialZoom = zoom;
+    if (initialZoom >= 11) {
+      getAddress(initialCenter[0], initialCenter[1]);
+      dispatch(setShowZoomModal(false));
+    } else {
+      dispatch(setShowZoomModal(true));
+      // dispatch(setAddress('لطفا نزدیک‌تر شوید'));
+    }
+  }, []);
 
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
@@ -1173,8 +1201,8 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
           </Modal.Body>
         </Modal.Content>
       </Modal>
-      <MapContainer center={center as LatLngTuple} zoom={zoom} style={mapStyle} ref={mapRef}>
-        
+      <MapContainer center={center as LatLngTuple} zoom={zoom} style={mapStyle} ref={mapRef} >
+        <MapEvents />
         <DrawingControl
           isDrawing={isDrawing}
           drawnPoints={drawnPoints}
@@ -1199,8 +1227,6 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
 
         {/* کامپوننتی برای دریافت bounds (در صورت نیاز) */}
         {onBoundsChanged && <BoundsFetcher onBoundsChanged={onBoundsChanged} />}
-        {/* <BoundsFetcher onBoundsChanged={onBoundsChanged} /> */}
-        {/* <MapClickHandler /> */}
         {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
 
         {housingData.map((property) => (

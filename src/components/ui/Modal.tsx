@@ -6,10 +6,11 @@ interface ModalProps {
   onClose: () => void
   effect: 'bottom-to-top' | 'ease-out' | 'buttom-to-fit'
   children: React.ReactNode
+  isSearchModal?: boolean
 }
 
 const Modal: React.FC<ModalProps> = (props) => {
-  const { isShow, onClose, effect, children } = props
+  const { isShow, onClose, effect, children, isSearchModal } = props
 
   useEffect(() => {
     document.body.style.overflow = isShow ? 'hidden' : 'unset'
@@ -65,7 +66,7 @@ const Modal: React.FC<ModalProps> = (props) => {
     >
       <div className="fixed inset-0 bg-[#1A1E2580]" onClick={onClose} />
       <div
-        className={`${effectClasses} max-h-[90vh] overflow-y-auto`}
+        className={`${effectClasses} ${isSearchModal ? 'h-full' : 'max-h-[90vh]'}  overflow-y-auto`}
         style={{
           WebkitOverflowScrolling: 'touch',
         }}

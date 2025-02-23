@@ -17,15 +17,18 @@ export default function Home() {
   const router = useRouter()
   const { query, events, replace, asPath } = router
   const [housingState, setHousingState] = useState<Housing[]>()
+  const [bounds, setBounds] = useState(null)
+
   const type = query?.type?.toString() ?? ''
   const role = query?.role?.toString() ?? ''
   const map = useAppSelector((state) => state.map)
   const dispatch = useAppDispatch()
+  const zoom = useAppSelector((state) => state.statesData.zoom)
+  const shouldFetch = bounds && zoom >= 11
   const { housingMap, refetchMap } = useAppSelector((state) => state.statesData)
   // dispatch(setRefetchMap(false))
   const leafletMapRef = useRef<any>(null)
 
-  const [bounds, setBounds] = useState(null)
   const {
     data: housingData,
     isFetching,
@@ -37,7 +40,8 @@ export default function Home() {
     swLng: bounds ? bounds.getSouthWest().lng : undefined,
     neLat: bounds ? bounds.getNorthEast().lat : undefined,
     neLng: bounds ? bounds.getNorthEast().lng : undefined,
-  })
+  },
+  { skip: !shouldFetch })
   const handleBoundsChanged = useCallback((newBounds) => {
     setBounds((prevBounds) => {
       if (prevBounds && prevBounds.equals(newBounds)) {

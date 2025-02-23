@@ -7,6 +7,8 @@ interface State {
   center: number[]
   zoom: number
   refetchMap: boolean
+  address: string
+  zoomModal: boolean
 }
 
 const initialState: State = {
@@ -15,6 +17,8 @@ const initialState: State = {
   center: [35.745929, 51.402726],
   zoom: 12,
   refetchMap: false,
+  address: 'در حال بارگذاری...',
+  zoomModal: false,
 }
 
 const updateSlice = createSlice({
@@ -36,8 +40,15 @@ const updateSlice = createSlice({
     setRefetchMap(state, action) {
       state.refetchMap = action.payload
     },
+    setShowZoomModal(state, action) {
+      state.zoomModal = action.payload
+    },
+    setAddress(state, action) {
+      state.address = action.payload
+    },
   },
 })
 
-export const { setStateData, setAdConfirmExit, setCenter, setZoom, setRefetchMap } = updateSlice.actions
+export const { setStateData, setAdConfirmExit, setCenter, setZoom, setRefetchMap, setAddress, setShowZoomModal } =
+  updateSlice.actions
 export default updateSlice.reducer
