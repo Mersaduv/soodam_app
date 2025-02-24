@@ -39,7 +39,7 @@ const SearchModal: React.FC<Props> = (props) => {
     },
     { skip: !debouncedSearch }
   )
-  const [triggerFetchAddresses] = useLazyFetchAddressesQuery()
+  const [triggerFetchAddresses] = useLazyFetchAddressesQuery() // https://map.ir/search/v2/autocomplete?text=${searchQuery}
   // ? Re-Renders
   //* Reset Search
   useEffect(() => {
@@ -68,9 +68,6 @@ const SearchModal: React.FC<Props> = (props) => {
     dispatch(setSearchTriggered(true));
     searchModalHanlders.close();
   };
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value)
-  }
   const handleSearch = debounce(async (value: string) => {
     if (value) {
       try {

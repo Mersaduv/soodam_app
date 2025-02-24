@@ -9,6 +9,8 @@ export default {
   theme: {
     screens: {
       'sm': '640px',
+      'xxm': '374px',
+      'mxx': '330px',
       'md': '768px',
       'mdx': '860px',
       'lg': '1024px',
