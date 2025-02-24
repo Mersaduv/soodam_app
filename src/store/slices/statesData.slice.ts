@@ -9,6 +9,7 @@ interface State {
   refetchMap: boolean
   address: string
   zoomModal: boolean
+  isSearchTriggered: boolean
 }
 
 const initialState: State = {
@@ -19,6 +20,7 @@ const initialState: State = {
   refetchMap: false,
   address: 'در حال بارگذاری...',
   zoomModal: false,
+  isSearchTriggered: false,
 }
 
 const updateSlice = createSlice({
@@ -46,9 +48,20 @@ const updateSlice = createSlice({
     setAddress(state, action) {
       state.address = action.payload
     },
+    setSearchTriggered: (state, action) => {
+      state.isSearchTriggered = action.payload
+    },
   },
 })
 
-export const { setStateData, setAdConfirmExit, setCenter, setZoom, setRefetchMap, setAddress, setShowZoomModal } =
-  updateSlice.actions
+export const {
+  setStateData,
+  setAdConfirmExit,
+  setCenter,
+  setZoom,
+  setRefetchMap,
+  setAddress,
+  setShowZoomModal,
+  setSearchTriggered,
+} = updateSlice.actions
 export default updateSlice.reducer

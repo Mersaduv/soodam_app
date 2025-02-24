@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 import { truncate } from '@/utils'
-
+import debounce from 'lodash/debounce'
 // import { useGetProductsQuery } from '@/services'
 
-import { useAppSelector, useDebounce, useDisclosure } from '@/hooks'
+import { useAppDispatch, useAppSelector, useDebounce, useDisclosure } from '@/hooks'
 import { FaArrowRight } from 'react-icons/fa'
 import { Close, Search, SearchNormalIcon } from '@/icons'
 import { EmptySearchList } from '@/components/emptyList'
@@ -13,14 +13,18 @@ import { EmptySearchList } from '@/components/emptyList'
 // import { DataStateDisplay } from '@/components/shared'
 import { DataStateDisplay } from '../shared'
 import Image from 'next/image'
-import { useGetHousingQuery } from '@/services'
+import { useGetHousingQuery, useLazyFetchAddressesQuery } from '@/services'
 import { Modal } from '@/components/ui'
 import { IoMdArrowRoundForward } from 'react-icons/io'
 import { IoArrowForward } from 'react-icons/io5'
+import { setCenter, setSearchTriggered, setZoom } from '@/store'
 interface Props {}
 
 const SearchModal: React.FC<Props> = (props) => {
   // ? Assets
+  const [query, setQuery] = useState('')
+  const [addresses, setAddresses] = useState([])
+  const dispatch = useAppDispatch()
   const [search, setSearch] = useState('')
   const searchRef = useRef<HTMLInputElement | null>(null)
   const [isShowSearchModal, searchModalHanlders] = useDisclosure()
@@ -35,7 +39,7 @@ const SearchModal: React.FC<Props> = (props) => {
     },
     { skip: !debouncedSearch }
   )
-
+  const [triggerFetchAddresses] = useLazyFetchAddressesQuery()
   // ? Re-Renders
   //* Reset Search
   useEffect(() => {
@@ -56,12 +60,37 @@ const SearchModal: React.FC<Props> = (props) => {
   }, [isShowSearchModal])
 
   // ? Handlers
+  const handleAddressSelect = (selectedAddress) => {
+    const { coordinates } = selectedAddress.geom; 
+    const newCenter = [coordinates[1], coordinates[0]]; 
+    dispatch(setCenter(newCenter)); 
+    dispatch(setZoom(13)); 
+    dispatch(setSearchTriggered(true));
+    searchModalHanlders.close();
+  };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value)
   }
-
+  const handleSearch = debounce(async (value: string) => {
+    if (value) {
+      try {
+        const results = await triggerFetchAddresses(value).unwrap()
+        if (results.value && results.value.length > 0) {
+          setAddresses(results.value)
+        } else {
+          setAddresses([])
+        }
+      } catch (error) {
+        console.error('خطا در دریافت آدرس‌ها:', error)
+        setAddresses([])
+      }
+    } else {
+      setAddresses([])
+    }
+  }, 500)
   const handleRemoveSearch = () => {
-    setSearch('')
+    setQuery('')
+    setAddresses([])
   }
   useEffect(() => {
     if (isShowSearchInput && searchRef.current) {
@@ -81,6 +110,8 @@ const SearchModal: React.FC<Props> = (props) => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+  console.log(addresses , "addressesaddressesaddresses");
+  
   // ? Render(s)
   return (
     <div className="flex-1">
@@ -96,7 +127,7 @@ const SearchModal: React.FC<Props> = (props) => {
       <Modal isShow={isShowSearchModal} onClose={searchModalHanlders.close} effect="bottom-to-top" isSearchModal>
         <Modal.Content
           onClose={searchModalHanlders.close}
-          className="flex h-full flex-col gap-y-3 bg-white md:rounded-lg"
+          className="flex h-full flex-col gap-y-3 bg-white md:rounded-lg  overflow-auto"
         >
           {/* <Modal.Header onClose={searchModalHanlders.close}>جستسجو</Modal.Header> */}
           <Modal.Body>
@@ -106,62 +137,36 @@ const SearchModal: React.FC<Props> = (props) => {
               </button>
               <input
                 type="text"
-                placeholder="شهر,کدپستی ویا آدرس"
+                placeholder="جستجو شهر ویا آدرس..."
                 className="input grow bg-transparent p-1 py-3 pr-2 text-right outline-none border-none"
                 ref={searchRef}
-                value={search}
-                onChange={handleChange}
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value)
+                  handleSearch(e.target.value)
+                }}
               />
-              {/* <button
-                type="button"
-                onClick={searchModalHanlders.close}
-                className="p-0.5 right-0 text-white bg-black absolute border-[1.8px] border-black rounded-full"
-              > */}
-              <div className='cursor-pointer ' onClick={searchModalHanlders.close}>
+              <div className="cursor-pointer " onClick={searchModalHanlders.close}>
                 <IoArrowForward className="text-[29px]" />
               </div>
-              {/* </button> */}
             </div>
-            <div className="overflow-y-auto lg:max-h-[500px]">تاریخچه جستجو...</div>
+            {/* <div className="overflow-y-auto lg:max-h-[500px]">تاریخچه جستجو...</div> */}
+            <div className="flex flex-col items-start w-full">
+              {search && handleSearch(search)}
+              {addresses.length > 0 && (
+                <div className="flex flex-col items-start gap-y-2 w-full h-full">
+                  {addresses.map((address, index) => (
+                    <div onClick={() => handleAddressSelect(address)} key={index} className="hover:bg-slate-50 w-full py-3 text-gray-600 px-6 cursor-pointer">
+                      {address.address} {/* فرمت آدرس بر اساس پاسخ API */}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </Modal.Body>
         </Modal.Content>
       </Modal>
-      {/* <div
-        className={`border-[#E3E3E7] flex-1 border-[0.8px] relative rounded-lg ${
-          isShowSearchInput ? 'rounded-b-none' : ''
-        } `}
-      >
-        {isShowSearchInput ? (
-          <div ref={searchInputRef} className="w-full rounded-md rounded-b-none px-3 pb-2 bg-white shadow-item">
-            <div className="flex items-center flex-row-reverse  border-b border-blue-300 w-full h-[48px]">
-              <input
-                type="text"
-                placeholder="جستجو"
-                className="input grow  h-[48px] placeholder:text-sm  pr-0 bg-transparent text-right focus:outline-none border-none focus:ring-0"
-                ref={searchRef}
-                value={search}
-                onChange={handleChange}
-              />
-              <Search className="icon m-2 ml-2 mr-0 text-gray-500" />
-            </div>
-            <div className="absolute shadow-searchModal h-[500px] overflow-auto rounded-md rounded-t-none sm:top-12 right-0 left-0 bg-white w-full border border-gray-200   border-t-0 p-3 z-[9999]">
-              تاریخچه جستجو ..
-            </div>
-          </div>
-        ) : (
-          <div
-            onClick={() => setIsShowSearchInput(true)}
-            className="flex gap-1.5 h-[48px] pr-3 w-full rounded-lgs cursor-text rounded-lg z-0  bg-[#F2F2F3] items-center transition duration-700 ease-in-out"
-          >
-            <div>
-              <SearchNormalIcon width="24px" height="20px" />
-            </div>
-            <div className="text-sm text-[#1A1E25] line-clamp-1 overflow-hidden text-ellipsis">{address}</div>
-          </div>
-        )}
-      </div> */}
     </div>
   )
 }
-
 export default SearchModal

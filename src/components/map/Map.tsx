@@ -27,7 +27,15 @@ import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { CustomCheckbox, Modal } from '../ui'
 import { Housing } from '@/types'
 import { useRouter } from 'next/router'
-import { setAddress, setCenter, setIsShowLogin, setShowZoomModal, setStateData, setZoom } from '@/store'
+import {
+  setAddress,
+  setCenter,
+  setIsShowLogin,
+  setSearchTriggered,
+  setShowZoomModal,
+  setStateData,
+  setZoom,
+} from '@/store'
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
@@ -795,24 +803,36 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
 }
 
 const BoundsFetcher = ({ onBoundsChanged }) => {
-  const map = useMap();
+  const map = useMap()
   useEffect(() => {
     const updateBounds = () => {
-      const currentZoom = map.getZoom();
+      const currentZoom = map.getZoom()
       // اگر سطح زوم کمتر از ۱۱ است، به‌روزرسانی bounds انجام نمی‌شود.
-      if (currentZoom < 11) return;
-      onBoundsChanged(map.getBounds());
-    };
-    map.on('moveend', updateBounds);
+      if (currentZoom < 11) return
+      onBoundsChanged(map.getBounds())
+    }
+    map.on('moveend', updateBounds)
     // فراخوانی اولیه
-    updateBounds();
+    updateBounds()
     return () => {
-      map.off('moveend', updateBounds);
-    };
-  }, [map, onBoundsChanged]);
-  return null;
-};
+      map.off('moveend', updateBounds)
+    }
+  }, [map, onBoundsChanged])
+  return null
+}
 
+const SearchFetcher = () => {
+  const { center, zoom, isSearchTriggered } = useAppSelector((state) => state.statesData)
+  const map = useMap()
+  const dispatch = useAppDispatch()
+  useEffect(() => {
+    if (isSearchTriggered && center && zoom) {
+      map.flyTo(center as LatLngTuple, zoom)
+      dispatch(setSearchTriggered(false))
+    }
+  }, [isSearchTriggered, center, zoom, map, dispatch])
+  return null
+}
 
 const MapController = () => {
   const dispatch = useAppDispatch()
@@ -1080,8 +1100,8 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
       const data = await response.json()
       console.log(data, 'response')
 
-      if (data && data.address_compact) {
-        dispatch(setAddress(data.address_compact))
+      if (data && data.postal_address) {
+        dispatch(setAddress(data.postal_address))
       } else {
         dispatch(setAddress('آدرس یافت نشد'))
       }
@@ -1112,16 +1132,16 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   }
   useEffect(() => {
     // فراخوانی تابع getAddress هنگام لود اولیه
-    const initialCenter = center as LatLngTuple;
-    const initialZoom = zoom;
+    const initialCenter = center as LatLngTuple
+    const initialZoom = zoom
     if (initialZoom >= 11) {
-      getAddress(initialCenter[0], initialCenter[1]);
-      dispatch(setShowZoomModal(false));
+      getAddress(initialCenter[0], initialCenter[1])
+      dispatch(setShowZoomModal(false))
     } else {
-      dispatch(setShowZoomModal(true));
+      dispatch(setShowZoomModal(true))
       // dispatch(setAddress('لطفا نزدیک‌تر شوید'));
     }
-  }, []);
+  }, [])
 
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
@@ -1201,7 +1221,8 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
           </Modal.Body>
         </Modal.Content>
       </Modal>
-      <MapContainer center={center as LatLngTuple} zoom={zoom} style={mapStyle} ref={mapRef} >
+      <MapContainer center={center as LatLngTuple} zoom={zoom} style={mapStyle} ref={mapRef}>
+        <SearchFetcher />
         <MapEvents />
         <DrawingControl
           isDrawing={isDrawing}
