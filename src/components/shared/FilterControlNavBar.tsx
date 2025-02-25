@@ -77,7 +77,6 @@ const FilterControlNavBar: React.FC = () => {
   const handleChangeRoute = (newQueries: QueryParams) => {
     changeRoute({
       ...query,
-      page: pageQuery && pageQuery > 1 ? 1 : '',
       ...newQueries,
     })
   }
@@ -143,7 +142,7 @@ const FilterControlNavBar: React.FC = () => {
               </div>
             </div>
             <button onClick={handleApply} className="w-full py-2 bg-red-600 text-white rounded-lg">
-              اعمال
+            دیدن همه خانه
             </button>
           </Modal.Body>
         </Modal.Content>
