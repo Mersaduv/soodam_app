@@ -49,25 +49,7 @@ const FilterControls: NextPage = (props) => {
   const [openDropdowns, setOpenDropdowns] = useState({})
   const { data: categoriesData, isFetching, ...categoryQueryProps } = useGetCategoriesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
-  // const [filters, setFilters] = useState({
-  //   priceRange: { from: '', to: '' },
-  //   depositRange: { from: '', to: '' },
-  //   rent: { from: '', to: '' },
-  //   capacity: { from: '', to: '' },
-  //   extraPeople: { from: '', to: '' },
-  //   producerProfitPercentage: { from: '', to: '' },
-  //   ownerProfitPercentage: { from: '', to: '' },
-  // })
-  // تابع عمومی برای آپدیت state فیلترها
-  // const handleFilterChange = (field: string, value: string, isFrom: boolean) => {
-  //   setFilters((prev) => ({
-  //     ...prev,
-  //     [field]: {
-  //       ...prev[field],
-  //       [isFrom ? 'from' : 'to']: value,
-  //     },
-  //   }))
-  // }
+
   const { filters, updateFilters } = useFilters()
   const [tempFilters, setTempFilters] = useState<Partial<typeof filters>>(filters)
   const handleTempFilterChange = (field: string, value: string, isFrom: boolean, isDynamic?: boolean) => {
@@ -108,16 +90,6 @@ const FilterControls: NextPage = (props) => {
     })
   }
 
-  // const handleApplyFilters = () => {
-
-  //   updateFilters(tempFilters)
-  // }
-  // const cleanedFilters: QueryParams = Object.fromEntries(
-  //   Object.entries(tempFilters).map(([key, value]) => [
-  //     key,
-  //     Array.isArray(value) ? value[0] : value
-  //   ])
-  // )
   const getDealTypeFromCategory = (category: Category) => {
     if (!category) return null
 

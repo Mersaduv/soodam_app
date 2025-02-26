@@ -2,6 +2,7 @@ import baseApi from '@/services/baseApi'
 import { Category, QueryParams, ServiceResponse } from '@/types'
 
 import { generateQueryParams } from '@/utils'
+import { IdQuery } from './type'
 
 export const categoryApiSlice = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -24,7 +25,15 @@ export const categoryApiSlice = baseApi.injectEndpoints({
             ]
           : ['Category'],
     }),
+
+    getSingleCategory: builder.query<ServiceResponse<Category>, IdQuery>({
+      query: ({ id }) => ({
+        url: `/api/category/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, arg) => [{ type: 'Category', id: arg.id }],
+    }),
   }),
 })
 
-export const { useGetCategoriesQuery } = categoryApiSlice
+export const { useGetCategoriesQuery, useGetSingleCategoryQuery } = categoryApiSlice

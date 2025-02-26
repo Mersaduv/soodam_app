@@ -1795,35 +1795,34 @@ export const handlers = [
   }),
 
   rest.get('/api/all-housing', (req, res, ctx) => {
-    const searchParams = req.url.searchParams;
-    const title = searchParams.get('title');
-    const type = searchParams.get('type');
-  
+    const searchParams = req.url.searchParams
+    const title = searchParams.get('title')
+    const type = searchParams.get('type')
+
     // دریافت پارامترهای bounds در صورت وجود
-    const swLat = searchParams.get('swLat');
-    const swLng = searchParams.get('swLng');
-    const neLat = searchParams.get('neLat');
-    const neLng = searchParams.get('neLng');
-  
-    let filteredHousing = [...housing];
-  
+    const swLat = searchParams.get('swLat')
+    const swLng = searchParams.get('swLng')
+    const neLat = searchParams.get('neLat')
+    const neLng = searchParams.get('neLng')
+
+    let filteredHousing = [...housing]
+
     // فیلتر کردن بر اساس محدوده جغرافیایی در صورت ارسال پارامترها
     if (swLat && swLng && neLat && neLng) {
-      const swLatNum = parseFloat(swLat);
-      const swLngNum = parseFloat(swLng);
-      const neLatNum = parseFloat(neLat);
-      const neLngNum = parseFloat(neLng);
-  
+      const swLatNum = parseFloat(swLat)
+      const swLngNum = parseFloat(swLng)
+      const neLatNum = parseFloat(neLat)
+      const neLngNum = parseFloat(neLng)
+
       filteredHousing = filteredHousing.filter((item) => {
-        const lat = item.location.lat;
-        const lng = item.location.lng;
-        return lat >= swLatNum && lat <= neLatNum && lng >= swLngNum && lng <= neLngNum;
-      });
+        const lat = item.location.lat
+        const lng = item.location.lng
+        return lat >= swLatNum && lat <= neLatNum && lng >= swLngNum && lng <= neLngNum
+      })
     }
-  
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredHousing }));
+
+    return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredHousing }))
   }),
-  
 
   rest.get('/api/housing/:adCode', (req, res, ctx) => {
     const { adCode } = req.params
@@ -1844,6 +1843,40 @@ export const handlers = [
     }
 
     return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
+  }),
+
+  rest.get('/api/category/:id', (req, res, ctx) => {
+    const { id } = req.params
+
+    // تابع بازگشتی برای یافتن دسته‌بندی و فرزندانش
+    const findCategoryWithChildren = (categories, id) => {
+      for (const category of categories) {
+        if (category.id === id) {
+          return category // دسته‌بندی پیدا شد
+        }
+        if (category.children) {
+          const found = findCategoryWithChildren(category.children, id)
+          if (found) {
+            return found // دسته‌بندی در فرزندان یافت شد
+          }
+        }
+      }
+      return null // در هیچ جایی پیدا نشد
+    }
+
+    const category = findCategoryWithChildren(categories, id)
+
+    if (!category) {
+      return res(ctx.status(404), ctx.json({ message: `Category not found with id: ${id}` }))
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        message: 'Success',
+        data: category,
+      })
+    )
   }),
 
   rest.get('/api/features', (req, res, ctx) => {
