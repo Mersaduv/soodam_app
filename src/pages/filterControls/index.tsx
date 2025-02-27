@@ -52,6 +52,29 @@ const FilterControls: NextPage = (props) => {
 
   const { filters, updateFilters } = useFilters()
   const [tempFilters, setTempFilters] = useState<Partial<typeof filters>>(filters)
+  useEffect(() => {
+    if (categoriesData?.data && query.category) {
+      const categoryId = query.category;
+      const findCategory = (categories) => {
+        for (const cat of categories) {
+          if (cat.id === categoryId) return cat;
+          if (cat.children) {
+            const found = findCategory(cat.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const category = findCategory(categoriesData.data);
+      if (category) {
+        setSelectedCategory(category);
+      } else {
+        setSelectedCategory(null); // اگر دسته‌بندی در داده‌ها پیدا نشد
+      }
+    } else {
+      setSelectedCategory(null); // اگر کوئری یا داده‌ها موجود نباشد
+    }
+  }, [categoriesData?.data, query.category]);
   const handleTempFilterChange = (field: string, value: string, isFrom: boolean, isDynamic?: boolean) => {
     if (isDynamic) {
       setTempFilters((prev) => ({
@@ -74,20 +97,21 @@ const FilterControls: NextPage = (props) => {
       ...tempFilters,
       category: selectedCategory?.id || undefined,
     }
-
+  
     const finalFilters = Object.fromEntries(
       Object.entries(cleanedFilters).filter(([_, v]) => v !== undefined && v !== '')
     )
-
+  
     updateFilters(finalFilters)
-
-    push({
-      pathname: '/',
-      query: {
-        ...query,
-        ...finalFilters,
+  
+    push(
+      {
+        pathname: '/',
+        query: { ...query, ...finalFilters },
       },
-    })
+      undefined,
+      { shallow: true }
+    )
   }
 
   const getDealTypeFromCategory = (category: Category) => {

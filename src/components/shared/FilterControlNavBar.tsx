@@ -7,9 +7,9 @@ import { Check, Close, HomeIcon, SearchNormalIcon, Sort as SortIcon } from '@/ic
 import { useChangeRoute, useDebounce, useDisclosure } from '@/hooks'
 
 import { Modal } from '@/components/ui'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { QueryParams } from '@/types'
-import { useGetSingleCategoryQuery } from '@/services'
+import { useGetFeaturesQuery, useGetSingleCategoryQuery } from '@/services'
 
 interface Props {}
 const FilterControlNavBar: React.FC = () => {
@@ -17,16 +17,17 @@ const FilterControlNavBar: React.FC = () => {
   const { query, push } = useRouter()
   const type = query?.type?.toString() ?? ''
 
-  // const getCategoryName = (id: string): string => {
-  //   const { data } = useGetSingleCategoryQuery({ id })
-  //   return data?.data.name
-  // }
-  // const categoryId = query.category as string
-  // const categoryName = categoryId ? getCategoryName(categoryId) : null
   const categoryId = query.category as string
   const { data } = useGetSingleCategoryQuery({ id: categoryId }, { skip: !categoryId })
+  const { data: featuresData } = useGetFeaturesQuery({ pageSize: 9999 })
   const categoryName = data?.data.name
-
+  const featureIdToName = useMemo(() => {
+    if (!featuresData?.data) return {};
+    return featuresData.data.reduce((acc, feature) => {
+      acc[feature.id] = feature.name;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [featuresData]);
   const filterGroups: Record<string, string[]> = {
     category: ['category'],
     priceRange: ['priceRangeFrom', 'priceRangeTo'],
@@ -38,42 +39,75 @@ const FilterControlNavBar: React.FC = () => {
     ownerProfit: ['ownerProfitPercentageFrom', 'ownerProfitPercentageTo'],
   }
 
-  // تابع تولید متن نمایشی برای هر گروه فیلتر
+  // استخراج کلیدهای ویژگی‌های پویا
+  const getFeatureKeys = () => {
+    const featureKeys: Record<string, string[]> = {}
+    Object.keys(query).forEach((key) => {
+      const isStaticKey = Object.values(filterGroups).some((group) => group.includes(key))
+      if (!isStaticKey) {
+        if (key.endsWith('-From') || key.endsWith('-To')) {
+          const baseKey = key.replace(/-From|-To/, '')
+          if (!featureKeys[baseKey]) {
+            featureKeys[baseKey] = []
+          }
+          featureKeys[baseKey].push(key)
+        } else {
+          featureKeys[key] = [key]
+        }
+      }
+    })
+    return featureKeys
+  }
+
+  const featureGroups = getFeatureKeys()
+  const allFilterGroups = { ...filterGroups, ...featureGroups }
+
+  // تولید متن نمایشی
   const getGroupDisplay = (groupName: string, groupKeys: string[]): string | null => {
-    if (groupName === 'category' && categoryName) {
-      return categoryName
+    if (groupName === 'category' && query.category) {
+      return categoryName as string
     } else if (groupName === 'priceRange') {
       const from = query.priceRangeFrom as string
       const to = query.priceRangeTo as string
-      if (from && to) return `قیمت`
-      else if (from) return `قیمت`
-      else if (to) return `قیمت`
+      if (from || to) return 'قیمت'
     } else if (groupName === 'depositRange') {
       const from = query.depositRangeFrom as string
       const to = query.depositRangeTo as string
-      if (from && to) return `ودیعه`
-      else if (from) return `ودیعه`
-      else if (to) return `ودیعه`
+      if (from || to) return 'ودیعه'
     } else if (groupName === 'rent') {
       const from = query.rentFrom as string
       const to = query.rentTo as string
-      if (from && to) return `اجاره`
-      else if (from) return `اجاره`
-      else if (to) return `اجاره`
+      if (from || to) return 'اجاره'
     } else if (groupName === 'capacity') {
       const from = query.capacityFrom as string
       const to = query.capacityTo as string
-      if (from && to) return `ظرفیت`
-      else if (from) return `ظرفیت`
-      else if (to) return `ظرفیت`
+      if (from || to) return 'ظرفیت'
     } else if (groupName === 'extraPeople') {
       const from = query.extraPeopleFrom as string
       const to = query.extraPeopleTo as string
-      if (from && to) return `نفرات اضافه`
-      else if (from) return `نفرات اضافه`
-      else if (to) return `نفرات اضافه`
+      if (from || to) return 'نفرات اضافه'
+    } else if (groupName === 'producerProfit') {
+      const from = query.producerProfitPercentageFrom as string
+      const to = query.producerProfitPercentageTo as string
+      if (from || to) return 'درصد سود'
+    } else {
+      // ویژگی‌های پویا
+      const featureName = featureIdToName[groupName] || groupName; // اگر نام نبود، آیدی نمایش داده شود
+      if (groupKeys.length === 2 && groupKeys[0].endsWith("-From") && groupKeys[1].endsWith("-To")) {
+        const from = query[groupKeys[0]] as string;
+        const to = query[groupKeys[1]] as string;
+        if (from || to) {
+          // return `${featureName}: ${from ? `از ${from}` : ""} ${to ? `تا ${to}` : ""}`.trim();
+          return `${featureName}`.trim();
+        }
+      } else if (groupKeys.length === 1) {
+        const value = query[groupKeys[0]] as string;
+        if (value) {
+          return `${featureName}`;
+          // return `${featureName}: ${value}`;
+        }
+      }
     }
-    // می‌توانید برای سایر گروه‌ها (مانند capacity، extraPeople و غیره) موارد مشابه را اضافه کنید
     return null
   }
 
@@ -83,7 +117,7 @@ const FilterControlNavBar: React.FC = () => {
     push({ query: newQuery })
   }
 
-  const appliedFilterGroups = Object.entries(filterGroups)
+  const appliedFilterGroups = Object.entries(allFilterGroups)
     .filter(([_, groupKeys]) => groupKeys.some((key) => key in query))
     .map(([groupName, groupKeys]) => ({
       groupName,
@@ -119,7 +153,7 @@ const FilterControlNavBar: React.FC = () => {
   }
 
   const handleNavigate = () => {
-    push('/filterControls')
+    push({ pathname: '/filterControls', query })
   }
 
   // ? Render(s)
@@ -144,17 +178,6 @@ const FilterControlNavBar: React.FC = () => {
           </button>
         </div>
       ))}
-
-      {/* <div
-        className={`cursor-pointer w-fit my-[12px] flex-center gap-1 px-4 font-normal text-sm border rounded-[59px] h-[40px]`}
-      >
-        <span className={`font-normal whitespace-nowrap text-[16px] text-[#7A7A7A]`}>فیلتر یک</span>
-      </div>
-      <div
-        className={`cursor-pointer w-fit my-[12px] flex-center gap-1 px-4 font-normal text-sm border rounded-[59px] h-[40px]`}
-      >
-        <span className={`font-normal whitespace-nowrap text-[16px] text-[#7A7A7A]`}>فیلتر دو</span>
-      </div> */}
     </div>
   )
 }

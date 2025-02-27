@@ -9,14 +9,15 @@ export function useFilters() {
   const { pathname, query } = router
 
   const cleanQueryValue = useCallback((value: any): string | undefined => {
-    if (Array.isArray(value)) return value[0] // تبدیل آرایه به مقدار اول
-    if (value === undefined || value === null || value === 'undefined') return undefined
+    if (Array.isArray(value)) return value[0]
+    if (value === undefined || value === null || value === '' || value === 'undefined') {
+      return undefined
+    }
     return String(value)
   }, [])
 
   const updateFilters = useCallback(
     (newFilters: QueryParams) => {
-      // تبدیل مقادیر آرایه‌ای به رشته
       const cleanedNewFilters = Object.fromEntries(
         Object.entries(newFilters).map(([key, value]) => [
           key,
@@ -33,12 +34,12 @@ export function useFilters() {
       const cleanedQuery = Object.fromEntries(
         Object.entries(mergedQuery)
           .map(([key, value]) => [key, cleanQueryValue(value)])
-          .filter(([_, value]) => value !== undefined)
+          .filter(([_, value]) => value !== undefined) // فقط undefined حذف می‌شه، چون cleanQueryValue خالی‌ها رو به undefined تبدیل می‌کنه
       ) as ParsedUrlQuery
 
       router.replace(
         { pathname, query: cleanedQuery },
-        undefined, 
+        undefined,
         { shallow: true, scroll: false }
       )
     },
