@@ -51,30 +51,31 @@ const FilterControls: NextPage = (props) => {
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
 
   const { filters, updateFilters } = useFilters()
-  const [tempFilters, setTempFilters] = useState<Partial<typeof filters>>(filters)
+  const [tempFilters, setTempFilters] = useState<{ [key: string]: string | string[] | undefined }>({})
+
   useEffect(() => {
     if (categoriesData?.data && query.category) {
-      const categoryId = query.category;
+      const categoryId = query.category
       const findCategory = (categories) => {
         for (const cat of categories) {
-          if (cat.id === categoryId) return cat;
+          if (cat.id === categoryId) return cat
           if (cat.children) {
-            const found = findCategory(cat.children);
-            if (found) return found;
+            const found = findCategory(cat.children)
+            if (found) return found
           }
         }
-        return null;
-      };
-      const category = findCategory(categoriesData.data);
+        return null
+      }
+      const category = findCategory(categoriesData.data)
       if (category) {
-        setSelectedCategory(category);
+        setSelectedCategory(category)
       } else {
-        setSelectedCategory(null); // اگر دسته‌بندی در داده‌ها پیدا نشد
+        setSelectedCategory(null) // اگر دسته‌بندی در داده‌ها پیدا نشد
       }
     } else {
-      setSelectedCategory(null); // اگر کوئری یا داده‌ها موجود نباشد
+      setSelectedCategory(null) // اگر کوئری یا داده‌ها موجود نباشد
     }
-  }, [categoriesData?.data, query.category]);
+  }, [categoriesData?.data, query.category])
   const handleTempFilterChange = (field: string, value: string, isFrom: boolean, isDynamic?: boolean) => {
     if (isDynamic) {
       setTempFilters((prev) => ({
@@ -97,21 +98,20 @@ const FilterControls: NextPage = (props) => {
       ...tempFilters,
       category: selectedCategory?.id || undefined,
     }
-  
+
     const finalFilters = Object.fromEntries(
-      Object.entries(cleanedFilters).filter(([_, v]) => v !== undefined && v !== '')
+      Object.entries(cleanedFilters).filter(([_, v]) => v !== undefined && (Array.isArray(v) ? v.length > 0 : v !== ''))
     )
-  
+
     updateFilters(finalFilters)
-  
-    push(
-      {
-        pathname: '/',
-        query: { ...query, ...finalFilters },
+
+    push({
+      pathname: '/',
+      query: {
+        ...query,
+        ...finalFilters,
       },
-      undefined,
-      { shallow: true }
-    )
+    })
   }
 
   const getDealTypeFromCategory = (category: Category) => {
@@ -555,16 +555,33 @@ const FilterControls: NextPage = (props) => {
                   </div>
                   <div className="space-y-4 mt-4">
                     {features?.data
-                      .filter((item) => item.type === 'selective') // فیلتر برای ویژگی‌های انتخابی
+                      .filter((item) => item.type === 'selective')
                       .map((field) => (
                         <div key={field.id} className="w-full mb-3">
                           <h1 className="font-normal text-sm mb-2">{field.name}</h1>
 
-                          {/* دکمه باز/بستن Dropdown */}
+                          {/* دکمه باز/بستن Dropdown و نمایش مقادیر انتخاب‌شده */}
                           <div
-                            className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-end items-center cursor-pointer"
+                            className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer"
                             onClick={() => toggleDropdownFeature(field.id)}
                           >
+                            <div className="flex items-center space-x-1 overflow-hidden">
+                              <div className="flex items-center space-x-1 overflow-hidden">
+                                {Array.isArray(tempFilters[field.id]) && tempFilters[field.id].length > 0 ? (
+                                  (tempFilters[field.id] as string[]).map((selectedId, index) => {
+                                    const selectedItem = field.values.find((v) => v.id === selectedId)
+                                    return (
+                                      <span key={index} className="text-sm text-gray-700 truncate">
+                                        {selectedItem?.name}
+                                        {index < (tempFilters[field.id] as string[]).length - 1 && ', '}
+                                      </span>
+                                    )
+                                  })
+                                ) : (
+                                  <span className="text-sm text-gray-400">انتخاب کنید</span>
+                                )}
+                              </div>
+                            </div>
                             <ArrowLeftIcon
                               className={`w-5 h-5 text-[#9D9D9D] transition-transform ${
                                 openDropdowns[field.id] ? 'rotate-180' : ''
@@ -582,14 +599,25 @@ const FilterControls: NextPage = (props) => {
                                 >
                                   <div className="flex items-center cursor-pointer relative">
                                     <input
-                                      type="radio"
+                                      type="checkbox"
                                       name={`filter-${field.id}`}
-                                      checked={tempFilters[field.id] === value.id}
+                                      checked={
+                                        (Array.isArray(tempFilters[field.id]) &&
+                                          tempFilters[field.id].includes(value.id)) ||
+                                        false
+                                      }
                                       onChange={() => {
-                                        setTempFilters((prev) => ({
-                                          ...prev,
-                                          [field.id]: prev[field.id] === value.id ? undefined : value.id,
-                                        }))
+                                        setTempFilters((prev) => {
+                                          const currentValues = Array.isArray(prev[field.id]) ? prev[field.id] : []
+                                          const updatedValues = currentValues.includes(value.id)
+                                            ? Array.isArray(currentValues) &&
+                                              currentValues.filter((id) => id !== value.id)
+                                            : [...currentValues, value.id]
+                                          return {
+                                            ...prev,
+                                            [field.id]: updatedValues.length > 0 ? updatedValues : undefined,
+                                          }
+                                        })
                                       }}
                                       className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
                                     />
