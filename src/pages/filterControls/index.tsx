@@ -100,7 +100,9 @@ const FilterControls: NextPage = (props) => {
     }
 
     const finalFilters = Object.fromEntries(
-      Object.entries(cleanedFilters).filter(([_, v]) => v !== undefined && (Array.isArray(v) ? v.length > 0 : v !== ''))
+      Object.entries(cleanedFilters).filter(
+        ([_, v]) => v !== undefined || v !== '' || (Array.isArray(v) ? v.length > 0 : v !== '')
+      )
     )
 
     updateFilters(finalFilters)
