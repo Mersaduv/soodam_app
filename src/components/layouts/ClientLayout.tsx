@@ -62,7 +62,7 @@ const ClientLayout: React.FC<Props> = ({ children, title, isProfile, isAdConfirm
       memberUserGuidModalHandlers.close()
     }
   }, [isMemberUserLogin])
-  console.log(user, 'user---user')
+  // console.log(user, 'user---user')
   return (
     <>
       {title && !isProfile ? (

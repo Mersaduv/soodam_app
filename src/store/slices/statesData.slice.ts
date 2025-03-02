@@ -10,6 +10,12 @@ interface State {
   address: string
   zoomModal: boolean
   isSearchTriggered: boolean
+  drawnPoints: any[]
+  isDrawing: boolean
+  selectedArea: any
+  mode: string
+  itemFilesInArea: any[]
+  isSatelliteView: boolean
 }
 
 const initialState: State = {
@@ -21,6 +27,12 @@ const initialState: State = {
   address: 'در حال بارگذاری...',
   zoomModal: false,
   isSearchTriggered: false,
+  drawnPoints: [],
+  isDrawing: false,
+  selectedArea: null,
+  mode: 'none',
+  itemFilesInArea: [],
+  isSatelliteView: false,
 }
 
 const updateSlice = createSlice({
@@ -51,6 +63,27 @@ const updateSlice = createSlice({
     setSearchTriggered: (state, action) => {
       state.isSearchTriggered = action.payload
     },
+    setDrawnPoints: (state, action) => {
+      state.drawnPoints = action.payload
+    },
+    setIsDrawing: (state, action) => {
+      state.isDrawing = action.payload
+    },
+    setSelectedArea: (state, action) => {
+      state.selectedArea = action.payload
+    },
+    setMode: (state, action) => {
+      state.mode = action.payload
+    },
+    setItemFilesInArea: (state, action) => {
+      state.itemFilesInArea = action.payload
+    },
+    resetDrawing: (state) => {
+      return initialState
+    },
+    setIsSatelliteView: (state, action) => {
+      state.isSatelliteView = action.payload
+    },
   },
 })
 
@@ -63,5 +96,12 @@ export const {
   setAddress,
   setShowZoomModal,
   setSearchTriggered,
+  setDrawnPoints,
+  setIsDrawing,
+  setSelectedArea,
+  setMode,
+  setItemFilesInArea,
+  resetDrawing,
+  setIsSatelliteView,
 } = updateSlice.actions
 export default updateSlice.reducer

@@ -30,8 +30,14 @@ import { useRouter } from 'next/router'
 import {
   setAddress,
   setCenter,
+  setDrawnPoints,
+  setIsDrawing,
+  setIsSatelliteView,
   setIsShowLogin,
+  setItemFilesInArea,
+  setMode,
   setSearchTriggered,
+  setSelectedArea,
   setShowZoomModal,
   setStateData,
   setZoom,
@@ -310,17 +316,7 @@ const ZoomHandler: React.FC = () => {
   return null
 }
 let isShowAdModalButton = true
-const DrawingControl = ({
-  isDrawing,
-  drawnPoints,
-  setDrawnPoints,
-  polylineRef,
-  housingData,
-  onDrawingComplete,
-  setItemFiles,
-  mode,
-  setMode,
-}) => {
+const DrawingControl = ({ polylineRef, housingData, onDrawingComplete }) => {
   const dispatch = useAppDispatch()
   const map = useMap()
   const overlayRef = useRef(null)
@@ -328,11 +324,28 @@ const DrawingControl = ({
   const drawingTimeoutRef = useRef(null)
   const lastPointRef = useRef(null)
   const minDistance = 5
+  const isDrawing = useAppSelector((state) => state.statesData.isDrawing)
+  const drawnPoints = useAppSelector((state) => state.statesData.drawnPoints)
+  const mode = useAppSelector((state) => state.statesData.mode)
+ 
+  const updateDrawnPoints = (points) => {
+    dispatch(setDrawnPoints(points))
+  }
+
+  // setMode بجای استفاده از prop
+  const updateMode = (newMode) => {
+    dispatch(setMode(newMode))
+  }
+
+  // setItemFiles بجای استفاده از prop
+  const updateItemFiles = (items) => {
+    dispatch(setItemFilesInArea(items))
+  }
 
   useEffect(() => {
     if (mode === 'dispose') {
-      setItemFiles([])
-      setDrawnPoints([])
+      updateItemFiles([])
+      updateDrawnPoints([])
       dispatch(setStateData([]))
       if (overlayRef.current) {
         overlayRef.current.remove()
@@ -350,13 +363,13 @@ const DrawingControl = ({
 
       isDrawingRef.current = false
       lastPointRef.current = null
-      setMode('none')
+      updateMode('none')
     }
   }, [mode])
 
   useEffect(() => {
     if (isDrawing) {
-      setItemFiles([])
+      updateItemFiles([])
 
       if (overlayRef.current) {
         overlayRef.current.remove()
@@ -384,7 +397,7 @@ const DrawingControl = ({
         return turf.booleanPointInPolygon(point, polygon)
       })
       // console.log('points:', points, polygon, 'polygon')
-      setItemFiles(itemsInArea)
+      updateItemFiles(itemsInArea)
       dispatch(setStateData(itemsInArea))
       // console.log('Items in area:', itemsInArea.length, itemsInArea)
     },
@@ -509,6 +522,15 @@ const DrawingControl = ({
     [map]
   )
 
+  useEffect(() => {
+    if (drawnPoints.length > 0) {
+      const lineColor = mode === 'checking' ? 'white' : '#f1071e';
+      updatePolyline(drawnPoints, lineColor);
+    } else if (polylineRef.current) {
+      polylineRef.current.remove();
+    }
+  }, [drawnPoints, mode, updatePolyline]);
+
   const throttledUpdate = useCallback(
     throttle((points) => {
       updatePolyline(points)
@@ -547,28 +569,24 @@ const DrawingControl = ({
       const newPoint: any = [latlng.lat, latlng.lng]
       const lastPoint = lastPointRef.current
 
-      // Check if the new point is far enough from the last point
       if (lastPoint && getPointDistance(L.latLng(lastPoint), L.latLng(newPoint)) < minDistance) {
         return
       }
 
       lastPointRef.current = newPoint
 
-      setDrawnPoints((prev) => {
-        const newPoints = [...prev, newPoint]
+      const newPoints = [...drawnPoints, newPoint]
+      updateDrawnPoints(newPoints)
 
-        if (drawingTimeoutRef.current) {
-          cancelAnimationFrame(drawingTimeoutRef.current)
-        }
+      if (drawingTimeoutRef.current) {
+        cancelAnimationFrame(drawingTimeoutRef.current)
+      }
 
-        drawingTimeoutRef.current = requestAnimationFrame(() => {
-          throttledUpdate(newPoints)
-        })
-
-        return newPoints
+      drawingTimeoutRef.current = requestAnimationFrame(() => {
+        throttledUpdate(newPoints)
       })
     },
-    [getPointDistance, throttledUpdate]
+    [drawnPoints, getPointDistance, throttledUpdate]
   )
 
   // Touch Events
@@ -582,7 +600,7 @@ const DrawingControl = ({
       const touch = e.touches[0]
       const point = map.containerPointToLatLng([touch.clientX, touch.clientY])
       isDrawingRef.current = true
-      setDrawnPoints([])
+      updateDrawnPoints([])
       handleDrawingMove(point)
     }
 
@@ -600,14 +618,15 @@ const DrawingControl = ({
       isDrawingRef.current = false
       lastPointRef.current = null
 
-      setDrawnPoints((prev) => completeDrawing(prev))
+      const newPoints = completeDrawing(drawnPoints)
+      updateDrawnPoints(newPoints)
     }
 
     // Mouse Events
     const handleMouseDown = (e) => {
       const point = map.containerPointToLatLng([e.clientX, e.clientY])
       isDrawingRef.current = true
-      setDrawnPoints([])
+      updateDrawnPoints([])
       handleDrawingMove(point)
     }
 
@@ -622,7 +641,8 @@ const DrawingControl = ({
       isDrawingRef.current = false
       lastPointRef.current = null
 
-      setDrawnPoints((prev) => completeDrawing(prev))
+      const newPoints = completeDrawing(drawnPoints)
+      updateDrawnPoints(newPoints)
     }
 
     // Add event listeners
@@ -856,17 +876,20 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   const zoom = useAppSelector((state) => state.statesData.zoom)
   const dispatch = useAppDispatch()
   // ? States
+  const { isDrawing, drawnPoints, mode, itemFilesInArea, isSatelliteView } = useAppSelector((state) => state.statesData)
   const [isShow, modalHandlers] = useDisclosure()
-  const [itemFiles, setItemFiles] = useState([])
-  const [isSatelliteView, setIsSatelliteView] = useState(false)
-  const [tileLayerUrl, setTileLayerUrl] = useState('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+  // const [itemFiles, setItemFiles] = useState([])
+  const [tileLayerUrl, setTileLayerUrl] = useState(isSatelliteView ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
   // const [zoomLevel, setZoomLevel] = useState(12)
-  const [isDrawing, setIsDrawing] = useState(false)
-  const [drawnPoints, setDrawnPoints] = useState([])
-  const [selectedArea, setSelectedArea] = useState(null)
+  // const [isDrawing, setIsDrawing] = useState(false)
+  // const [drawnPoints, setDrawnPoints] = useState([])
+  // const [selectedArea, setSelectedArea] = useState(null)
   const mapRef = useRef(null)
   const polylineRef = useRef(null)
-  const [mode, setMode] = useState('none')
+  const updateIsDrawing = (value) => dispatch(setIsDrawing(value))
+  const updateSetMode = (value) => dispatch(setMode(value))
+
+  // const [mode, setMode] = useState('none')
   const [viewedProperties, setViewedProperties] = useState<string[]>([])
   const [selectedProperty, setSelectedProperty] = useState<Housing>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -968,20 +991,36 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
     }
   }
 
+  const updateDrawnPoints = (points) => {
+    dispatch(setDrawnPoints(points))
+  }
+
+  const updateMode = (newMode) => {
+    dispatch(setMode(newMode))
+  }
+
+  const updateItemFiles = (items) => {
+    dispatch(setItemFilesInArea(items))
+  }
+
+  const updateSelectedArea = (area) => {
+    dispatch(setSelectedArea(area))
+  }
+
   const handleDrawButtonClick = () => {
     if (mode === 'none') {
-      setMode('drawing')
-      setIsDrawing(true)
-      setDrawnPoints([])
-      setSelectedArea(null)
+      updateMode('drawing')
+      updateIsDrawing(true)
+      updateDrawnPoints([])
+      updateSelectedArea(null)
       if (polylineRef.current) {
         polylineRef.current.remove()
       }
     } else if (mode === 'checking') {
-      setMode('dispose')
-      setIsDrawing(false)
-      setDrawnPoints([])
-      setItemFiles([])
+      updateMode('dispose')
+      updateIsDrawing(false)
+      updateDrawnPoints([])
+      updateItemFiles([])
       if (polylineRef.current) {
         polylineRef.current.remove()
       }
@@ -989,8 +1028,8 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   }
 
   const handleDrawingComplete = useCallback(() => {
-    setIsDrawing(false)
-    setMode('checking')
+    updateIsDrawing(false)
+    updateMode('checking')
   }, [])
 
   const renderButtonContent = () => {
@@ -1005,10 +1044,9 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   }
 
   const toggleMapType = () => {
-    setTileLayerUrl((prevUrl) =>
-      prevUrl === 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    setTileLayerUrl(isSatelliteView
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
     )
   }
 
@@ -1093,12 +1131,11 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
     try {
       const response = await fetch(`https://map.ir/reverse?lat=${lat}&lon=${lon}`, {
         headers: {
-          'x-api-key':
-            'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImE1NDg1MzhjNGMwNTAyMzZhMTQwYzI0NDEyNjg2N2JiYjY0Y2E1Y2NkOWIwZDNhYzAxNDIyMTY2ZTU4MzlhN2U5NTkzZTcyNTYwMzcxN2JiIn0.eyJhdWQiOiIzMTIxMyIsImp0aSI6ImE1NDg1MzhjNGMwNTAyMzZhMTQwYzI0NDEyNjg2N2JiYjY0Y2E1Y2NkOWIwZDNhYzAxNDIyMTY2ZTU4MzlhN2U5NTkzZTcyNTYwMzcxN2JiIiwiaWF0IjoxNzQwMjQ2MDQ2LCJuYmYiOjE3NDAyNDYwNDYsImV4cCI6MTc0Mjc1MTY0Niwic3ViIjoiIiwic2NvcGVzIjpbImJhc2ljIl19.XdRHii5Ce3c9e4NRPXNkZWLjHsx0oN8zFBiI39YPGcAKjyycGzSg7IhrkYPaVvSkqvWTRdXyVR5pfX8TZ1z4NXSw1mQJqYoGDx-Vpx4SHCE7LR4nXNlleRDo75q0NuC9hVPWwtEvNb-hdHZ-QyXvtypOl6m11jXNEi28t_AxpxLXNiBq24f9u3X6Y7xkBp_cNYiUA0cZdrTgxnM3rz2cb3tI7tZnGosUpb2suAhPR28X41rpo-Nm2xQaVcG-vsxjZprQ31110rzIIgB1TGqMYRQ2lZvy9N2Spg3-b7FKIdRyuUpUnF6pjW-IYdaeT_g7Sn9_5Eggxtsrnu2BIJgVvw',
+          'x-api-key': process.env.NEXT_PUBLIC_MAP_API_KEY,
         },
       })
       const data = await response.json()
-      console.log(data, 'response')
+      // console.log(data, 'response')
 
       if (data && data.postal_address) {
         dispatch(setAddress(data.postal_address))
@@ -1185,10 +1222,10 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
           </div>
         </div>
       )}
-      {itemFiles.length > 0 && (
+      {itemFilesInArea.length > 0 && (
         <div className="absolute flex-center gap-y-2.5 bottom-[155px] left-4 z-[1000]">
           <div className="bg-[#FFF0F2] farsi-digits w-[102px] h-[24px] text-[#9D9D9D] font-normal text-xs rounded-[59px] flex-center gap-2 shadow-icon cursor-pointer">
-            {itemFiles.length} فایل موجود
+            {itemFilesInArea.length} فایل موجود
           </div>
         </div>
       )}
@@ -1205,7 +1242,7 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
                 <CustomCheckbox
                   name={`satellite-view`}
                   checked={isSatelliteView}
-                  onChange={() => setIsSatelliteView((prev) => !prev)}
+                  onChange={() => dispatch(setIsSatelliteView(!isSatelliteView))}
                   label=""
                   customStyle="bg-sky-500"
                 />
@@ -1224,17 +1261,7 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
       <MapContainer center={center as LatLngTuple} zoom={zoom} style={mapStyle} ref={mapRef}>
         <SearchFetcher />
         <MapEvents />
-        <DrawingControl
-          isDrawing={isDrawing}
-          drawnPoints={drawnPoints}
-          setDrawnPoints={setDrawnPoints}
-          polylineRef={polylineRef}
-          housingData={housingData}
-          onDrawingComplete={handleDrawingComplete}
-          setItemFiles={setItemFiles}
-          mode={mode}
-          setMode={setMode}
-        />
+        <DrawingControl polylineRef={polylineRef} housingData={housingData} onDrawingComplete={handleDrawingComplete} />
         <ZoomHandler />
         <TileLayer
           url={tileLayerUrl}

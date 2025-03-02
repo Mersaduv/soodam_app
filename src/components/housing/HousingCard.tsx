@@ -115,7 +115,7 @@ const HousingCard: React.FC<Props> = (props) => {
           {housing.highlightFeatures &&
             housing.highlightFeatures.map((feature) => {
               return (
-                <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                <div key={feature.id} className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
                   {' '}
                   <img className="w-[16px]" src={feature.image} alt="" /> {feature.value}{' '}
                   <span className="font-medium text-[#7A7A7A] text-xs">{feature.title}</span>

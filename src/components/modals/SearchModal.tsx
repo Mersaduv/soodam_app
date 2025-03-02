@@ -107,7 +107,7 @@ const SearchModal: React.FC<Props> = (props) => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-  console.log(addresses , "addressesaddressesaddresses");
+  // console.log(addresses , "addressesaddressesaddresses");
   
   // ? Render(s)
   return (
