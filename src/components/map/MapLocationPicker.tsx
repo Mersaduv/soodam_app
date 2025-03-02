@@ -116,6 +116,35 @@ const DrawingControl = ({
     [map]
   )
 
+  useEffect(() => {
+    if (mode === 'drawing') {
+      const maxBounds: any[] = [
+        [90, -180],
+        [90, 180],
+        [-90, 180],
+        [-90, -180],
+        [90, -180],
+      ]
+
+      if (overlayRef.current) {
+        // به‌روزرسانی مختصات overlay موجود
+        overlayRef.current.setLatLngs([maxBounds])
+      } else {
+        const overlay = L.polygon([maxBounds], {
+          color: 'none',
+          fillColor: '#1A1E2566',
+          fillOpacity: 0.5,
+          interactive: false,
+          smoothFactor: 0,
+        }).addTo(map)
+        overlayRef.current = overlay
+      }
+    } else if (overlayRef.current) {
+      overlayRef.current.remove()
+      overlayRef.current = null
+    }
+  }, [mode, drawnPoints, map])
+
   const updateOverlay = useCallback(
     (points) => {
       if (!points.length) return
@@ -126,20 +155,20 @@ const DrawingControl = ({
 
       if (points.length < 3) return
 
-      const bounds = map.getBounds()
-      const outerCoords = [
-        [bounds.getNorth(), bounds.getWest()],
-        [bounds.getNorth(), bounds.getEast()],
-        [bounds.getSouth(), bounds.getEast()],
-        [bounds.getSouth(), bounds.getWest()],
-        [bounds.getNorth(), bounds.getWest()],
+      const maxBounds: any[] = [
+        [90, -180],
+        [90, 180],
+        [-90, 180],
+        [-90, -180],
+        [90, -180],
       ]
 
-      const overlay = L.polygon([outerCoords, points], {
+      const overlay = L.polygon([maxBounds], {
         color: 'none',
         fillColor: '#1A1E2566',
-        fillOpacity: 0.45,
+        fillOpacity: 0.5,
         interactive: false,
+        smoothFactor: 0,
       }).addTo(map)
 
       overlayRef.current = overlay
@@ -180,13 +209,13 @@ const DrawingControl = ({
   }
 
   const updatePolyline = useCallback(
-    (points) => {
+    (points, lineColor = '#f1071e') => {
       if (polylineRef.current) {
         polylineRef.current.remove()
       }
 
       const polyline = L.polyline(points, {
-        color: 'white',
+        color: lineColor,
         weight: 5,
         smoothFactor: 1,
         interactive: false,
@@ -218,7 +247,7 @@ const DrawingControl = ({
         const closedPoints = distance < minDistance * 2 ? [...points.slice(0, -1), points[0]] : [...points, points[0]]
 
         updateOverlay(closedPoints)
-        updatePolyline(closedPoints) // Update the polyline to show the closing line
+        updatePolyline(closedPoints, 'white')// Update the polyline to show the closing line
         countItemsInArea(closedPoints)
         onDrawingComplete()
         return closedPoints

@@ -542,17 +542,14 @@ const DrawingControl = ({ polylineRef, housingData, onDrawingComplete }) => {
   const completeDrawing = useCallback(
     (points) => {
       if (points.length > 2) {
-        // محاسبه فاصله بین اولین و آخرین نقطه
         const firstPoint = L.latLng(points[0])
         const lastPoint = L.latLng(points[points.length - 1])
         const distance = getPointDistance(firstPoint, lastPoint)
 
-        // اگر نقطه پایانی به اندازه کافی به نقطه شروع نزدیک باشد، نقطه شروع را مجدداً اضافه می‌کنیم
-        // در غیر این صورت، نقطه شروع را به انتها اضافه می‌کنیم تا چندضلعی بسته شود
         const closedPoints = distance < minDistance * 2 ? [...points.slice(0, -1), points[0]] : [...points, points[0]]
 
         updateOverlay(closedPoints)
-        updatePolyline(closedPoints, 'white') // تغییر رنگ به سفید در حالت تکمیل رسم
+        updatePolyline(closedPoints, 'white')
         countItemsInArea(closedPoints)
         onDrawingComplete()
         return closedPoints
