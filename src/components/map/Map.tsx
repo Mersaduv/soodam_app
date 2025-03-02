@@ -1179,7 +1179,7 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
 
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
-      <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] right-4 z-[1000]">
+      <div className="fixed flex flex-col gap-y-2.5 bottom-[88px] right-4 z-[1000]">
         <button
           onClick={modalHandlers.open}
           className={`${
@@ -1209,7 +1209,7 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
         </button>
       </div>
       {isShowAdModalButton && (
-        <div className="absolute flex flex-col gap-y-2.5 bottom-[88px] left-4 z-[1000]">
+        <div className="fixed flex flex-col gap-y-2.5 bottom-[88px] left-4 z-[1000]">
           <div
             onClick={handleNavigate}
             className="bg-white hover:bg-gray-50 w-[131px] h-[56px] rounded-[59px] flex-center gap-2 shadow-icon cursor-pointer"
