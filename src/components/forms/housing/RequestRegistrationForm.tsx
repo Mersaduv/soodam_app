@@ -19,7 +19,7 @@ import {
   Cube3DSmIcon,
   Cube3DIcon,
 } from '@/icons'
-import { Button, CustomCheckbox, DisplayError, Modal, TextField } from '@/components/ui'
+import { Button, CustomCheckbox, DisplayError, Modal, TextField, TextFiledPrice } from '@/components/ui'
 import * as yup from 'yup'
 import dynamic from 'next/dynamic'
 import { useDisclosure } from '@/hooks'
@@ -461,16 +461,18 @@ const RequestRegistrationForm: React.FC = () => {
                       name="priceRange.from"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <TextFiledPrice
+                          name="priceRange.from"
                           isFromTo
                           adForm
-                          compacted
                           label="قیمت فروش"
-                          type="number"
-                          {...field}
-                          control={control}
+                          type="text"
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                           errors={errors.priceRange?.from}
                           placeholder="مثال: 100 میلیون تومان"
+                          formatPrice={true}
                         />
                       )}
                     />
@@ -481,16 +483,18 @@ const RequestRegistrationForm: React.FC = () => {
                       name="priceRange.to"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <TextFiledPrice
+                          name="priceRange.to"
                           isFromTo
                           adForm
-                          compacted
                           label="isTo"
-                          type="number"
-                          {...field}
-                          control={control}
+                          type="text"
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                           errors={errors.priceRange?.to}
                           placeholder="مثال: 1 میلیارد تومان"
+                          formatPrice={true}
                         />
                       )}
                     />
@@ -506,16 +510,18 @@ const RequestRegistrationForm: React.FC = () => {
                       name="depositRange.from"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <TextFiledPrice
+                          name="depositRange.from"
                           isFromTo
                           adForm
-                          compacted
                           label="رهن یا ودیعه"
-                          type="number"
-                          {...field}
-                          control={control}
+                          type="text"
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                           errors={errors.depositRange?.from}
                           placeholder="مثال: 100 میلیون تومان"
+                          formatPrice={true}
                         />
                       )}
                     />
@@ -526,16 +532,18 @@ const RequestRegistrationForm: React.FC = () => {
                       name="depositRange.to"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <TextFiledPrice
+                          name="depositRange.to"
                           isFromTo
                           adForm
-                          compacted
                           label="isTo"
-                          type="number"
-                          {...field}
-                          control={control}
+                          type="text"
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                           errors={errors.depositRange?.to}
                           placeholder="مثال: 12 میلیارد تومان"
+                          formatPrice={true}
                         />
                       )}
                     />
@@ -549,16 +557,18 @@ const RequestRegistrationForm: React.FC = () => {
                       name="rent.from"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <TextFiledPrice
+                          name="rent.from"
                           isFromTo
                           adForm
-                          compacted
                           label="اجاره ماهیانه"
-                          type="number"
-                          {...field}
-                          control={control}
+                          type="text"
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                           errors={errors.rent?.from}
                           placeholder="مثال: 100,000 تومان"
+                          formatPrice={true}
                         />
                       )}
                     />
@@ -569,16 +579,18 @@ const RequestRegistrationForm: React.FC = () => {
                       name="rent.to"
                       control={control}
                       render={({ field }) => (
-                        <TextField
+                        <TextFiledPrice
+                          name="rent.to"
                           isFromTo
                           adForm
-                          compacted
                           label="isTo"
-                          type="number"
-                          {...field}
-                          control={control}
+                          type="text"
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
                           errors={errors.rent?.to}
                           placeholder="مثال: 10,000,000 تومان"
+                          formatPrice={true}
                         />
                       )}
                     />
