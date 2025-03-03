@@ -33,6 +33,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { HiOutlineLocationMarker } from 'react-icons/hi'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui'
+import { BiShare } from 'react-icons/bi'
+import { IoShareSocialOutline } from 'react-icons/io5'
 interface Props {
   //   housing: Housing
   //   similarHousing: {
@@ -98,6 +100,22 @@ const SingleHousing: NextPage = () => {
     }
   }
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'سندلی پارچه‌ای نو و استثنایی',
+          text: 'این محصول عالی رو در دیوار ببینید!',
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.error('خطا در اشتراک‌گذاری:', err);
+      }
+    } else {
+      alert('مرورگر شما از اشتراک‌گذاری پشتیبانی نمی‌کند. لینک را کپی کنید: ' + window.location.href);
+    }
+  };
+
   if (housingData) {
     console.log(housingData, 'housingData')
   }
@@ -117,12 +135,22 @@ const SingleHousing: NextPage = () => {
                 <div className="flex items-center gap-2">
                   <LocationTitleIcon width="16px" height="16px" /> <div className="text-xs">{housingData.title} </div>
                 </div>
-                <div
-                  id="saveHouse"
-                  className={`rounded-full cursor-pointer flex-center ${isSaved ? 'text-[#D52133]' : 'text-white'}`}
-                  onClick={(event) => handleSaveClick(event, housingData)}
-                >
-                  <HearthIcon width="19px" height="17px" />
+                <div className="flex gap-3">
+                  <div
+                    id="saveHouse"
+                    className={`rounded-full cursor-pointer flex-center ${isSaved ? 'text-[#D52133]' : 'text-white'}`}
+                    onClick={(event) => handleSaveClick(event, housingData)}
+                  >
+                    <HearthIcon width="19px" height="17px" />
+                  </div>
+
+                  <div
+                    id="shareHouse"
+                    className={`rounded-full cursor-pointer flex-center`}
+                    onClick={handleShare}
+                  >
+                    <IoShareSocialOutline width="19px" height="17px" />
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 p-4 pt-0 gap-3.5 gap-x-20">

@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { ArrowLeftIcon, NotificationIcon } from '@/icons'
 import { setAdConfirmExit, setMapMode, setRefetchMap } from '@/store'
-import { useRouter } from 'next/router'
+import router, { useRouter } from 'next/router'
 
 interface Props {
   title: string
@@ -10,7 +10,7 @@ interface Props {
   handleRemoveFilters?: () => void
 }
 const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmExit, handleRemoveFilters }) => {
-  const router = useRouter()
+  const { back, push } = useRouter()
   const dispatch = useAppDispatch()
   const { adConfirmExit } = useAppSelector((state) => state.statesData)
   const handleBack = () => {
@@ -19,7 +19,11 @@ const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmEx
       dispatch(setAdConfirmExit('0'))
       return
     }
-    router.back()
+    if (handleRemoveFilters) {
+      push('/')
+    } else {
+      back()
+    }
   }
 
   return (
