@@ -104,17 +104,17 @@ const SingleHousing: NextPage = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'سندلی پارچه‌ای نو و استثنایی',
-          text: 'این محصول عالی رو در دیوار ببینید!',
+          title: housingData.title,
+          text: housingData.title,
           url: window.location.href,
-        });
+        })
       } catch (err) {
-        console.error('خطا در اشتراک‌گذاری:', err);
+        console.error('خطا در اشتراک‌گذاری:', err)
       }
     } else {
-      alert('مرورگر شما از اشتراک‌گذاری پشتیبانی نمی‌کند. لینک را کپی کنید: ' + window.location.href);
+      alert('مرورگر شما از اشتراک‌گذاری پشتیبانی نمی‌کند. لینک را کپی کنید: ' + window.location.href)
     }
-  };
+  }
 
   if (housingData) {
     console.log(housingData, 'housingData')
@@ -144,11 +144,7 @@ const SingleHousing: NextPage = () => {
                     <HearthIcon width="19px" height="17px" />
                   </div>
 
-                  <div
-                    id="shareHouse"
-                    className={`rounded-full cursor-pointer flex-center`}
-                    onClick={handleShare}
-                  >
+                  <div id="shareHouse" className={`rounded-full cursor-pointer flex-center`} onClick={handleShare}>
                     <IoShareSocialOutline width="19px" height="17px" />
                   </div>
                 </div>
