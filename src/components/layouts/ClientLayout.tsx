@@ -13,9 +13,10 @@ interface Props {
   isProfile?: boolean
   isAdConfirmExit?: boolean
   children: React.ReactNode
+  handleRemoveFilters?: () => void
 }
 
-const ClientLayout: React.FC<Props> = ({ children, title, isProfile, isAdConfirmExit }) => {
+const ClientLayout: React.FC<Props> = ({ children, title, isProfile, isAdConfirmExit, handleRemoveFilters }) => {
   // const [showModal, setShowModal] = useState<boolean>(false)
   const [isShow, modalHandlers] = useDisclosure()
   const [isShowMemberUserGuid, memberUserGuidModalHandlers] = useDisclosure()
@@ -66,7 +67,7 @@ const ClientLayout: React.FC<Props> = ({ children, title, isProfile, isAdConfirm
   return (
     <>
       {title && !isProfile ? (
-        <FilterControlsHeader title={title} isAdConfirmExit={isAdConfirmExit} />
+        <FilterControlsHeader title={title} isAdConfirmExit={isAdConfirmExit} handleRemoveFilters={handleRemoveFilters} />
       ) : (
         !isProfile && <Header />
       )}

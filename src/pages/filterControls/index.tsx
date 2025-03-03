@@ -116,6 +116,18 @@ const FilterControls: NextPage = (props) => {
     })
   }
 
+  const handleRemoveFilters = () => {
+    setTempFilters({})
+    updateFilters({})
+    setSelectedCategory(null)
+    setOpenIndex(null)
+    setIsOpen(false)
+    push({
+      pathname: '/filterControls',
+      query: {},
+    })
+  }
+
   const getDealTypeFromCategory = (category: Category) => {
     if (!category) return null
 
@@ -139,7 +151,7 @@ const FilterControls: NextPage = (props) => {
       return 'rent'
     }
 
-    if (categoryName.includes('خرید') || parentCategoryName.includes('خرید')) {
+    if (categoryName.includes('فروش') || parentCategoryName.includes('فروش')) {
       return 'sale'
     }
 
@@ -205,7 +217,7 @@ const FilterControls: NextPage = (props) => {
   if (isFetching) return <div>loading...</div>
   return (
     <>
-      <ClientLayout title="فیلتر">
+      <ClientLayout title="فیلتر" handleRemoveFilters={handleRemoveFilters}>
         <div className="pt-[90px] pb-[100px] h-screen px-4">
           <div className="bg-white relative rounded-[16px] p-4 border">
             <h1 className="py-2 font-normal text-[14px]">دسته بندی</h1>
@@ -327,10 +339,11 @@ const FilterControls: NextPage = (props) => {
                         <div className="flex gap-2 w-full">
                           <div className="flex items-end pb-3 font-normal text-sm">از</div>
                           <FilterTextField
+                            formatPrice
                             isFromTo
                             compacted
                             label="قیمت فروش"
-                            type="number"
+                            type="text"
                             value={tempFilters.priceRangeFrom || ''}
                             onChange={(value) => handleTempFilterChange('priceRange', value, true)}
                             placeholder="مثال: 100 میلیون تومان"
@@ -339,10 +352,11 @@ const FilterControls: NextPage = (props) => {
                         <div className="flex gap-2 w-full">
                           <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
                           <FilterTextField
+                            formatPrice
                             isFromTo
                             compacted
                             label="isTo"
-                            type="number"
+                            type="text"
                             value={tempFilters.priceRangeTo}
                             onChange={(value) => handleTempFilterChange('priceRange', value, false)}
                             placeholder="مثال: 1 میلیارد تومان"
@@ -356,10 +370,11 @@ const FilterControls: NextPage = (props) => {
                         <div className="flex gap-2 w-full">
                           <div className="flex items-end pb-3 font-normal text-sm">از</div>
                           <FilterTextField
+                            formatPrice
                             isFromTo
                             compacted
                             label="رهن یا ودیعه"
-                            type="number"
+                            type="text"
                             value={tempFilters.depositRangeFrom}
                             onChange={(value) => handleTempFilterChange('depositRange', value, true)}
                             placeholder="مثال: 100 میلیون تومان"
@@ -368,10 +383,11 @@ const FilterControls: NextPage = (props) => {
                         <div className="flex gap-2 w-full">
                           <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
                           <FilterTextField
+                            formatPrice
                             isFromTo
                             compacted
                             label="isTo"
-                            type="number"
+                            type="text"
                             value={tempFilters.depositRangeTo}
                             onChange={(value) => handleTempFilterChange('depositRange', value, false)}
                             placeholder="مثال: 12 میلیارد تومان"
@@ -385,8 +401,9 @@ const FilterControls: NextPage = (props) => {
                           <FilterTextField
                             isFromTo
                             compacted
+                            formatPrice
                             label="اجاره ماهیانه"
-                            type="number"
+                            type="text"
                             value={tempFilters.rentFrom}
                             onChange={(value) => handleTempFilterChange('rent', value, true)}
                             placeholder="مثال: 100,000 تومان"
@@ -397,8 +414,9 @@ const FilterControls: NextPage = (props) => {
                           <FilterTextField
                             isFromTo
                             compacted
+                            formatPrice
                             label="isTo"
-                            type="number"
+                            type="text"
                             value={tempFilters.rentTo}
                             onChange={(value) => handleTempFilterChange('rent', value, false)}
                             placeholder="مثال: 10,000,000 تومان"
@@ -724,10 +742,11 @@ interface FilterTextFieldProps extends Omit<React.InputHTMLAttributes<HTMLInputE
   isFromTo?: boolean
   value?: string | string[]
   onChange?: (value: string) => void
+  formatPrice?: boolean
 }
 const FilterTextField: React.FC<FilterTextFieldProps> = (props) => {
   // ? Props
-  const { label, adForm, error, compacted, isFromTo, type = 'text', value, onChange, ...restProps } = props
+  const { label, adForm, error, compacted, isFromTo, type = 'text', value, onChange, formatPrice, ...restProps } = props
 
   // ? Handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -737,10 +756,16 @@ const FilterTextField: React.FC<FilterTextFieldProps> = (props) => {
       const numericValue = inputValue.replace(/\D/g, '')
       onChange?.(numericValue)
     } else {
-      onChange?.(inputValue)
+      const numericValue = inputValue.replace(/,/g, '').replace(/\D/g, '')
+      // فرمت عدد به صورت 3 به 3
+      const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      if (formatPrice) {
+        onChange?.(formattedValue)
+      } else {
+        onChange?.(inputValue)
+      }
     }
   }
-
   // ? Render(s)
   return (
     <div className={`${isFromTo && 'flex-1'}`}>

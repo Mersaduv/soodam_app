@@ -7,8 +7,9 @@ interface Props {
   title: string
   isProfile?: boolean
   isAdConfirmExit?: boolean
+  handleRemoveFilters?: () => void
 }
-const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmExit }) => {
+const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmExit, handleRemoveFilters }) => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { adConfirmExit } = useAppSelector((state) => state.statesData)
@@ -39,9 +40,19 @@ const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmEx
 
         {!isProfile && title}
       </div>
-      <button type="button" className={`${isProfile ? 'bg-white rounded-full w-fit p-1' : 'py-4'}`}>
-        <NotificationIcon width="24px" height="24px" />
-      </button>
+      {handleRemoveFilters ? (
+        <button
+          type="button"
+          className={`bg-white rounded-full w-fit p-1 font-semibold whitespace-nowrap text-[#D52133] text-[16px]`}
+          onClick={handleRemoveFilters}
+        >
+          حذف فیلتر ها
+        </button>
+      ) : (
+        <button type="button" className={`${isProfile ? 'bg-white rounded-full w-fit p-1' : 'py-4'}`}>
+          <NotificationIcon width="24px" height="24px" />
+        </button>
+      )}
     </header>
   )
 }

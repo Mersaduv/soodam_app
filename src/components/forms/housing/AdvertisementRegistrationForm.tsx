@@ -643,14 +643,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     <TextFiledPrice
                       adForm
                       label="قیمت فروش"
-                      name="price"
                       type="text"
+                      name="price"
                       value={field.value}
                       onChange={field.onChange}
                       onBlur={field.onBlur}
                       errors={errors.price}
-                      placeholder="مثال : 100 میلیون تومان"
                       formatPrice={true}
+                      placeholder="مثال : 100 میلیون تومان"
                     />
                   )}
                 />
