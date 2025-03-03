@@ -80,7 +80,7 @@ const formatPriceLoc = (price: number): string => {
   } else if (price >= 1_000_000) {
     return `${(price / 1_000_000).toFixed(0)} میلیون تومان`
   } else {
-    return `${price.toLocaleString()} تومان`
+    return `${price.toLocaleString('en-US')} تومان`
   }
 }
 

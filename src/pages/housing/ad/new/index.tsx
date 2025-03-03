@@ -21,10 +21,15 @@ const NewAdPage: NextPage = () => {
       isAdConfirmExit={true}
       title={`${query.role === 'Marketer' ? 'ثبت آگهی به عنوان بازاریاب' : 'ثبت آگهی شخصی'}`}
     >
-      <div className="pt-[90px] px-4">
-        {/* {query.role === 'Marketer' ? <AdvertisementRegistrationForm /> : <AdvertisementRegistrationForm />} */}
-        {adConfirmExit === '0' ? (
-          <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7] ">
+      <div className="pt-[90px] px-4 relative">
+        {/* کامپوننت فرم همیشه رندر می‌شود */}
+        <div style={{ display: adConfirmExit === '0' ? 'none' : 'block' }}>
+          <AdvertisementRegistrationForm roleUser={roleQuery} />
+        </div>
+
+        {/* نمایش یا پنهان کردن لایه تایید خروج */}
+        {adConfirmExit === '0' && (
+          <div className=" bg-white mx-4 border rounded-2xl border-[#E3E3E7]]">
             <div className="flex justify-center mt-12">
               <img className="w-[180px]" src="/static/Document_empty.png" alt="" />
             </div>
@@ -52,8 +57,6 @@ const NewAdPage: NextPage = () => {
               </Button>
             </div>
           </div>
-        ) : (
-          <AdvertisementRegistrationForm roleUser={roleQuery} />
         )}
       </div>
     </ClientLayout>

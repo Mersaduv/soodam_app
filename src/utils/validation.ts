@@ -32,7 +32,6 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
       .required('شماره تماس الزامی است')
       .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
     nationalCode: Yup.string()
-      .matches(/^[0-9]{10}$/, 'کد ملی معتبر نیست')
       .optional(),
     postalCode: Yup.string().required('کد پستی الزامی است').min(5, 'کد پستی معتبر نیست'),
     address: Yup.string().required('آدرس الزامی است'),

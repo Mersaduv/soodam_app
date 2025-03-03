@@ -19,7 +19,7 @@ import {
   Cube3DSmIcon,
   Cube3DIcon,
 } from '@/icons'
-import { Button, CustomCheckbox, DisplayError, Modal, TextField } from '@/components/ui'
+import { Button, CustomCheckbox, DisplayError, Modal, TextField, TextFiledPrice } from '@/components/ui'
 import * as yup from 'yup'
 import dynamic from 'next/dynamic'
 import { useDisclosure } from '@/hooks'
@@ -640,14 +640,17 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                   name="price"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <TextFiledPrice
                       adForm
                       label="قیمت فروش"
-                      type="number"
-                      {...field}
-                      control={control}
+                      name="price"
+                      type="text"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
                       errors={errors.price}
                       placeholder="مثال : 100 میلیون تومان"
+                      formatPrice={true}
                     />
                   )}
                 />
@@ -656,14 +659,17 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                   name="discount"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <TextFiledPrice
                       adForm
                       label="تخفیف"
-                      type="number"
-                      {...field}
-                      control={control}
+                      type="text"
+                      name="discount"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
                       errors={errors.discount}
                       placeholder="مثال : 10 میلیون(اختیاری)"
+                      formatPrice={true}
                     />
                   )}
                 />
@@ -674,15 +680,17 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                   name="deposit"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <TextFiledPrice
                       adForm
-                      compacted
                       label="رهن یا ودیعه"
-                      type="number"
-                      {...field}
-                      control={control}
+                      type="text"
+                      name="deposit"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
                       errors={errors.deposit}
                       placeholder="مثال : 100 میلیون تومان"
+                      formatPrice={true}
                     />
                   )}
                 />
@@ -691,15 +699,17 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                   name="rent"
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <TextFiledPrice
                       adForm
-                      compacted
                       label="اجاره ماهیانه"
-                      type="number"
-                      {...field}
-                      control={control}
+                      type="text"
+                      name="rent"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
                       errors={errors.rent}
                       placeholder="مثال : 10 میلیون "
+                      formatPrice={true}
                     />
                   )}
                 />
@@ -925,7 +935,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                         >
                           {selectedNames[item.id] ? (
                             <span className="text-sm text-gray-700">{selectedNames[item.id]}</span>
-                          ) : <span>انتخاب کنید</span>}{' '}
+                          ) : (
+                            <span>انتخاب کنید</span>
+                          )}{' '}
                           <ArrowLeftIcon
                             className={`w-5 h-5 text-[#9D9D9D] transition-transform ${
                               openDropdowns[item.id] ? 'rotate-180' : ''
