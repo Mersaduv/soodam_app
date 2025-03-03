@@ -104,7 +104,7 @@ const SingleHousing: NextPage = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: housingData.title,
+          title: window.location.href,
           text: housingData.title,
           url: window.location.href,
         })
@@ -135,7 +135,7 @@ const SingleHousing: NextPage = () => {
                 <div className="flex items-center gap-2">
                   <LocationTitleIcon width="16px" height="16px" /> <div className="text-xs">{housingData.title} </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   <div
                     id="saveHouse"
                     className={`rounded-full cursor-pointer flex-center ${isSaved ? 'text-[#D52133]' : 'text-white'}`}
@@ -145,7 +145,7 @@ const SingleHousing: NextPage = () => {
                   </div>
 
                   <div id="shareHouse" className={`rounded-full cursor-pointer flex-center`} onClick={handleShare}>
-                    <IoShareSocialOutline width="19px" height="17px" />
+                    <IoShareSocialOutline className='text-xl' />
                   </div>
                 </div>
               </div>
