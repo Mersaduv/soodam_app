@@ -33,15 +33,18 @@ export default function Home() {
     data: housingData,
     isFetching,
     ...housingQueryProps
-  } = useGetHousingQuery({
-    ...query,
-    type,
-    swLat: bounds ? bounds.getSouthWest().lat : undefined,
-    swLng: bounds ? bounds.getSouthWest().lng : undefined,
-    neLat: bounds ? bounds.getNorthEast().lat : undefined,
-    neLng: bounds ? bounds.getNorthEast().lng : undefined,
-  },
-  { skip: !shouldFetch })
+  } = useGetHousingQuery(
+    {
+      ...query,
+      type,
+      status: 2,
+      swLat: bounds ? bounds.getSouthWest().lat : undefined,
+      swLng: bounds ? bounds.getSouthWest().lng : undefined,
+      neLat: bounds ? bounds.getNorthEast().lat : undefined,
+      neLng: bounds ? bounds.getNorthEast().lng : undefined,
+    },
+    { skip: !shouldFetch }
+  )
   const handleBoundsChanged = useCallback((newBounds) => {
     setBounds((prevBounds) => {
       if (prevBounds && prevBounds.equals(newBounds)) {

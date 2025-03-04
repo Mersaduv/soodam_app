@@ -1,6 +1,6 @@
 import baseApi from '@/services/baseApi'
 import { generateQueryParams } from '@/utils'
-import { QueryParams, Housing , ServiceResponse} from '@/types'
+import { QueryParams, Housing, ServiceResponse, AdFormValues } from '@/types'
 import { IdQuery } from './types'
 
 export const housingApiSlice = baseApi.injectEndpoints({
@@ -40,7 +40,15 @@ export const housingApiSlice = baseApi.injectEndpoints({
         method: 'GET',
       }),
     }),
+    addHousing: builder.mutation<ServiceResponse<Housing>, AdFormValues>({
+      query: (data) => ({
+        url: '/api/housing/ad',
+        method: 'POST',
+        body: data,
+      }),
+    }),
   }),
 })
 
-export const { useGetHousingQuery ,useGetHousingByCategoryQuery,useGetSingleHousingQuery} = housingApiSlice
+export const { useGetHousingQuery, useGetHousingByCategoryQuery, useGetSingleHousingQuery, useAddHousingMutation } =
+  housingApiSlice

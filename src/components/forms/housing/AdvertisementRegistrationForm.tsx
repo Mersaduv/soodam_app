@@ -22,9 +22,10 @@ import {
 import { Button, CustomCheckbox, DisplayError, Modal, TextField, TextFiledPrice } from '@/components/ui'
 import * as yup from 'yup'
 import dynamic from 'next/dynamic'
-import { useDisclosure } from '@/hooks'
+import { useAppDispatch, useDisclosure } from '@/hooks'
 import { Disclosure } from '@headlessui/react'
 import {
+  useAddHousingMutation,
   useGetCategoriesQuery,
   useGetFeaturesByCategoryQuery,
   useGetFeaturesQuery,
@@ -34,6 +35,7 @@ import { useRouter } from 'next/router'
 import { AdFormValues, Category, Feature } from '@/types'
 import { validationSchema } from '@/utils'
 import { IoMdClose } from 'react-icons/io'
+import { setIsSuccess } from '@/store'
 const rentalTerms = [
   { id: 1, name: 'روزهای عادی (شنبه تا سه شنبه)', icon: CalendarIcon },
   { id: 2, name: 'آخر هفته (چهارشنبه تا جمعه)', icon: CalendarTickIcon },
@@ -70,10 +72,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   const [playingIndex, setPlayingIndex] = useState(null)
   const [drawnPoints, setDrawnPoints] = useState([])
   const [selectedNames, setSelectedNames] = useState({})
-
+  const dispatch = useAppDispatch()
   // ? Queries
   const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
+  const [
+    addHousing,
+    { isLoading: isLoadingCreate, isSuccess: isSuccessCreate, isError: isErrorCreate, error: errorCreate },
+  ] = useAddHousingMutation()
 
   const getDealTypeFromCategory = (category: Category) => {
     if (!category) return null
@@ -191,8 +197,13 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   //? submit final step
   const onSubmit = (data: AdFormValues) => {
     console.log('Form submitted:', data, roleUser)
+    addHousing(data)
   }
-
+  useEffect(() => {
+    if (isSuccessCreate) {
+      dispatch(setIsSuccess(true))
+    }
+  }, [isSuccessCreate, dispatch])
   const validateCurrentStep = async () => {
     let fieldsToValidate: string[] = []
 
@@ -1230,13 +1241,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
             )}
 
             {currentStep < steps.length - 1 ? (
-              <Button
-                type="button"
+              <div
                 onClick={handleNext}
-                className="w-[120px] float-left h-[48px] text-white rounded-lg font-bold text-sm hover:bg-[#f75263]"
+                className="w-[120px] float-left h-[48px] text-white rounded-lg font-bold text-sm hover:bg-[#f75263] button cursor-pointer"
               >
                 بعدی
-              </Button>
+              </div>
             ) : (
               <Button
                 type="submit"

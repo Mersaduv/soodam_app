@@ -16,6 +16,7 @@ interface State {
   mode: string
   itemFilesInArea: any[]
   isSatelliteView: boolean
+  isSuccess: boolean
 }
 
 const initialState: State = {
@@ -33,6 +34,7 @@ const initialState: State = {
   mode: 'none',
   itemFilesInArea: [],
   isSatelliteView: false,
+  isSuccess: false,
 }
 
 const updateSlice = createSlice({
@@ -84,6 +86,9 @@ const updateSlice = createSlice({
     setIsSatelliteView: (state, action) => {
       state.isSatelliteView = action.payload
     },
+    setIsSuccess: (state, action) => {
+      state.isSuccess = action.payload
+    },
   },
 })
 
@@ -103,5 +108,6 @@ export const {
   setItemFilesInArea,
   resetDrawing,
   setIsSatelliteView,
+  setIsSuccess,
 } = updateSlice.actions
 export default updateSlice.reducer

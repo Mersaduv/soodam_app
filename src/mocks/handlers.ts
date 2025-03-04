@@ -1,4 +1,4 @@
-import { Feature, Category, SubscriptionPlan, User } from '@/types'
+import { Feature, Category, SubscriptionPlan, User, AdFormValues } from '@/types'
 import { UserRoleType } from '@/utils'
 import { rest } from 'msw'
 
@@ -178,6 +178,7 @@ const newsData = [
 const housing = [
   {
     id: '1',
+    status: 2,
     title: '۲۰۰ متر، محدوده ونک، بلوار دانش',
     location: getRandomLocation(35.75, 51.41, 0.02),
     highlightFeatures: [
@@ -308,6 +309,7 @@ const housing = [
   },
   {
     id: '2',
+    status: 2,
     title: '  محدوده ولنجک، بلوار ',
     location: getRandomLocation(35.75, 51.41, 0.02),
     highlightFeatures: [
@@ -438,6 +440,7 @@ const housing = [
   },
   {
     id: '3',
+    status: 2,
     title: 'دعوت از سازنده جهت مشارکت در ساخت فاز8پردیس ',
     location: getRandomLocation(35.75, 51.41, 0.02),
     highlightFeatures: [
@@ -568,6 +571,7 @@ const housing = [
   },
   {
     id: '4',
+    status: 2,
     title: 'اجاره روزانه/هفتگی/ماهانه آپارتمان ۴۰ متری ',
     location: getRandomLocation(35.75, 51.41, 0.02),
     highlightFeatures: [
@@ -698,6 +702,400 @@ const housing = [
     save: 0,
     contactOwner: '09115030300',
     description: ' آسانسور، سندتکبرگ، وام دار',
+  },
+
+  {
+    id: '5',
+    status: 1,
+    title: ' 200 متر، محدوده بلوار دانش',
+    location: getRandomLocation(35.75, 51.41, 0.02),
+    highlightFeatures: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        title: 'تعداد اتاق',
+        value: '3',
+      },
+      {
+        id: '2',
+        image: '/static/ads/grid-2.png',
+        title: 'متر مربع',
+        value: '3',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سال ساخت',
+        value: '1377',
+      },
+    ],
+    features: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        title: 'تعداد اتاق',
+        value: '2',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        title: 'پارکینگ',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'نمای ساختمان',
+        value: 'سنگ',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سال ساخت',
+        value: '1366',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'استخر',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سونا',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سیستم گرمایش:',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'وان و جکوزی',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'موقعیت جغرافیایی',
+        value: 'شمالی',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'بالکن',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'تعداد کل طبقات ساختمان',
+        value: '4',
+      },
+    ],
+    deposit: 600000000,
+    rent: 5000000,
+    price: 0,
+    ownerProfitPercentage: 0,
+    producerProfitPercentage: 0,
+    capacity: 0,
+    extraPeople: 0,
+    rentalTerm: null,
+    address: 'تهران، ونک،خیابان 33',
+    categoryId: '1-1',
+    category: 'اجاره آپارتمان',
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+    adCode: 'A10001',
+    images: [
+      '/static/ads/pic1.jpg',
+      '/static/ads/pic2.jpg',
+      '/static/ads/pic3.jpg',
+      '/static/ads/pic4.jpg',
+      '/static/ads/pic5.jpg',
+    ],
+    views: 21,
+    save: 0,
+    contactOwner: '09334004040',
+    description: ' آسانسور، سندتکبرگ، وام دار',
+  },
+  {
+    id: '6',
+    status: 2,
+    title: 'محدوده ولنجک، بلوار ',
+    location: getRandomLocation(35.75, 51.41, 0.02),
+    highlightFeatures: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        title: 'تعداد اتاق',
+        value: '1',
+      },
+      {
+        id: '2',
+        image: '/static/ads/grid-2.png',
+        title: 'متراژ',
+        value: '100',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سال ساخت',
+        value: '1379',
+      },
+    ],
+    features: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        title: 'تعداد اتاق',
+        value: '2',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        title: 'پارکینگ',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'نمای ساختمان',
+        value: 'سنگ',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سال ساخت',
+        value: '1366',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'استخر',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سونا',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سیستم گرمایش:',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'وان و جکوزی',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'موقعیت جغرافیایی',
+        value: 'شمالی',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'بالکن',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'تعداد کل طبقات ساختمان',
+        value: '4',
+      },
+    ],
+    deposit: 0,
+    rent: 0,
+    price: 1400000000,
+    ownerProfitPercentage: 0,
+    producerProfitPercentage: 0,
+    capacity: 0,
+    extraPeople: 0,
+    rentalTerm: null,
+    address: 'تهران، ونک،خیابان 33',
+    categoryId: '2-1',
+    category: 'فروش آپارتمان',
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+    adCode: 'A10002',
+    images: [
+      '/static/ads/pic1.jpg',
+      '/static/ads/pic2.jpg',
+      '/static/ads/pic3.jpg',
+      '/static/ads/pic4.jpg',
+      '/static/ads/pic5.jpg',
+    ],
+    views: 21,
+    save: 0,
+    contactOwner: '09334003030',
+    description: ' آسانسور، سندتکبرگ، وام دار',
+  },
+  {
+    id: '7',
+    status: 3,
+    title: 'دعوت از سازنده جهت مشارکت در ساخت فاز8پردیس ',
+    location: getRandomLocation(35.75, 51.41, 0.02),
+    highlightFeatures: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        title: 'تعداد اتاق',
+        value: '1',
+      },
+      {
+        id: '2',
+        image: '/static/ads/grid-2.png',
+        title: 'متراژ',
+        value: '300',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سال ساخت',
+        value: '1377',
+      },
+    ],
+    features: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        title: 'تعداد اتاق',
+        value: '2',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        title: 'پارکینگ',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'نمای ساختمان',
+        value: 'سنگ',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سال ساخت',
+        value: '1366',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'استخر',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سونا',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سیستم گرمایش:',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'وان و جکوزی',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'موقعیت جغرافیایی',
+        value: 'شمالی',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'بالکن',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'تعداد کل طبقات ساختمان',
+        value: '4',
+      },
+    ],
+    deposit: 0,
+    rent: 0,
+    price: 0,
+    ownerProfitPercentage: 10,
+    producerProfitPercentage: 5,
+    capacity: 0,
+    extraPeople: 0,
+    rentalTerm: null,
+    address: 'تهران، ونک،خیابان 33',
+    categoryId: '5-1-1',
+    category: 'مالک',
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+    adCode: 'A10003',
+    images: [
+      '/static/ads/pic1.jpg',
+      '/static/ads/pic2.jpg',
+      '/static/ads/pic3.jpg',
+      '/static/ads/pic4.jpg',
+      '/static/ads/pic5.jpg',
+    ],
+    views: 21,
+    save: 0,
+    contactOwner: '09124003030',
+    description: ' سندتکبرگ، وام دار',
   },
 ]
 
@@ -1798,6 +2196,7 @@ export const handlers = [
     const searchParams = req.url.searchParams
     const title = searchParams.get('title')
     const type = searchParams.get('type')
+    const status = searchParams.get('status')
 
     // دریافت پارامترهای bounds در صورت وجود
     const swLat = searchParams.get('swLat')
@@ -1806,6 +2205,10 @@ export const handlers = [
     const neLng = searchParams.get('neLng')
 
     let filteredHousing = [...housing]
+
+    if (status) {
+      filteredHousing = filteredHousing.filter((item) => item.status === parseInt(status))
+    }
 
     // فیلتر کردن بر اساس محدوده جغرافیایی در صورت ارسال پارامترها
     if (swLat && swLng && neLat && neLng) {
@@ -1822,6 +2225,10 @@ export const handlers = [
     }
 
     return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredHousing }))
+  }),
+
+  rest.post('/api/housing/ad', async (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json({ message: 'با موفقیت انجام شد' }))
   }),
 
   rest.get('/api/housing/:adCode', (req, res, ctx) => {
