@@ -170,9 +170,9 @@ const FilterControlNavBar: React.FC = () => {
       {appliedFilterGroups.map(({ groupName, groupKeys, displayText }) => (
         <div
           key={groupName}
-          className="cursor-pointer w-fit my-[12px] flex-center gap-1 px-4 pl-2 font-normal text-sm border rounded-[59px] h-[40px] bg-[#D52133] text-white"
+          className="cursor-pointer w-fit my-[12px] flex-center gap-1 px-4 pl-2 font-normal text-sm border rounded-[59px] bg-[#D52133] text-white"
         >
-          <span className="font-normal whitespace-nowrap text-[16px] text-white">{displayText}</span>
+          <span onClick={handleNavigate} className="font-normal whitespace-nowrap text-[16px] text-white h-[40px] flex-center">{displayText}</span>
           <button onClick={() => removeFilterGroup(groupKeys)} className="text-white font-bold">
             <Close className=" text-white text-2xl" />
           </button>

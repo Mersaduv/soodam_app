@@ -2228,6 +2228,14 @@ export const handlers = [
   }),
 
   rest.post('/api/housing/ad', async (req, res, ctx) => {
+    const { category } = await req.json<AdFormValues>()
+    // انتخاب یک آیتم تصادفی از housing
+    const filteredHousing = housing.filter(item => item.categoryId === category);
+    const randomHousingItem = filteredHousing[Math.floor(Math.random() * filteredHousing.length)];
+    randomHousingItem.status = 1
+    // ذخیره آیتم در localStorage
+    localStorage.setItem('addAdv', JSON.stringify([randomHousingItem]))
+    
     return res(ctx.status(200), ctx.json({ message: 'با موفقیت انجام شد' }))
   }),
 

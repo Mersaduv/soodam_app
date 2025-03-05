@@ -197,6 +197,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   //? submit final step
   const onSubmit = (data: AdFormValues) => {
     console.log('Form submitted:', data, roleUser)
+    data.status = 1
     addHousing(data)
   }
   useEffect(() => {

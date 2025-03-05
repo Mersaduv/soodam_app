@@ -42,9 +42,13 @@ const savedHousesSlice = createSlice({
       // بروزرسانی localStorage
       localStorage.setItem('savedHouses', JSON.stringify(state.savedHouses));
     },
+    clearSavedHouses: (state) => {
+      state.savedHouses = [];
+      localStorage.removeItem('savedHouses');
+    },
   },
 });
 
-export const { toggleSaveHouse } = savedHousesSlice.actions;
+export const { toggleSaveHouse, clearSavedHouses } = savedHousesSlice.actions
 
 export default savedHousesSlice.reducer;

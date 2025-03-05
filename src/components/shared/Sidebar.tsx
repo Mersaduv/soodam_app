@@ -178,7 +178,6 @@ const menuItems = [
       { title: 'پرداختی‌های من', icon: null, path: '/my-payments' },
       { title: 'علاقمندی ها', icon: null, path: '/lists' },
       { title: 'آمار بازدید آگهی ها', icon: null, path: '/visitStatistics' },
-      { title: 'آمار بازدید آگهی های من', icon: null, path: '/my-ads-viewStatistics' },
       { title: 'پنل املاک من', icon: null, path: '/' },
     ],
   },

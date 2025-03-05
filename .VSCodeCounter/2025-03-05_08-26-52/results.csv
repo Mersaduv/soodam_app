@@ -1,0 +1,247 @@
+"filename", "language", "TypeScript", "JSON", "JavaScript", "Markdown", "JSON with Comments", "XML", "CSS", "TypeScript JSX", "comment", "blank", "total"
+"d:\1-git\prod\dev-soodam\.eslintrc.json", "JSON", 0, 9, 0, 0, 0, 0, 0, 0, 0, 1, 10
+"d:\1-git\prod\dev-soodam\.prettierrc.js", "JavaScript", 0, 0, 23, 0, 0, 0, 0, 0, 0, 1, 24
+"d:\1-git\prod\dev-soodam\README.md", "Markdown", 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1
+"d:\1-git\prod\dev-soodam\next.config.ts", "TypeScript", 27, 0, 0, 0, 0, 0, 0, 0, 1, 1, 29
+"d:\1-git\prod\dev-soodam\package-lock.json", "JSON", 0, 12844, 0, 0, 0, 0, 0, 0, 0, 1, 12845
+"d:\1-git\prod\dev-soodam\package.json", "JSON", 0, 59, 0, 0, 0, 0, 0, 0, 0, 1, 60
+"d:\1-git\prod\dev-soodam\postcss.config.mjs", "JavaScript", 0, 0, 8, 0, 0, 0, 0, 0, 1, 1, 10
+"d:\1-git\prod\dev-soodam\public\file.svg", "XML", 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+"d:\1-git\prod\dev-soodam\public\globe.svg", "XML", 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+"d:\1-git\prod\dev-soodam\public\mockServiceWorker.js", "JavaScript", 0, 0, 208, 0, 0, 0, 0, 0, 43, 53, 304
+"d:\1-git\prod\dev-soodam\public\next.svg", "XML", 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+"d:\1-git\prod\dev-soodam\public\vercel.svg", "XML", 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+"d:\1-git\prod\dev-soodam\public\window.svg", "XML", 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+"d:\1-git\prod\dev-soodam\src\components\emptyList\EmptyCustomList.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 3, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\components\emptyList\EmptySearchList.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 14, 0, 3, 17
+"d:\1-git\prod\dev-soodam\src\components\emptyList\index.ts", "TypeScript", 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3
+"d:\1-git\prod\dev-soodam\src\components\forms\housing\AdvertisementRegistrationForm.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 1176, 21, 69, 1266
+"d:\1-git\prod\dev-soodam\src\components\forms\housing\RequestRegistrationForm.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 1036, 20, 52, 1108
+"d:\1-git\prod\dev-soodam\src\components\forms\index.ts", "TypeScript", 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\components\forms\login\LoginForm.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 54, 3, 7, 64
+"d:\1-git\prod\dev-soodam\src\components\forms\login\MarketerUserLoginForm.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 592, 6, 36, 634
+"d:\1-git\prod\dev-soodam\src\components\forms\login\VerificationCode.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 149, 2, 19, 170
+"d:\1-git\prod\dev-soodam\src\components\housing\HousingCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 118, 14, 11, 143
+"d:\1-git\prod\dev-soodam\src\components\housing\HousingFilterControls.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 111, 10, 24, 145
+"d:\1-git\prod\dev-soodam\src\components\housing\index.ts", "TypeScript", 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2
+"d:\1-git\prod\dev-soodam\src\components\layouts\ClientLayout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 75, 2, 10, 87
+"d:\1-git\prod\dev-soodam\src\components\layouts\index.ts", "TypeScript", 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2
+"d:\1-git\prod\dev-soodam\src\components\map\LocationMap.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 32, 0, 4, 36
+"d:\1-git\prod\dev-soodam\src\components\map\Map.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 1084, 108, 111, 1303
+"d:\1-git\prod\dev-soodam\src\components\map\MapLocationPicker.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 539, 14, 70, 623
+"d:\1-git\prod\dev-soodam\src\components\modals\FirstLoginModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 91, 0, 6, 97
+"d:\1-git\prod\dev-soodam\src\components\modals\MemberUserLoginsModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 64, 0, 4, 68
+"d:\1-git\prod\dev-soodam\src\components\modals\SearchModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 147, 13, 10, 170
+"d:\1-git\prod\dev-soodam\src\components\modals\index.ts", "TypeScript", 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\components\shared\BottomNavigation.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 77, 0, 6, 83
+"d:\1-git\prod\dev-soodam\src\components\shared\DataStateDisplay.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 49, 2, 7, 58
+"d:\1-git\prod\dev-soodam\src\components\shared\FilterControlNavBar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 156, 9, 21, 186
+"d:\1-git\prod\dev-soodam\src\components\shared\FilterControlsHeader.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 59, 1, 5, 65
+"d:\1-git\prod\dev-soodam\src\components\shared\Footer.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 7, 0, 2, 9
+"d:\1-git\prod\dev-soodam\src\components\shared\HandleResponse.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 29, 15, 14, 58
+"d:\1-git\prod\dev-soodam\src\components\shared\Header.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 77, 0, 8, 85
+"d:\1-git\prod\dev-soodam\src\components\shared\MapMode.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 24, 0, 3, 27
+"d:\1-git\prod\dev-soodam\src\components\shared\Sidebar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 211, 1, 10, 222
+"d:\1-git\prod\dev-soodam\src\components\shared\index.ts", "TypeScript", 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8
+"d:\1-git\prod\dev-soodam\src\components\skeleton\HousingSkeleton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 26, 0, 2, 28
+"d:\1-git\prod\dev-soodam\src\components\skeleton\NavbarSkeleton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 11, 0, 2, 13
+"d:\1-git\prod\dev-soodam\src\components\skeleton\index.ts", "TypeScript", 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3
+"d:\1-git\prod\dev-soodam\src\components\sliders\HousingSliders.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 73, 5, 5, 83
+"d:\1-git\prod\dev-soodam\src\components\sliders\index.ts", "TypeScript", 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2
+"d:\1-git\prod\dev-soodam\src\components\ui\Alert.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 53, 4, 7, 64
+"d:\1-git\prod\dev-soodam\src\components\ui\Buttons.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 31, 2, 8, 41
+"d:\1-git\prod\dev-soodam\src\components\ui\Checkbox.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 45, 0, 7, 52
+"d:\1-git\prod\dev-soodam\src\components\ui\DisplayError.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 70, 0, 8, 78
+"d:\1-git\prod\dev-soodam\src\components\ui\Modal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 143, 4, 18, 165
+"d:\1-git\prod\dev-soodam\src\components\ui\SelectBox.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 90, 7, 12, 109
+"d:\1-git\prod\dev-soodam\src\components\ui\Skeleton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 63, 4, 13, 80
+"d:\1-git\prod\dev-soodam\src\components\ui\TextField.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 73, 6, 11, 90
+"d:\1-git\prod\dev-soodam\src\components\ui\TextFiledPrice.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 90, 6, 10, 106
+"d:\1-git\prod\dev-soodam\src\components\ui\index.ts", "TypeScript", 13, 0, 0, 0, 0, 0, 0, 0, 1, 5, 19
+"d:\1-git\prod\dev-soodam\src\components\ui\loading\FullInlineLoading.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 68, 0, 3, 71
+"d:\1-git\prod\dev-soodam\src\components\ui\loading\FullScreenLoading.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 8, 0, 2, 10
+"d:\1-git\prod\dev-soodam\src\components\ui\loading\InlineLoading.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 68, 1, 0, 69
+"d:\1-git\prod\dev-soodam\src\components\ui\loading\LoadingScreen.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 16, 1, 3, 20
+"d:\1-git\prod\dev-soodam\src\components\ui\loading\PageTransitionLoading.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 32, 7, 39
+"d:\1-git\prod\dev-soodam\src\components\user\LogoutButton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 29, 2, 4, 35
+"d:\1-git\prod\dev-soodam\src\components\user\ProtectedRouteWrapper.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 24, 10, 34
+"d:\1-git\prod\dev-soodam\src\components\user\SubscriptionCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 23, 3, 4, 30
+"d:\1-git\prod\dev-soodam\src\components\user\index.ts", "TypeScript", 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 3
+"d:\1-git\prod\dev-soodam\src\hooks\index.ts", "TypeScript", 4, 0, 0, 0, 0, 0, 0, 0, 2, 1, 7
+"d:\1-git\prod\dev-soodam\src\hooks\use-filter.ts", "TypeScript", 45, 0, 0, 0, 0, 0, 0, 0, 0, 8, 53
+"d:\1-git\prod\dev-soodam\src\hooks\useChangeRoute.ts", "TypeScript", 14, 0, 0, 0, 0, 0, 0, 0, 0, 7, 21
+"d:\1-git\prod\dev-soodam\src\hooks\useDebounce.ts", "TypeScript", 12, 0, 0, 0, 0, 0, 0, 0, 0, 6, 18
+"d:\1-git\prod\dev-soodam\src\hooks\useDisclosure.ts", "TypeScript", 14, 0, 0, 0, 0, 0, 0, 0, 1, 6, 21
+"d:\1-git\prod\dev-soodam\src\hooks\useRedux.ts", "TypeScript", 4, 0, 0, 0, 0, 0, 0, 0, 0, 2, 6
+"d:\1-git\prod\dev-soodam\src\icons\index.ts", "TypeScript", 183, 0, 0, 0, 0, 0, 0, 0, 1, 4, 188
+"d:\1-git\prod\dev-soodam\src\icons\svgs\1017280091582962144 (1) 1.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\13724094091679983182 1.svg", "XML", 0, 0, 0, 0, 0, 35, 0, 0, 0, 1, 36
+"d:\1-git\prod\dev-soodam\src\icons\svgs\18237869081579156621 1.svg", "XML", 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 10
+"d:\1-git\prod\dev-soodam\src\icons\svgs\20016826761595759881 1.svg", "XML", 0, 0, 0, 0, 0, 18, 0, 0, 0, 1, 19
+"d:\1-git\prod\dev-soodam\src\icons\svgs\3d-cube-scan.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\3d-rotate.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\3dcube2.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Bed.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Eliipse.svg", "XML", 0, 0, 0, 0, 0, 15, 0, 0, 0, 1, 16
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Frame.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Group 1000011001.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Group 1000011157.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Group 7.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Group.svg", "XML", 0, 0, 0, 0, 0, 36, 0, 0, 0, 1, 37
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Send.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Upload icon.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Vector (1).svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Vector (2).svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Vector 395.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\Vector.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\add-circle.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\archive-tick.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\archive-tick2.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\arrow-left.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\battery-full.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\buliding (1).svg", "XML", 0, 0, 0, 0, 0, 10, 0, 0, 0, 1, 11
+"d:\1-git\prod\dev-soodam\src\icons\svgs\buliding.svg", "XML", 0, 0, 0, 0, 0, 10, 0, 0, 0, 1, 11
+"d:\1-git\prod\dev-soodam\src\icons\svgs\button.svg", "XML", 0, 0, 0, 0, 0, 17, 0, 0, 0, 1, 18
+"d:\1-git\prod\dev-soodam\src\icons\svgs\calendar-search.svg", "XML", 0, 0, 0, 0, 0, 11, 0, 0, 0, 1, 12
+"d:\1-git\prod\dev-soodam\src\icons\svgs\calendar-tick.svg", "XML", 0, 0, 0, 0, 0, 11, 0, 0, 0, 1, 12
+"d:\1-git\prod\dev-soodam\src\icons\svgs\calendar.svg", "XML", 0, 0, 0, 0, 0, 12, 0, 0, 0, 1, 13
+"d:\1-git\prod\dev-soodam\src\icons\svgs\call.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\camera-small.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\camera.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\camera2.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\card-tick.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\chage.svg", "XML", 0, 0, 0, 0, 0, 8, 0, 0, 0, 1, 9
+"d:\1-git\prod\dev-soodam\src\icons\svgs\change.svg", "XML", 0, 0, 0, 0, 0, 8, 0, 0, 0, 1, 9
+"d:\1-git\prod\dev-soodam\src\icons\svgs\check.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\clock2.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\close-circle.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\eye.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\gear-settings.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\gps.svg", "XML", 0, 0, 0, 0, 0, 8, 0, 0, 0, 1, 9
+"d:\1-git\prod\dev-soodam\src\icons\svgs\grid-2.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\headphone.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\heart 1.svg", "XML", 0, 0, 0, 0, 0, 10, 0, 0, 0, 1, 11
+"d:\1-git\prod\dev-soodam\src\icons\svgs\home-2.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\home.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\hospital.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\house.svg", "XML", 0, 0, 0, 0, 0, 8, 0, 0, 0, 1, 9
+"d:\1-git\prod\dev-soodam\src\icons\svgs\info-circle (1).svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\info-circle.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\location.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\location2.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\location22.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\locationred.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\logout.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\map (1).svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\map copy.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\map.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\menu.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\mirror (1).svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\more.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\note-favorite.svg", "XML", 0, 0, 0, 0, 0, 9, 0, 0, 0, 1, 10
+"d:\1-git\prod\dev-soodam\src\icons\svgs\note-text.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\notification-bing.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\one-finger-swipe-left (1).svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\one-finger-swipe-left (2).svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\one-finger-swipe-left copy.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\one-finger-swipe-left.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\people.svg", "XML", 0, 0, 0, 0, 0, 8, 0, 0, 0, 1, 9
+"d:\1-git\prod\dev-soodam\src\icons\svgs\profile-add.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\profile-no-tick.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\profile-tick-green.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\profile-tick.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\repeat.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\search-normal.svg", "XML", 0, 0, 0, 0, 0, 4, 0, 0, 0, 1, 5
+"d:\1-git\prod\dev-soodam\src\icons\svgs\search.svg", "XML", 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\icons\svgs\sms-edit.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\sms-edit1.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\task-square.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\ticket-discount.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\ticket-star.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\ticket-star2.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\user-edit.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\user-edit2.svg", "XML", 0, 0, 0, 0, 0, 6, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\icons\svgs\video.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\icons\svgs\wallet.svg", "XML", 0, 0, 0, 0, 0, 7, 0, 0, 0, 1, 8
+"d:\1-git\prod\dev-soodam\src\icons\svgs\warning-22.svg", "XML", 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\mocks\browser.ts", "TypeScript", 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 5
+"d:\1-git\prod\dev-soodam\src\mocks\handlers.ts", "TypeScript", 2146, 0, 0, 0, 0, 0, 0, 0, 144, 118, 2408
+"d:\1-git\prod\dev-soodam\src\mocks\server.ts", "TypeScript", 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 5
+"d:\1-git\prod\dev-soodam\src\pages\_app.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 45, 4, 8, 57
+"d:\1-git\prod\dev-soodam\src\pages\_document.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 90, 1, 3, 94
+"d:\1-git\prod\dev-soodam\src\pages\api\hello.ts", "TypeScript", 10, 0, 0, 0, 0, 0, 0, 0, 1, 3, 14
+"d:\1-git\prod\dev-soodam\src\pages\authentication\login\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 105, 12, 8, 125
+"d:\1-git\prod\dev-soodam\src\pages\contacts\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 132, 3, 9, 144
+"d:\1-git\prod\dev-soodam\src\pages\filterControls\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 729, 17, 49, 795
+"d:\1-git\prod\dev-soodam\src\pages\housing\[adCode].tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 436, 21, 38, 495
+"d:\1-git\prod\dev-soodam\src\pages\housing\ad\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 77, 25, 5, 107
+"d:\1-git\prod\dev-soodam\src\pages\housing\ad\new\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 87, 3, 3, 93
+"d:\1-git\prod\dev-soodam\src\pages\housing\my-ads\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 48, 1, 3, 52
+"d:\1-git\prod\dev-soodam\src\pages\housing\unauthorize.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 50, 1, 6, 57
+"d:\1-git\prod\dev-soodam\src\pages\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 116, 2, 8, 126
+"d:\1-git\prod\dev-soodam\src\pages\lists\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 113, 2, 9, 124
+"d:\1-git\prod\dev-soodam\src\pages\marketer\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 79, 2, 8, 89
+"d:\1-git\prod\dev-soodam\src\pages\marketer\register\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 21, 2, 5, 28
+"d:\1-git\prod\dev-soodam\src\pages\memberShip\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 17, 2, 3, 22
+"d:\1-git\prod\dev-soodam\src\pages\my-ads-viewStatistics\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 31, 1, 4, 36
+"d:\1-git\prod\dev-soodam\src\pages\my-payments\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 31, 1, 4, 36
+"d:\1-git\prod\dev-soodam\src\pages\myCity\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 19, 2, 3, 24
+"d:\1-git\prod\dev-soodam\src\pages\news\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 56, 0, 4, 60
+"d:\1-git\prod\dev-soodam\src\pages\requests\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 46, 3, 3, 52
+"d:\1-git\prod\dev-soodam\src\pages\requests\new\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 16, 1, 3, 20
+"d:\1-git\prod\dev-soodam\src\pages\soodam\account\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 357, 4, 14, 375
+"d:\1-git\prod\dev-soodam\src\pages\soodam\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 124, 4, 9, 137
+"d:\1-git\prod\dev-soodam\src\pages\subscription\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 167, 27, 18, 212
+"d:\1-git\prod\dev-soodam\src\pages\visitStatistics\index.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 242, 11, 17, 270
+"d:\1-git\prod\dev-soodam\src\services\addressesApiSlice.ts", "TypeScript", 18, 0, 0, 0, 0, 0, 0, 0, 1, 3, 22
+"d:\1-git\prod\dev-soodam\src\services\allHousing\apiSlice.ts", "TypeScript", 49, 0, 0, 0, 0, 0, 0, 0, 0, 6, 55
+"d:\1-git\prod\dev-soodam\src\services\allHousing\types.ts", "TypeScript", 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\services\auth\apiSlice.ts", "TypeScript", 60, 0, 0, 0, 0, 0, 0, 0, 61, 8, 129
+"d:\1-git\prod\dev-soodam\src\services\auth\types.ts", "TypeScript", 17, 0, 0, 0, 0, 0, 0, 0, 0, 3, 20
+"d:\1-git\prod\dev-soodam\src\services\baseApi.ts", "TypeScript", 21, 0, 0, 0, 0, 0, 0, 0, 0, 4, 25
+"d:\1-git\prod\dev-soodam\src\services\category\apiSlice.ts", "TypeScript", 35, 0, 0, 0, 0, 0, 0, 0, 0, 5, 40
+"d:\1-git\prod\dev-soodam\src\services\category\type.ts", "TypeScript", 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\services\feature\apiSlice.ts", "TypeScript", 84, 0, 0, 0, 0, 0, 0, 0, 0, 8, 92
+"d:\1-git\prod\dev-soodam\src\services\feature\type.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"d:\1-git\prod\dev-soodam\src\services\index.ts", "TypeScript", 6, 0, 0, 0, 0, 0, 0, 0, 0, 1, 7
+"d:\1-git\prod\dev-soodam\src\services\mapService.ts", "TypeScript", 13, 0, 0, 0, 0, 0, 0, 0, 0, 3, 16
+"d:\1-git\prod\dev-soodam\src\services\news\apiSlice.ts", "TypeScript", 27, 0, 0, 0, 0, 0, 0, 0, 0, 4, 31
+"d:\1-git\prod\dev-soodam\src\services\news\type.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"d:\1-git\prod\dev-soodam\src\services\user\apiSlice.ts", "TypeScript", 54, 0, 0, 0, 0, 0, 0, 0, 4, 6, 64
+"d:\1-git\prod\dev-soodam\src\services\user\type.ts", "TypeScript", 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6
+"d:\1-git\prod\dev-soodam\src\store\index.ts", "TypeScript", 34, 0, 0, 0, 0, 0, 0, 0, 4, 6, 44
+"d:\1-git\prod\dev-soodam\src\store\slices\alert.slice.ts", "TypeScript", 36, 0, 0, 0, 0, 0, 0, 0, 1, 8, 45
+"d:\1-git\prod\dev-soodam\src\store\slices\auth.slice.ts", "TypeScript", 74, 0, 0, 0, 0, 0, 0, 0, 0, 8, 82
+"d:\1-git\prod\dev-soodam\src\store\slices\loginModal.slice.ts", "TypeScript", 23, 0, 0, 0, 0, 0, 0, 0, 0, 5, 28
+"d:\1-git\prod\dev-soodam\src\store\slices\mapMode.slice.ts", "TypeScript", 18, 0, 0, 0, 0, 0, 0, 0, 0, 5, 23
+"d:\1-git\prod\dev-soodam\src\store\slices\savedHouses.slice.ts", "TypeScript", 38, 0, 0, 0, 0, 0, 0, 0, 3, 10, 51
+"d:\1-git\prod\dev-soodam\src\store\slices\statesData.slice.ts", "TypeScript", 109, 0, 0, 0, 0, 0, 0, 0, 0, 5, 114
+"d:\1-git\prod\dev-soodam\src\styles\abstracts\base.css", "CSS", 0, 0, 0, 0, 0, 0, 21, 0, 0, 1, 22
+"d:\1-git\prod\dev-soodam\src\styles\abstracts\global.css", "CSS", 0, 0, 0, 0, 0, 0, 12, 0, 0, 1, 13
+"d:\1-git\prod\dev-soodam\src\styles\abstracts\index.css", "CSS", 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 3
+"d:\1-git\prod\dev-soodam\src\styles\browser-styles.css", "CSS", 0, 0, 0, 0, 0, 0, 31, 0, 9, 9, 49
+"d:\1-git\prod\dev-soodam\src\styles\components.css", "CSS", 0, 0, 0, 0, 0, 0, 32, 0, 6, 9, 47
+"d:\1-git\prod\dev-soodam\src\styles\fonts\estedad.css", "CSS", 0, 0, 0, 0, 0, 0, 45, 0, 0, 4, 49
+"d:\1-git\prod\dev-soodam\src\styles\fonts\iranyekan.css", "CSS", 0, 0, 0, 0, 0, 0, 51, 0, 0, 1, 52
+"d:\1-git\prod\dev-soodam\src\styles\main.css", "CSS", 0, 0, 0, 0, 0, 0, 90, 0, 1, 19, 110
+"d:\1-git\prod\dev-soodam\src\styles\swiper.css", "CSS", 0, 0, 0, 0, 0, 0, 36, 0, 0, 2, 38
+"d:\1-git\prod\dev-soodam\src\types\Category.type.ts", "TypeScript", 9, 0, 0, 0, 0, 0, 0, 0, 0, 1, 10
+"d:\1-git\prod\dev-soodam\src\types\Feature.type.ts", "TypeScript", 10, 0, 0, 0, 0, 0, 0, 0, 0, 1, 11
+"d:\1-git\prod\dev-soodam\src\types\Housing.type.ts", "TypeScript", 39, 0, 0, 0, 0, 0, 0, 0, 0, 1, 40
+"d:\1-git\prod\dev-soodam\src\types\News.type.ts", "TypeScript", 11, 0, 0, 0, 0, 0, 0, 0, 0, 1, 12
+"d:\1-git\prod\dev-soodam\src\types\QueryParams.type.ts", "TypeScript", 3, 0, 0, 0, 0, 0, 0, 0, 0, 1, 4
+"d:\1-git\prod\dev-soodam\src\types\Request.type.ts", "TypeScript", 20, 0, 0, 0, 0, 0, 0, 0, 0, 1, 21
+"d:\1-git\prod\dev-soodam\src\types\ServiceResponse.type.ts", "TypeScript", 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\types\SubscriptionPlan.type.ts", "TypeScript", 8, 0, 0, 0, 0, 0, 0, 0, 0, 1, 9
+"d:\1-git\prod\dev-soodam\src\types\User.type.ts", "TypeScript", 15, 0, 0, 0, 0, 0, 0, 0, 0, 1, 16
+"d:\1-git\prod\dev-soodam\src\types\forms.type.ts", "TypeScript", 126, 0, 0, 0, 0, 0, 0, 0, 0, 19, 145
+"d:\1-git\prod\dev-soodam\src\types\index.ts", "TypeScript", 10, 0, 0, 0, 0, 0, 0, 0, 0, 2, 12
+"d:\1-git\prod\dev-soodam\src\utils\constants.ts", "TypeScript", 50, 0, 0, 0, 0, 0, 0, 0, 0, 6, 56
+"d:\1-git\prod\dev-soodam\src\utils\generateQueryParams.ts", "TypeScript", 9, 0, 0, 0, 0, 0, 0, 0, 0, 4, 13
+"d:\1-git\prod\dev-soodam\src\utils\getErrorMessage.ts", "TypeScript", 16, 0, 0, 0, 0, 0, 0, 0, 0, 4, 20
+"d:\1-git\prod\dev-soodam\src\utils\index.ts", "TypeScript", 5, 0, 0, 0, 0, 0, 0, 0, 0, 1, 6
+"d:\1-git\prod\dev-soodam\src\utils\stringFormatting.ts", "TypeScript", 60, 0, 0, 0, 0, 0, 0, 0, 5, 8, 73
+"d:\1-git\prod\dev-soodam\src\utils\validation.ts", "TypeScript", 272, 0, 0, 0, 0, 0, 0, 0, 20, 42, 334
+"d:\1-git\prod\dev-soodam\tailwind.config.ts", "TypeScript", 37, 0, 0, 0, 0, 0, 0, 0, 0, 2, 39
+"d:\1-git\prod\dev-soodam\tsconfig.json", "JSON with Comments", 0, 0, 0, 0, 24, 0, 0, 0, 1, 1, 26
+"Total", "-", 3936, 12912, 239, 1, 24, 592, 320, 10188, 805, 1461, 30478

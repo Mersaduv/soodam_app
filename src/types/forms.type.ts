@@ -11,6 +11,7 @@ export interface CodeFormValues {
 export interface AdFormValues {
   phoneNumber: string
   nationalCode?: string
+  status?: number
   postalCode: string
   address: string
   category: string | null

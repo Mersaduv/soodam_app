@@ -1,3 +1,5 @@
+import { IRAN_PROVINCES } from "./constants";
+
 export function formatNumber(n: number): string {
   if (n) {
     const newNumber =  n.toString();
@@ -71,3 +73,22 @@ export const timeAgo = (dateString: string): string => {
   
   return `${diffInYears} سال پیش`;
 };
+
+export const getProvinceFromCoordinates = (lat: number, lng: number) => {
+  const province = IRAN_PROVINCES.find((province) => {
+    const { bounds } = province
+    return lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng
+  })
+  return province ? province.name : 'نامشخص'
+}
+
+
+export const formatPriceLoc = (price: number): string => {
+  if (price >= 1_000_000_000) {
+    return `${(price / 1_000_000_000).toFixed(3)} میلیارد تومان`
+  } else if (price >= 1_000_000) {
+    return `${(price / 1_000_000).toFixed(0)} میلیون تومان`
+  } else {
+    return `${price.toLocaleString('en-US')} تومان`
+  }
+}

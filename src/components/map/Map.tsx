@@ -45,7 +45,7 @@ import {
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
-import { formatPrice, IRAN_PROVINCES } from '@/utils'
+import { formatPrice, formatPriceLoc, getProvinceFromCoordinates, IRAN_PROVINCES } from '@/utils'
 import Link from 'next/link'
 interface Props {
   housingData: Housing[]
@@ -72,16 +72,6 @@ interface ModalSelectHousing {
   housing: Housing
   onClose: () => void
   isModalOpen: boolean
-}
-
-const formatPriceLoc = (price: number): string => {
-  if (price >= 1_000_000_000) {
-    return `${(price / 1_000_000_000).toFixed(3)} میلیارد تومان`
-  } else if (price >= 1_000_000) {
-    return `${(price / 1_000_000).toFixed(0)} میلیون تومان`
-  } else {
-    return `${price.toLocaleString('en-US')} تومان`
-  }
 }
 
 const getCenterOfData = (data: Housing[]): LatLngTuple => {
@@ -698,14 +688,6 @@ function throttle(func, limit) {
       setTimeout(() => (inThrottle = false), limit)
     }
   }
-}
-
-const getProvinceFromCoordinates = (lat, lng) => {
-  const province = IRAN_PROVINCES.find((province) => {
-    const { bounds } = province
-    return lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng
-  })
-  return province ? province.name : 'نامشخص'
 }
 
 const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
