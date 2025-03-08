@@ -140,6 +140,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
         lat: 0,
         lng: 0,
       },
+      description: '',
     },
   })
 
@@ -906,10 +907,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                 control={control}
                                 errors={errors.features?.[field.id]}
                                 placeholder={field.placeholder}
-                                {...((field.name.includes('متراژ') || field.name.includes('گذر') || field.name.includes('سال')) && {
+                                {...((field.name.includes('متراژ') ||
+                                  field.name.includes('گذر') ||
+                                  field.name.includes('سال')) && {
                                   inputMode: 'numeric',
                                   pattern: '[0-9]*',
-                                  type: 'number'
+                                  type: 'number',
                                 })}
                               />
                             )}
@@ -1082,6 +1085,24 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           </div>
                         </div>
                       ))}
+                </div>
+
+                <div className="mt-6">
+                  <label
+                    className="block text-sm font-normal mb-2 text-gray-700 md:min-w-max lg:text-sm"
+                    htmlFor="description"
+                  >
+                    توضیحات آگهی
+                  </label>
+                  <textarea
+                    className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs pr-2"
+                    id="description"
+                    {...register('description')}
+                  />
+                  <div className="w-fit" dir={'ltr'}>
+                    {' '}
+                    <DisplayError adForm errors={errors.description} />
+                  </div>
                 </div>
               </div>
             </div>

@@ -22,23 +22,24 @@ export interface AdFormValues {
   drawnPoints: number[]
   price?: number
   discount?: number
-
+  
   deposit?: number
   rent?: number
   convertible?: boolean
-
+  
   producerProfitPercentage?: number
   ownerProfitPercentage?: number
-
+  
   capacity?: number
   extraPeople?: number
   rentalTerms?: { id: number; name: string }
-
+  
   title?: string
   features: {
     [key: string]: string
   }
-
+  description: string
+  
   media: {
     images: File[]
     videos?: File[]
