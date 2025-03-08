@@ -413,6 +413,8 @@ const RequestRegistrationForm: React.FC = () => {
                     control={control}
                     errors={errors.phoneNumber}
                     placeholder="شماره تماس (اجباری)"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 )}
               />
@@ -442,12 +444,30 @@ const RequestRegistrationForm: React.FC = () => {
                 </div>
               </div>
               <MapLocationPicker
-                label={'محدوده درخواست'}
+                label={'محدوده درخواست از روی نقشه'}
                 selectedLocation={selectedLocation}
                 handleLocationChange={handleLocationChange}
                 drawnPoints={drawnPoints}
                 setDrawnPoints={setDrawnPoints}
               />
+
+              <div className="mt-6">
+                <label
+                  className="block text-sm font-normal mb-2 text-gray-700 md:min-w-max lg:text-sm"
+                  htmlFor="address"
+                >
+                  آدرس و جزئیات محدوده درخواست
+                </label>
+                <textarea
+                  className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs pr-2"
+                  id="address"
+                  {...register('address')}
+                />
+                <div className="w-fit" dir={'ltr'}>
+                  {' '}
+                  <DisplayError adForm errors={errors.address} />
+                </div>
+              </div>
             </div>
           )}
           {/* /* Step 2: قیمت */}
@@ -473,7 +493,9 @@ const RequestRegistrationForm: React.FC = () => {
                           errors={errors.priceRange?.from}
                           placeholder="مثال: 100 میلیون تومان"
                           formatPrice={true}
-                        />
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          />
                       )}
                     />
                   </div>
@@ -495,6 +517,8 @@ const RequestRegistrationForm: React.FC = () => {
                           errors={errors.priceRange?.to}
                           placeholder="مثال: 1 میلیارد تومان"
                           formatPrice={true}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -522,6 +546,8 @@ const RequestRegistrationForm: React.FC = () => {
                           errors={errors.depositRange?.from}
                           placeholder="مثال: 100 میلیون تومان"
                           formatPrice={true}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -544,6 +570,8 @@ const RequestRegistrationForm: React.FC = () => {
                           errors={errors.depositRange?.to}
                           placeholder="مثال: 12 میلیارد تومان"
                           formatPrice={true}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -569,6 +597,8 @@ const RequestRegistrationForm: React.FC = () => {
                           errors={errors.rent?.from}
                           placeholder="مثال: 100,000 تومان"
                           formatPrice={true}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -591,6 +621,8 @@ const RequestRegistrationForm: React.FC = () => {
                           errors={errors.rent?.to}
                           placeholder="مثال: 10,000,000 تومان"
                           formatPrice={true}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -636,6 +668,8 @@ const RequestRegistrationForm: React.FC = () => {
                           control={control}
                           errors={errors.capacity?.from}
                           placeholder="مثال: 5 نفر"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -656,6 +690,8 @@ const RequestRegistrationForm: React.FC = () => {
                           control={control}
                           errors={errors.capacity?.to}
                           placeholder="مثال: 20 نفر"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -679,6 +715,8 @@ const RequestRegistrationForm: React.FC = () => {
                           control={control}
                           errors={errors.extraPeople?.from}
                           placeholder="مثال: 1 نفر"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -699,6 +737,8 @@ const RequestRegistrationForm: React.FC = () => {
                           control={control}
                           errors={errors.extraPeople?.to}
                           placeholder="مثال: 5 نفر"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -744,6 +784,8 @@ const RequestRegistrationForm: React.FC = () => {
                           control={control}
                           errors={errors.producerProfitPercentage?.to}
                           placeholder="مثال: 50 درصد"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -767,6 +809,8 @@ const RequestRegistrationForm: React.FC = () => {
                           control={control}
                           errors={errors.ownerProfitPercentage?.from}
                           placeholder="مثال: 10 درصد"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -787,6 +831,8 @@ const RequestRegistrationForm: React.FC = () => {
                           control={control}
                           errors={errors.ownerProfitPercentage?.to}
                           placeholder="مثال: 40 درصد"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       )}
                     />
@@ -840,6 +886,13 @@ const RequestRegistrationForm: React.FC = () => {
                                     {...controllerField}
                                     control={control}
                                     placeholder={`${field.placeholder}`}
+                                    {...((field.name.includes('متراژ') ||
+                                      field.name.includes('گذر') ||
+                                      field.name.includes('سال')) && {
+                                      inputMode: 'numeric',
+                                      pattern: '[0-9]*',
+                                      type: 'number',
+                                    })}
                                   />
                                 )}
                               />
@@ -859,6 +912,13 @@ const RequestRegistrationForm: React.FC = () => {
                                     {...controllerField}
                                     control={control}
                                     placeholder={`${field.placeholder}`}
+                                    {...((field.name.includes('متراژ') ||
+                                      field.name.includes('گذر') ||
+                                      field.name.includes('سال')) && {
+                                      inputMode: 'numeric',
+                                      pattern: '[0-9]*',
+                                      type: 'number',
+                                    })}
                                   />
                                 )}
                               />
