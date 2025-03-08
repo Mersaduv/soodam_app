@@ -909,6 +909,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                 {...(field.name.includes('متراژ') && {
                                   inputMode: 'numeric',
                                   pattern: '[0-9]*',
+                                  type: 'number'
                                 })}
                               />
                             )}
