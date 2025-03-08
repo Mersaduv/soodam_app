@@ -22,7 +22,7 @@ export default function LogoutButton({ isProfile }: { isProfile?: boolean }) {
     <>
       {isProfile ? (
         <div className='flex items-center gap-2 text-sm text-[#D52133] font-medium cursor-pointer  w-full py-3' onClick={handleLogout}>
-          <LogoutSmIcon /> خروج
+          <LogoutSmIcon width="24px" height="24px" /> خروج
         </div>
       ) : (
         <Button className="w-full " onClick={handleLogout}>
