@@ -1,4 +1,4 @@
-import { Close, FingerIcon, FingerIcon2, FingerWIcon, GpsIcon, SendIcon } from '@/icons'
+import { Close, FingerIcon, FingerIcon2, FingerWIcon, GpsIcon, MapIcon2, SatelliteIcon, SendIcon } from '@/icons'
 import L from 'leaflet'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -6,8 +6,9 @@ import { HiOutlineLocationMarker } from 'react-icons/hi'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import * as turf from '@turf/turf'
 import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
-import { setStateData } from '@/store'
+import { setIsSatelliteView, setStateData } from '@/store'
 import { useRouter } from 'next/router'
+import { CustomCheckbox, Modal } from '../ui'
 interface Props {
   selectedLocation: [number, number]
   handleLocationChange: (location: [number, number]) => void
@@ -448,13 +449,16 @@ const MapLocationPicker = (props: Props) => {
   const { selectedLocation, handleLocationChange, label, drawnPoints, setDrawnPoints, ads } = props
   const { query, push } = useRouter()
   const { role, phoneNumber } = useAppSelector((state) => state.auth)
-  const { housingMap } = useAppSelector((state) => state.statesData)
+  const { housingMap, isSatelliteView } = useAppSelector((state) => state.statesData)
   const dispatch = useAppDispatch()
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
   const [itemFiles, setItemFiles] = useState([])
-  const [isSatelliteView, setIsSatelliteView] = useState(false)
-  const [tileLayerUrl, setTileLayerUrl] = useState('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+  const [tileLayerUrl, setTileLayerUrl] = useState(
+    isSatelliteView
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  )
   const [zoomLevel, setZoomLevel] = useState(12)
   const [isDrawing, setIsDrawing] = useState(false)
   const [selectedArea, setSelectedArea] = useState(null)
@@ -478,6 +482,22 @@ const MapLocationPicker = (props: Props) => {
         return <FingerIcon width="19px" height="19px" />
     }
   }
+  const handleModalClose = (): void => {
+    modalHandlers.close()
+  }
+  const toggleMapType = () => {
+    setTileLayerUrl(
+      isSatelliteView
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    )
+  }
+
+  const handleApply = (): void => {
+    toggleMapType()
+    modalHandlers.close()
+  }
+
   const handleDrawButtonClick = () => {
     if (mode === 'none') {
       setMode('drawing')
@@ -574,6 +594,18 @@ const MapLocationPicker = (props: Props) => {
       <label className="block text-sm font-normal text-gray-700 mb-2">{label}</label>
       <div style={{ position: 'relative' }}>
         <div className="absolute flex flex-col gap-y-2.5 bottom-[9px] right-3 z-[999]">
+          <button
+            type="button"
+            onClick={modalHandlers.open}
+            className={`${
+              tileLayerUrl ===
+              'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+                ? 'bg-black text-white'
+                : 'bg-white'
+            } w-[32px] h-[32px] rounded-lg flex-center shadow-icon`}
+          >
+            <MapIcon2 width="16px" height="16px" />
+          </button>
           <div
             onClick={handleGPSClick}
             className="bg-white w-[32px] h-[32px] rounded-lg flex-center shadow-icon cursor-pointer"
@@ -593,6 +625,35 @@ const MapLocationPicker = (props: Props) => {
             </button>
           )}
         </div>
+
+        <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
+          <Modal.Content
+            onClose={handleModalClose}
+            className="flex h-full flex-col gap-y-5 bg-white p-4  pb-8  rounded-2xl rounded-b-none"
+          >
+            <Modal.Header right onClose={handleModalClose} />
+            <Modal.Body>
+              <div className="space-y-4">
+                <div className="flex flex-row-reverse items-center gap-2 w-full">
+                  <CustomCheckbox
+                    name={`satellite-view`}
+                    checked={isSatelliteView}
+                    onChange={() => dispatch(setIsSatelliteView(!isSatelliteView))}
+                    label=""
+                    customStyle="bg-sky-500"
+                  />
+                  <label htmlFor="satellite-view" className="flex items-center gap-2 w-full">
+                    <SatelliteIcon width="24px" height="24px" />
+                    نمای ماهواره ای
+                  </label>
+                </div>
+              </div>
+              <button type="button" onClick={handleApply} className="w-full py-2 bg-red-600 text-white rounded-lg">
+                اعمال
+              </button>
+            </Modal.Body>
+          </Modal.Content>
+        </Modal>
         <MapContainer
           center={[35.6892, 51.389]} // مقدار پیش‌فرض تهران
           zoom={12}
@@ -611,8 +672,12 @@ const MapLocationPicker = (props: Props) => {
             setMode={setMode}
           />
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="hhttps://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url={tileLayerUrl}
+            attribution={
+              tileLayerUrl.includes('arcgisonline')
+                ? '&copy; <a href="https://www.esri.com/en-us/home">ESRI</a> contributors'
+                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }
           />
           {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
           <LocationPicker onLocationChange={handleLocationChange} />

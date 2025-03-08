@@ -407,12 +407,12 @@ const RequestRegistrationForm: React.FC = () => {
                 render={({ field }) => (
                   <TextField
                     adForm
-                    label="شماره تماس مالک"
+                    label="شماره تماس"
                     type="number"
                     {...field}
                     control={control}
                     errors={errors.phoneNumber}
-                    placeholder="شماره تماس مالک (اجباری)"
+                    placeholder="شماره تماس (اجباری)"
                   />
                 )}
               />
@@ -442,7 +442,7 @@ const RequestRegistrationForm: React.FC = () => {
                 </div>
               </div>
               <MapLocationPicker
-                label={'محدوده ملک'}
+                label={'محدوده درخواست'}
                 selectedLocation={selectedLocation}
                 handleLocationChange={handleLocationChange}
                 drawnPoints={drawnPoints}
