@@ -1,4 +1,4 @@
-import { Close, FingerIcon, FingerIcon2, FingerWIcon, GpsIcon } from '@/icons'
+import { Close, FingerIcon, FingerIcon2, FingerWIcon, GpsIcon, SendIcon } from '@/icons'
 import L from 'leaflet'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -14,6 +14,7 @@ interface Props {
   label: string
   setDrawnPoints: React.Dispatch<React.SetStateAction<any[]>>
   drawnPoints: any[]
+  ads?: boolean
 }
 
 interface LocationPickerProps {
@@ -247,7 +248,7 @@ const DrawingControl = ({
         const closedPoints = distance < minDistance * 2 ? [...points.slice(0, -1), points[0]] : [...points, points[0]]
 
         updateOverlay(closedPoints)
-        updatePolyline(closedPoints, 'white')// Update the polyline to show the closing line
+        updatePolyline(closedPoints, 'white') // Update the polyline to show the closing line
         countItemsInArea(closedPoints)
         onDrawingComplete()
         return closedPoints
@@ -444,7 +445,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationChange }) => 
 }
 
 const MapLocationPicker = (props: Props) => {
-  const { selectedLocation, handleLocationChange, label, drawnPoints, setDrawnPoints } = props
+  const { selectedLocation, handleLocationChange, label, drawnPoints, setDrawnPoints, ads } = props
   const { query, push } = useRouter()
   const { role, phoneNumber } = useAppSelector((state) => state.auth)
   const { housingMap } = useAppSelector((state) => state.statesData)
@@ -577,18 +578,20 @@ const MapLocationPicker = (props: Props) => {
             onClick={handleGPSClick}
             className="bg-white w-[32px] h-[32px] rounded-lg flex-center shadow-icon cursor-pointer"
           >
-            <GpsIcon width="16px" height="16px" />
+            <SendIcon width="16px" height="16px" />
           </div>
-          <button
-            type="button"
-            className={`${mode === 'drawing' ? 'bg-[#1A1E25]' : ''} ${mode === 'checking' ? 'bg-[#1A1E25]' : ''} ${
-              mode !== 'drawing' && mode !== 'checking' && 'bg-white'
-            }  w-[32px] h-[32px] rounded-lg flex-center shadow-icon`}
-            onClick={handleDrawButtonClick}
-            disabled={mode === 'drawing'}
-          >
-            {renderButtonContent()}
-          </button>
+          {!ads && (
+            <button
+              type="button"
+              className={`${mode === 'drawing' ? 'bg-[#1A1E25]' : ''} ${mode === 'checking' ? 'bg-[#1A1E25]' : ''} ${
+                mode !== 'drawing' && mode !== 'checking' && 'bg-white'
+              }  w-[32px] h-[32px] rounded-lg flex-center shadow-icon`}
+              onClick={handleDrawButtonClick}
+              disabled={mode === 'drawing'}
+            >
+              {renderButtonContent()}
+            </button>
+          )}
         </div>
         <MapContainer
           center={[35.6892, 51.389]} // مقدار پیش‌فرض تهران

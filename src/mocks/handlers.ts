@@ -175,6 +175,128 @@ const newsData = [
   },
 ]
 
+const requests = [
+  {
+    id: '1',
+    title: 'ثبت درخواست',
+    category: 'اجاره آپارتمان',
+    categoryId: '1-1',
+    status: 2,
+    userInfo: {
+      id: '1',
+      fullName: 'محمد حسین حسینی',
+      phoneNumber: '09123456789',
+      email: 'test@test.com',
+      image: '/static/OIP (3).jfif',
+    },
+    highlightFeatures: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        title: 'متراژ',
+        value: '75',
+      },
+    ],
+    features: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        title: 'تعداد اتاق',
+        value: '2',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        title: 'پارکینگ',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'نمای ساختمان',
+        value: 'سنگ',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سال ساخت',
+        value: '1366',
+      },
+    ],
+    location: getRandomLocation(35.75, 51.41, 0.02),
+    deposit: 600000000,
+    rent: 5000000,
+    price: 0,
+    ownerProfitPercentage: 0,
+    producerProfitPercentage: 0,
+    capacity: 0,
+    extraPeople: 0,
+    rentalTerm: null,
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+  },
+
+  {
+    id: '2',
+    title: 'خیابان جمهوری',
+    category: 'مشارکت در ساخت',
+    categoryId: '5-1',
+    status: 2,
+    userInfo: {
+      id: '1',
+      fullName: 'علی محمدی',
+      phoneNumber: '09010101010',
+      email: 'test@test.com',
+      image: null,
+    },
+    highlightFeatures: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        title: 'متراژ زمین',
+        value: '130',
+      },
+    ],
+    features: [
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'نمای ساختمان',
+        value: 'سنگ',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        title: 'سال ساخت',
+        value: '1366',
+      },
+    ],
+    location: getRandomLocation(35.75, 51.41, 0.02),
+    deposit: 0,
+    rent: 0,
+    price: 0,
+    ownerProfitPercentage: 25,
+    producerProfitPercentage: 75,
+    capacity: 0,
+    extraPeople: 0,
+    rentalTerm: null,
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
+  },
+]
+
 const housing = [
   {
     id: '1',
@@ -2230,12 +2352,12 @@ export const handlers = [
   rest.post('/api/housing/ad', async (req, res, ctx) => {
     const { category } = await req.json<AdFormValues>()
     // انتخاب یک آیتم تصادفی از housing
-    const filteredHousing = housing.filter(item => item.categoryId === category);
-    const randomHousingItem = filteredHousing[Math.floor(Math.random() * filteredHousing.length)];
+    const filteredHousing = housing.filter((item) => item.categoryId === category)
+    const randomHousingItem = filteredHousing[Math.floor(Math.random() * filteredHousing.length)]
     randomHousingItem.status = 1
     // ذخیره آیتم در localStorage
     localStorage.setItem('addAdv', JSON.stringify([randomHousingItem]))
-    
+
     return res(ctx.status(200), ctx.json({ message: 'با موفقیت انجام شد' }))
   }),
 
@@ -2363,6 +2485,19 @@ export const handlers = [
         data: categoryFeatures,
       })
     )
+  }),
+
+  rest.get('/api/requests', (req, res, ctx) => {
+    const searchParams = req.url.searchParams
+    const status = searchParams.get('status')
+
+    let filtered = [...requests]
+
+    if (status) {
+      filtered = filtered.filter((item) => item.status === parseInt(status))
+    }
+
+    return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
   }),
 ]
 

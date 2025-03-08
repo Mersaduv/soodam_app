@@ -100,7 +100,7 @@ const Soodam: NextPage = () => {
               </div>
             </div>
           </div>
-          <div>
+          <div className='pb-[100px]'>
             <div className="px-4 space-y-2 mt-5 mb-10">
               <Link href={'/soodam/account'} className="flex items-center gap-2 py-3 cursor-pointer">
                 <UserEditSmIcon width="24px" height="24px" />

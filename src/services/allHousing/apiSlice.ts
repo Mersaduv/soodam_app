@@ -1,6 +1,6 @@
 import baseApi from '@/services/baseApi'
 import { generateQueryParams } from '@/utils'
-import { QueryParams, Housing, ServiceResponse, AdFormValues } from '@/types'
+import { QueryParams, Housing, ServiceResponse, AdFormValues, Request } from '@/types'
 import { IdQuery } from './types'
 
 export const housingApiSlice = baseApi.injectEndpoints({
@@ -47,8 +47,43 @@ export const housingApiSlice = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+
+    getRequests: builder.query<ServiceResponse<Request[]>, QueryParams>({
+      query: ({ ...params }) => {
+        const queryParams = generateQueryParams(params)
+
+        return {
+          url: `/api/requests?${queryParams}`,
+          method: 'GET',
+        }
+      },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.data.map(({ id }) => ({
+                type: 'Requests' as const,
+                id: id,
+              })),
+              'Requests',
+            ]
+          : ['Requests'],
+    }),
+
+    getRequestById: builder.query<ServiceResponse<Request>, string>({
+      query: (id) => ({
+        url: `/api/requests/${id}`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, arg) => [{ type: 'Requests', id: arg }],
+    }),
   }),
 })
 
-export const { useGetHousingQuery, useGetHousingByCategoryQuery, useGetSingleHousingQuery, useAddHousingMutation } =
-  housingApiSlice
+export const {
+  useGetHousingQuery,
+  useGetHousingByCategoryQuery,
+  useGetSingleHousingQuery,
+  useAddHousingMutation,
+  useGetRequestsQuery,
+  useGetRequestByIdQuery,
+} = housingApiSlice

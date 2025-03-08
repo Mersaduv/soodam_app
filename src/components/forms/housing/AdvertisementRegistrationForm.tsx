@@ -555,6 +555,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     control={control}
                     errors={errors.phoneNumber}
                     placeholder="شماره تماس مالک (اجباری)"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 )}
               />
@@ -571,6 +573,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     control={control}
                     errors={errors.nationalCode}
                     placeholder="کد ملی (اختیاری)"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 )}
               />
@@ -586,6 +590,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     control={control}
                     errors={errors.postalCode}
                     placeholder="کد پستی (اجباری)"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 )}
               />
@@ -596,6 +602,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 handleLocationChange={handleLocationChange}
                 drawnPoints={drawnPoints}
                 setDrawnPoints={setDrawnPoints}
+                ads
               />
 
               <div className="space-y-31">
@@ -663,6 +670,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       errors={errors.price}
                       formatPrice={true}
                       placeholder="مثال : 100 میلیون تومان"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   )}
                 />
@@ -682,6 +691,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       errors={errors.discount}
                       placeholder="مثال : 10 میلیون(اختیاری)"
                       formatPrice={true}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   )}
                 />
@@ -703,6 +714,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       errors={errors.deposit}
                       placeholder="مثال : 100 میلیون تومان"
                       formatPrice={true}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   )}
                 />
@@ -722,6 +735,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       errors={errors.rent}
                       placeholder="مثال : 10 میلیون "
                       formatPrice={true}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   )}
                 />
@@ -761,6 +776,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       control={control}
                       errors={errors.capacity}
                       placeholder="مثال : 10 نفر"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   )}
                 />
@@ -778,6 +795,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       control={control}
                       errors={errors.extraPeople}
                       placeholder="مثال : 2 نفر"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   )}
                 />
@@ -817,6 +836,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       control={control}
                       errors={errors.producerProfitPercentage}
                       placeholder="مثال: 50 درصد"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   )}
                 />
@@ -833,6 +854,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       control={control}
                       errors={errors.ownerProfitPercentage}
                       placeholder="مثال: 50 درصد"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   )}
                 />
