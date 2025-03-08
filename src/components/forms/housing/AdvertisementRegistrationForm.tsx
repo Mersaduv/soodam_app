@@ -906,7 +906,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                 control={control}
                                 errors={errors.features?.[field.id]}
                                 placeholder={field.placeholder}
-                                {...(field.name.includes('متراژ') && {
+                                {...((field.name.includes('متراژ') || field.name.includes('گذر') || field.name.includes('سال')) && {
                                   inputMode: 'numeric',
                                   pattern: '[0-9]*',
                                   type: 'number'
