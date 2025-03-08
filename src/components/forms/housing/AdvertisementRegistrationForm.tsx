@@ -585,6 +585,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 render={({ field }) => (
                   <TextField
                     adForm
+                    type="number"
                     label="کد پستی"
                     {...field}
                     control={control}
@@ -905,6 +906,10 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                 control={control}
                                 errors={errors.features?.[field.id]}
                                 placeholder={field.placeholder}
+                                {...(field.name.includes('متراژ') && {
+                                  inputMode: 'numeric',
+                                  pattern: '[0-9]*',
+                                })}
                               />
                             )}
                           />
