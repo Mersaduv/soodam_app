@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { setIsSatelliteView, setStateData } from '@/store'
 import { useRouter } from 'next/router'
 import { CustomCheckbox, Modal } from '../ui'
+import { GrClear } from 'react-icons/gr'
 interface Props {
   selectedLocation: [number, number]
   handleLocationChange: (location: [number, number]) => void
@@ -26,6 +27,8 @@ const DrawingControl = ({
   isDrawing,
   drawnPoints,
   setDrawnPoints,
+  overlayRef,
+  completedPolygonsRef,
   polylineRef,
   housingData,
   onDrawingComplete,
@@ -35,14 +38,16 @@ const DrawingControl = ({
 }) => {
   const dispatch = useAppDispatch()
   const map = useMap()
-  const overlayRef = useRef(null)
   const isDrawingRef = useRef(false)
   const drawingTimeoutRef = useRef(null)
   const lastPointRef = useRef(null)
   const minDistance = 5
 
+  // const completedPolygonsRef = useRef<L.Polygon[]>([]);
   useEffect(() => {
     if (mode === 'dispose') {
+      // در این حالت فقط لایه‌های رسم جاری پاک می‌شوند،
+      // اما محدوده‌های تکمیل‌شده قبلی حفظ می‌شوند
       setItemFiles([])
       setDrawnPoints([])
       dispatch(setStateData([]))
@@ -50,16 +55,13 @@ const DrawingControl = ({
         overlayRef.current.remove()
         overlayRef.current = null
       }
-
       if (polylineRef.current) {
         polylineRef.current.remove()
       }
-
       if (drawingTimeoutRef.current) {
         cancelAnimationFrame(drawingTimeoutRef.current)
         drawingTimeoutRef.current = null
       }
-
       isDrawingRef.current = false
       lastPointRef.current = null
       setMode('none')
@@ -93,12 +95,9 @@ const DrawingControl = ({
   const countItemsInArea = useCallback(
     (points) => {
       if (points.length < 3) return
-
       const polygon = turf.polygon([points])
       const itemsInArea = housingData.filter((property) => {
         const point = turf.point([property.location.lat, property.location.lng])
-        console.log('points:', points)
-
         return turf.booleanPointInPolygon(point, polygon)
       })
       setItemFiles(itemsInArea)
@@ -150,13 +149,10 @@ const DrawingControl = ({
   const updateOverlay = useCallback(
     (points) => {
       if (!points.length) return
-
       if (overlayRef.current) {
         overlayRef.current.remove()
       }
-
       if (points.length < 3) return
-
       const maxBounds: any[] = [
         [90, -180],
         [90, 180],
@@ -164,7 +160,6 @@ const DrawingControl = ({
         [-90, -180],
         [90, -180],
       ]
-
       const overlay = L.polygon([maxBounds], {
         color: 'none',
         fillColor: '#1A1E2566',
@@ -172,7 +167,6 @@ const DrawingControl = ({
         interactive: false,
         smoothFactor: 0,
       }).addTo(map)
-
       overlayRef.current = overlay
     },
     [map]
@@ -215,14 +209,12 @@ const DrawingControl = ({
       if (polylineRef.current) {
         polylineRef.current.remove()
       }
-
       const polyline = L.polyline(points, {
         color: lineColor,
         weight: 5,
         smoothFactor: 1,
         interactive: false,
       }).addTo(map)
-
       polylineRef.current = polyline
     },
     [map]
@@ -239,24 +231,35 @@ const DrawingControl = ({
   const completeDrawing = useCallback(
     (points) => {
       if (points.length > 2) {
-        // Calculate distance between first and last point
         const firstPoint = L.latLng(points[0])
         const lastPoint = L.latLng(points[points.length - 1])
         const distance = getPointDistance(firstPoint, lastPoint)
-
-        // If the end point is close enough to the start point, use the start point
-        // Otherwise, add the start point to close the polygon
         const closedPoints = distance < minDistance * 2 ? [...points.slice(0, -1), points[0]] : [...points, points[0]]
 
-        updateOverlay(closedPoints)
-        updatePolyline(closedPoints, 'white') // Update the polyline to show the closing line
+        // ایجاد overlay جدید برای محدوده تکمیل شده
+        const completedOverlay = L.polygon(closedPoints, {
+          color: 'white',
+          fillColor: '#1a1e2500',
+          fillOpacity: 0.5,
+          interactive: false,
+          smoothFactor: 0,
+        }).addTo(map)
+        completedPolygonsRef.current.push(completedOverlay)
+
+        // حذف polyline رسم شده در حین رسم
+        if (polylineRef.current) {
+          polylineRef.current.remove()
+          polylineRef.current = null
+        }
+
         countItemsInArea(closedPoints)
         onDrawingComplete()
-        return closedPoints
+
+        return []
       }
       return points
     },
-    [getPointDistance, minDistance, updateOverlay, updatePolyline, countItemsInArea, onDrawingComplete]
+    [getPointDistance, minDistance, countItemsInArea, onDrawingComplete, map]
   )
 
   const handleDrawingMove = useCallback(
@@ -298,20 +301,21 @@ const DrawingControl = ({
 
     const handleTouchStart = (e) => {
       e.preventDefault()
-      if (!e.touches?.[0]) return // بررسی وجود touch
+      if (!e.touches?.[0]) return
       const touch = e.touches[0]
       const rect = container.getBoundingClientRect()
       const x = touch.clientX - rect.left
       const y = touch.clientY - rect.top
       const point = map.containerPointToLatLng([x, y])
       isDrawingRef.current = true
+      // پاک کردن نقاط رسم جاری برای شروع یک رسم جدید
       setDrawnPoints([])
       handleDrawingMove(point)
     }
 
     const handleTouchMove = (e) => {
       e.preventDefault()
-      if (!e.touches?.[0] || !isDrawingRef.current) return // بررسی وجود touch
+      if (!e.touches?.[0] || !isDrawingRef.current) return
       const touch = e.touches[0]
       const rect = container.getBoundingClientRect()
       const x = touch.clientX - rect.left
@@ -319,19 +323,17 @@ const DrawingControl = ({
       const point = map.containerPointToLatLng([x, y])
       handleDrawingMove(point)
     }
-
     const handleTouchEnd = (e) => {
       e.preventDefault()
       if (!isDrawingRef.current) return
       isDrawingRef.current = false
       lastPointRef.current = null
-
       setDrawnPoints((prev) => completeDrawing(prev))
     }
 
     // Mouse Events
     const handleMouseDown = (e) => {
-      if (!e) return // بررسی وجود شیء رویداد
+      if (!e) return
       const rect = container.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
@@ -340,25 +342,18 @@ const DrawingControl = ({
       setDrawnPoints([])
       handleDrawingMove(point)
     }
-
     const handleMouseMove = (e) => {
-      if (!e || !isDrawingRef.current) return // افزودن بررسی وجود شیء رویداد
+      if (!e || !isDrawingRef.current) return
       const rect = container.getBoundingClientRect()
-
-      // محاسبه مختصات نسبی با در نظر گرفتن موقعیت کانتینر
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
-
-      // تبدیل مختصات به موقعیت جغرافیایی
       const point = map.containerPointToLatLng([x, y])
       handleDrawingMove(point)
     }
-
     const handleMouseUp = () => {
       if (!isDrawingRef.current) return
       isDrawingRef.current = false
       lastPointRef.current = null
-
       setDrawnPoints((prev) => completeDrawing(prev))
     }
 
@@ -420,31 +415,6 @@ function throttle(func, limit) {
   }
 }
 
-const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationChange }) => {
-  const [position, setPosition] = useState<[number, number]>([35.6892, 51.389]) // مقدار پیش‌فرض تهران
-
-  const customIcon = L.divIcon({
-    html: renderToStaticMarkup(
-      <div className="bg-red-500 rounded-full">
-        <HiOutlineLocationMarker size={24} color="white" />
-      </div>
-    ),
-    className: 'custo m-marker-icon',
-    iconSize: [24, 24], // اندازه آیکون
-    iconAnchor: [12, 24], // نقطه‌ای که روی موقعیت تنظیم می‌شود
-  })
-
-  useMapEvents({
-    click(e) {
-      const newPosition: [number, number] = [e.latlng.lat, e.latlng.lng]
-      setPosition(newPosition)
-      onLocationChange(newPosition)
-    },
-  })
-
-  return <Marker icon={customIcon} position={position}></Marker>
-}
-
 const MapLocationPicker = (props: Props) => {
   const { selectedLocation, handleLocationChange, label, drawnPoints, setDrawnPoints, ads } = props
   const { query, push } = useRouter()
@@ -468,7 +438,33 @@ const MapLocationPicker = (props: Props) => {
   const [viewedProperties, setViewedProperties] = useState<string[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [userLocation, setUserLocation] = useState(null)
-  
+  const completedPolygonsRef = useRef<L.Polygon[]>([])
+  const overlayRef = useRef(null)
+  const clearDrawings = () => {
+    // پاکسازی نقاط رسم جاری
+    setDrawnPoints([])
+
+    // حذف polyline
+    if (polylineRef.current) {
+      polylineRef.current.remove()
+      polylineRef.current = null
+    }
+
+    // در صورت استفاده از overlay رسم جاری (اگر در MapLocationPicker نگهداری می‌شود)
+    if (overlayRef.current) {
+      overlayRef.current.remove()
+      overlayRef.current = null
+    }
+
+    // حذف تمام overlay های محدوده‌های تکمیل‌شده
+    if (completedPolygonsRef.current.length) {
+      completedPolygonsRef.current.forEach((polygon) => polygon.remove())
+      completedPolygonsRef.current = []
+    }
+
+    // در صورت نیاز، حالت نقشه یا mode را به حالت اولیه برگردانید
+    setMode('none')
+  }
   const handleDrawingComplete = useCallback(() => {
     setIsDrawing(false)
     setMode('checking')
@@ -627,6 +623,16 @@ const MapLocationPicker = (props: Props) => {
           )}
         </div>
 
+        <div className="absolute flex flex-col gap-y-2.5 bottom-[9px] left-3 z-[999]">
+          <button
+            type="button"
+            className="bg-white hover:bg-slate-100 w-[32px] h-[32px] rounded-lg flex-center shadow-icon"
+            onClick={clearDrawings}
+          >
+            <GrClear width="16px" height="16px" />
+          </button>
+        </div>
+
         <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
           <Modal.Content
             onClose={handleModalClose}
@@ -666,6 +672,8 @@ const MapLocationPicker = (props: Props) => {
             drawnPoints={drawnPoints}
             setDrawnPoints={setDrawnPoints}
             polylineRef={polylineRef}
+            overlayRef={overlayRef}
+            completedPolygonsRef={completedPolygonsRef}
             housingData={[]}
             onDrawingComplete={handleDrawingComplete}
             setItemFiles={setItemFiles}
@@ -681,7 +689,6 @@ const MapLocationPicker = (props: Props) => {
             }
           />
           {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
-          <LocationPicker onLocationChange={handleLocationChange} />
         </MapContainer>
       </div>
     </div>
