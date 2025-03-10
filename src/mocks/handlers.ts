@@ -1972,7 +1972,7 @@ export const handlers = [
     if (code !== storedCode) {
       return res(ctx.status(401), ctx.json({ message: 'کد تایید نادرست می‌باشد!', phoneNumber }))
     }
-    const user: User = users.get(phoneNumber) || {
+    const user: User =  {
       id: generateUUID(), // تابعی برای تولید UUID
       phoneNumber,
       role: role,

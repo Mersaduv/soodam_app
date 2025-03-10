@@ -52,6 +52,7 @@ const RequestRegistrationForm: React.FC = () => {
   const [selectedValues, setSelectedValues] = useState({})
   const [selectedLabels, setSelectedLabels] = useState<Record<string, string>>({})
   const [drawnPoints, setDrawnPoints] = useState([])
+  const [drawnPolylines, setDrawnPolylines] = useState([])
   // ? Queries
   const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()

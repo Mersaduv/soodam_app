@@ -468,6 +468,7 @@ const MapLocationPicker = (props: Props) => {
   const [viewedProperties, setViewedProperties] = useState<string[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [userLocation, setUserLocation] = useState(null)
+  
   const handleDrawingComplete = useCallback(() => {
     setIsDrawing(false)
     setMode('checking')
@@ -655,7 +656,7 @@ const MapLocationPicker = (props: Props) => {
           </Modal.Content>
         </Modal>
         <MapContainer
-          center={[35.6892, 51.389]} // مقدار پیش‌فرض تهران
+          center={[35.6892, 51.389]}
           zoom={12}
           style={{ height: '175px', width: '100%', borderRadius: '8px' }}
           ref={mapRef}

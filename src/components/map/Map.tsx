@@ -849,7 +849,7 @@ const MapController = () => {
 const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   // ? Assets
   const { query, push } = useRouter()
-  const { role, phoneNumber } = useAppSelector((state) => state.auth)
+  const {phoneNumber } = useAppSelector((state) => state.auth)
   const { housingMap } = useAppSelector((state) => state.statesData)
   const center = useAppSelector((state) => state.statesData.center)
   const zoom = useAppSelector((state) => state.statesData.zoom)
@@ -1040,14 +1040,14 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
 
   const handleNavigate = (): void => {
     const logged = localStorage.getItem('loggedIn')
-
-    if (role === 'User') {
-      dispatch(setIsShowLogin(true))
+    const role = localStorage.getItem('role')
+    console.log(role);
+    
+    if (role === 'user' || role === null) {
+      push('/authentication/login?role=memberUser')
     } else if (logged === 'true') {
       push('/housing/ad')
-    } else {
-      dispatch(setIsShowLogin(true))
-    }
+    } 
   }
 
   const handleMarkerClick = async (property: Housing) => {
