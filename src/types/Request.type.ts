@@ -1,11 +1,35 @@
 export interface Request {
   id: string
   category: string
-  location: string
-  name: string
-  image: string
+  location: {
+    lat: number
+    lng: number
+  }
+  title: string
+  userInfo: {
+    id: string
+    fullName: string
+    phoneNumber: string
+    email: string
+    image: string
+  }
   address: string
-  features: { id: string; name: string }[]
+  highlightFeatures: {
+    id: string
+    image: string
+    title: string
+    value: string
+  }[]
+  features: {
+    id: string
+    image: string
+    title: string
+    value: string
+  }[]
+  rentalTerm: {
+    id: string
+    name: string
+  }
   rent?: number
   deposit?: number
   price?: number

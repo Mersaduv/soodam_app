@@ -187,7 +187,7 @@ const requests = [
       fullName: 'محمد حسین حسینی',
       phoneNumber: '09123456789',
       email: 'test@test.com',
-      image: '/static/OIP (3).jfif',
+      image: '/static/62544dd3fc1adcec9ba30b7ccb57be92.jfif',
     },
     highlightFeatures: [
       {
@@ -236,6 +236,7 @@ const requests = [
       },
     ],
     location: getRandomLocation(35.75, 51.41, 0.02),
+    address: 'تهران، ونک،خیابان 33',
     deposit: 600000000,
     rent: 5000000,
     price: 0,
@@ -284,6 +285,7 @@ const requests = [
       },
     ],
     location: getRandomLocation(35.75, 51.41, 0.02),
+    address: 'تهران، ونک،خیابان 33',
     deposit: 0,
     rent: 0,
     price: 0,
@@ -1365,8 +1367,7 @@ const features = [
   },
   {
     id: '2d3acsdf333d1',
-    name: 'بازسازی شده است.',
-    image: '/static/ads/......png',
+    name: 'بازسازی شده است.',    image: '/static/ads/......png',
     type: 'check',
     values: [],
     created: '2024-01-30T15:50:00Z',
@@ -1981,6 +1982,7 @@ export const handlers = [
 
     users.set(phoneNumber, user)
     try {
+
       localStorage.setItem('user', JSON.stringify(user))
     } catch (error) {
       console.error('خطا در ذخیره اطلاعات کاربر در localStorage:', error)
