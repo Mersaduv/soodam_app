@@ -57,6 +57,9 @@ const Lists: NextPage = () => {
   if (savedHouses || saveHousingData) {
     console.log(savedHouses, 'savedHouses', saveHousingData, 'saveHousingData')
   }
+  const handleHousingCardClick = (housing: Housing) => {
+    push(`/housing/${housing.adCode}`)
+  }
   if (isFetching) return <div>loading...</div>
   // ? Render(s)
   return (
@@ -85,7 +88,7 @@ const Lists: NextPage = () => {
               {saveHousingData && saveHousingData.length > 0 && (
                 <section className="flex flex-wrap justify-center gap-3">
                   {saveHousingData.map((item) => (
-                    <HousingCard housing={item} key={item.id} />
+                    <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
                   ))}
                 </section>
               )}
@@ -102,7 +105,7 @@ const Lists: NextPage = () => {
               {housingMap && (
                 <section className="flex flex-wrap justify-center gap-3">
                   {housingMap.map((item) => (
-                    <HousingCard housing={item} key={item.id} />
+                    <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
                   ))}
                 </section>
               )}
