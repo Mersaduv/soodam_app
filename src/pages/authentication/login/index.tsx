@@ -68,7 +68,7 @@ function LoginPage() {
       if (query?.role === roles.MemberUser) {
         dispatch(setIsMemberUserLogin(true))
       }
-    }, 1000)
+    }, 50)
   }
 
   // if (query) {
