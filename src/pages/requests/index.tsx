@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import { ClientLayout } from '@/components/layouts'
 import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { setIsShowLogin } from '@/store'
-import { CalenderSmIcon, LocationSmIcon, RegisterAdIcon } from '@/icons'
+import { CalenderSmIcon, CallCallingSmIcon, LocationSmIcon, RegisterAdIcon } from '@/icons'
 import { useGetRequestsQuery } from '@/services'
 import { DataStateDisplay } from '@/components/shared'
 import { HousingSkeleton } from '@/components/skeleton'
@@ -26,7 +26,7 @@ const Requests: NextPage = () => {
   // ? States
   const [contactShown, setContactShown] = useState(false)
   const [showCopiedTooltip, setShowCopiedTooltip] = useState(false)
-  const [isShow, modalHandlers] = useDisclosure();
+  const [isShow, modalHandlers] = useDisclosure()
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState('')
   // ? Queries
   const { data: requestData, isLoading, isFetching, ...requestQueryProps } = useGetRequestsQuery({ status: '2' })
@@ -47,29 +47,29 @@ const Requests: NextPage = () => {
   }
 
   const handleContactOwner = (phoneNumber: string) => {
-    const role = localStorage.getItem('role');
+    const role = localStorage.getItem('role')
     if (!role || role === 'user') {
-      push('/authentication/login?role=memberUser');
-      return;
+      push('/authentication/login?role=memberUser')
+      return
     }
     // باز کردن مودال و ذخیره شماره تلفن
-    setSelectedPhoneNumber(phoneNumber);
-    modalHandlers.open();
-  };
+    setSelectedPhoneNumber(phoneNumber)
+    modalHandlers.open()
+  }
 
   const handleModalClose = () => {
-    modalHandlers.close();
-  };
+    modalHandlers.close()
+  }
 
   const handleCall = () => {
-    window.location.href = `tel:${selectedPhoneNumber}`;
-    modalHandlers.close();
-  };
+    window.location.href = `tel:${selectedPhoneNumber}`
+    modalHandlers.close()
+  }
 
   const handleMessage = () => {
-    window.location.href = `sms:${selectedPhoneNumber}`;
-    modalHandlers.close();
-  };
+    window.location.href = `sms:${selectedPhoneNumber}`
+    modalHandlers.close()
+  }
   // ? Render(s)
   return (
     <>
@@ -78,7 +78,9 @@ const Requests: NextPage = () => {
           onClose={handleModalClose}
           className="flex h-full flex-col gap-y-5 bg-white p-4 pb-8 rounded-2xl rounded-b-none"
         >
-          <Modal.Header right onClose={handleModalClose} >اطلاعات تماس</Modal.Header>
+          <Modal.Header right onClose={handleModalClose}>
+            اطلاعات تماس
+          </Modal.Header>
           <Modal.Body>
             <div className="space-y-4">
               <button
@@ -141,7 +143,7 @@ const Requests: NextPage = () => {
                               )}
                             </div>
                             <div className="flex flex-col gap-1">
-                              <h1>{item.userInfo.fullName}</h1>
+                              <h1 className='font-medium'>{item.userInfo.fullName}</h1>
                               <div className="flex items-center gap-1.5">
                                 <LocationSmIcon width="16px" height="16px" />
                                 <div className="text-xs font-normal">{province}</div>
@@ -237,16 +239,12 @@ const Requests: NextPage = () => {
                           </div>
                         </div>
                         <div className=" mt-4 relative">
-                          {showCopiedTooltip && (
-                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 text-xs px-2 py-1 rounded shadow">
-                              کپی شد!
-                            </div>
-                          )}
                           <Button
-                            className="w-full rounded-[10px] farsi-digits"
+                            className="w-full rounded-[10px] farsi-digits flex items-center gap-1.5 py-3.5"
                             onClick={() => handleContactOwner(item.userInfo.phoneNumber)}
                           >
-                            تماس
+                            <CallCallingSmIcon width="16px" height="16px" />
+                            <span className="text-sm text-white font-bold">تماس</span>
                           </Button>
                         </div>
                       </div>
