@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { ClientLayout } from '@/components/layouts'
-import { useAppDispatch, useAppSelector } from '@/hooks'
+import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { setIsShowLogin } from '@/store'
 import { CalenderSmIcon, LocationSmIcon, RegisterAdIcon } from '@/icons'
 import { useGetRequestsQuery } from '@/services'
@@ -15,7 +15,7 @@ import { HousingCard } from '@/components/housing'
 import { formatPriceLoc, getProvinceFromCoordinates } from '@/utils/stringFormatting'
 import moment from 'moment-jalaali'
 import { useState } from 'react'
-import { Button } from '@/components/ui'
+import { Button, Modal } from '@/components/ui'
 moment.loadPersian({ usePersianDigits: true, dialect: 'persian-modern' })
 const Requests: NextPage = () => {
   // ? Assets
@@ -26,6 +26,8 @@ const Requests: NextPage = () => {
   // ? States
   const [contactShown, setContactShown] = useState(false)
   const [showCopiedTooltip, setShowCopiedTooltip] = useState(false)
+  const [isShow, modalHandlers] = useDisclosure();
+  const [selectedPhoneNumber, setSelectedPhoneNumber] = useState('')
   // ? Queries
   const { data: requestData, isLoading, isFetching, ...requestQueryProps } = useGetRequestsQuery({ status: '2' })
 
@@ -45,16 +47,56 @@ const Requests: NextPage = () => {
   }
 
   const handleContactOwner = (phoneNumber: string) => {
-    const role = localStorage.getItem('role')
+    const role = localStorage.getItem('role');
     if (!role || role === 'user') {
-      push('/authentication/login?role=memberUser')
-      return
+      push('/authentication/login?role=memberUser');
+      return;
     }
-    window.location.href = `tel:${phoneNumber}`
-  }
+    // باز کردن مودال و ذخیره شماره تلفن
+    setSelectedPhoneNumber(phoneNumber);
+    modalHandlers.open();
+  };
+
+  const handleModalClose = () => {
+    modalHandlers.close();
+  };
+
+  const handleCall = () => {
+    window.location.href = `tel:${selectedPhoneNumber}`;
+    modalHandlers.close();
+  };
+
+  const handleMessage = () => {
+    window.location.href = `sms:${selectedPhoneNumber}`;
+    modalHandlers.close();
+  };
   // ? Render(s)
   return (
     <>
+      <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
+        <Modal.Content
+          onClose={handleModalClose}
+          className="flex h-full flex-col gap-y-5 bg-white p-4 pb-8 rounded-2xl rounded-b-none"
+        >
+          <Modal.Header right onClose={handleModalClose} >اطلاعات تماس</Modal.Header>
+          <Modal.Body>
+            <div className="space-y-4">
+              <button
+                onClick={handleCall}
+                className="w-full py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg farsi-digits"
+              >
+                تماس با {selectedPhoneNumber}
+              </button>
+              <button
+                onClick={handleMessage}
+                className="w-full py-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg farsi-digits"
+              >
+                پیامک به {selectedPhoneNumber}
+              </button>
+            </div>
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
       <ClientLayout title="درخواست های ثبت شده">
         <main className="py-[140px] px-4">
           <div className="fixed flex flex-col gap y-2.5 bottom-[88px] left-4 z-10">
@@ -194,7 +236,7 @@ const Requests: NextPage = () => {
                             )}
                           </div>
                         </div>
-                        <div className="mx-4 mt-4 relative">
+                        <div className=" mt-4 relative">
                           {showCopiedTooltip && (
                             <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 text-xs px-2 py-1 rounded shadow">
                               کپی شد!
