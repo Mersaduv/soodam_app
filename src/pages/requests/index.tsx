@@ -98,8 +98,8 @@ const Requests: NextPage = () => {
         </Modal.Content>
       </Modal>
       <ClientLayout title="درخواست های ثبت شده">
-        <main className="py-[140px] px-4">
-          <div className="fixed flex flex-col gap y-2.5 bottom-[88px] left-4 z-10">
+        <main className="py-[92px] px-4">
+          <div className="fixed flex flex-col gap-y-2.5 bottom-[88px] left-4 z-10">
             <div
               onClick={handleNavigate}
               className="bg-white hover:bg-gray-50 w-[159px] h-[56px] rounded-[59px] flex-center gap-2 shadow-icon cursor-pointer"
