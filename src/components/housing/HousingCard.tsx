@@ -4,14 +4,14 @@ import { toggleSaveHouse } from '@/store'
 import { Housing } from '@/types'
 import { feature } from '@turf/turf'
 import Image from 'next/image'
-import Link from 'next/link'
 
 interface Props {
   housing: Housing
+  onCardClick: (housing: Housing) => void
 }
 
 const HousingCard: React.FC<Props> = (props) => {
-  const { housing } = props
+  const { housing, onCardClick } = props
   const dispatch = useAppDispatch()
 
   const isSelling = housing.price > 0
@@ -31,7 +31,7 @@ const HousingCard: React.FC<Props> = (props) => {
   const isSaved = useAppSelector((state) => state.saveHouse.savedHouses.some((item) => item.id === housing.id))
 
   return (
-    <Link href={`/housing/${housing.adCode}`} className="block w-[353px] bg-white rounded-2xl">
+    <div className="block w-[353px] bg-white rounded-2xl cursor-pointer" onClick={() => onCardClick(housing)}>
       <article className="flex flex-col flex-1 items-center justify-start rounded-2xl border-[1.5px] border-[#E3E3E7] h-full p-4 relative">
         <>
           <Image
@@ -135,7 +135,7 @@ const HousingCard: React.FC<Props> = (props) => {
           </div> */}
         </div>
       </article>
-    </Link>
+    </div>
   )
 }
 

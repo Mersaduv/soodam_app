@@ -45,6 +45,21 @@ export default function Home() {
     },
     { skip: !shouldFetch }
   )
+  useEffect(() => {
+    const storedBounds = localStorage.getItem('storedBounds')
+    if (storedBounds && !bounds) {
+      const parsedBounds = JSON.parse(storedBounds)
+      if (typeof window !== 'undefined') {
+        const L = require('leaflet')
+        const newBounds = L.latLngBounds(
+          [parsedBounds.swLat, parsedBounds.swLng],
+          [parsedBounds.neLat, parsedBounds.neLng]
+        )
+        setBounds(newBounds)
+      }
+    }
+  }, [])
+
   const handleBoundsChanged = useCallback((newBounds) => {
     setBounds((prevBounds) => {
       if (prevBounds && prevBounds.equals(newBounds)) {
@@ -63,6 +78,23 @@ export default function Home() {
       leafletMapRef.current.invalidateSize()
     }
   }, [map.mode])
+  const handleHousingCardClick = (housing: Housing) => {
+    if (bounds) {
+      if (typeof window !== 'undefined') {
+        const L = require('leaflet')
+        localStorage.setItem(
+          'storedBounds',
+          JSON.stringify({
+            neLat: bounds.getNorthEast().lat,
+            neLng: bounds.getNorthEast().lng,
+            swLat: bounds.getSouthWest().lat,
+            swLng: bounds.getSouthWest().lng,
+          })
+        )
+      }
+      router.push(`/housing/${housing.adCode}`)
+    }
+  }
 
   const housingList = housingData?.data || []
 
@@ -96,7 +128,7 @@ export default function Home() {
             {housingData && housingData.data.length > 0 && (
               <section className="flex flex-wrap justify-center gap-3">
                 {housingData.data.map((item) => (
-                  <HousingCard housing={item} key={item.id} />
+                  <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
                 ))}
               </section>
             )}
@@ -114,7 +146,7 @@ export default function Home() {
           {housingMap && (
             <section className="flex flex-wrap justify-center gap-3">
               {housingMap.map((item) => (
-                <HousingCard housing={item} key={item.id} />
+                <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
               ))}
             </section>
           )}
