@@ -117,10 +117,10 @@ const Soodam: NextPage = () => {
                 <div className="font-medium text-sm">درخواست پشتیبانی</div>
               </div>
 
-              <div className="flex items-center gap-2 py-3 cursor-pointer">
+              <Link href={`/soodam/setting`} className="flex items-center gap-2 py-3 cursor-pointer">
                 <SettingSmIcon width="24px" height="24px" />
                 <div className="font-medium text-sm">تنظیمات</div>
-              </div>
+              </Link>
 
               <div className="flex items-center gap-2 pb-20">
                 <LogoutButton isProfile />

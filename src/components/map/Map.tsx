@@ -40,6 +40,7 @@ import {
   setSelectedArea,
   setShowZoomModal,
   setStateData,
+  setUserCityLocation,
   setZoom,
 } from '@/store'
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
@@ -954,6 +955,7 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
         (position) => {
           const { latitude, longitude } = position.coords
           setUserLocation([latitude, longitude])
+          dispatch(setUserCityLocation([latitude, longitude]))
 
           // پن کردن نقشه به موقعیت کاربر
           if (mapRef.current) {

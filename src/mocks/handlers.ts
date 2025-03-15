@@ -188,6 +188,7 @@ const requests = [
       phoneNumber: '09123456789',
       email: 'test@test.com',
       image: '/static/62544dd3fc1adcec9ba30b7ccb57be92.jfif',
+      gender: 'مرد',
     },
     highlightFeatures: [
       {
@@ -261,6 +262,7 @@ const requests = [
       phoneNumber: '09010101010',
       email: 'test@test.com',
       image: null,
+      gender: 'مرد',
     },
     highlightFeatures: [
       {

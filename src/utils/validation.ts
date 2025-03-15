@@ -302,8 +302,7 @@ export const marketerUserFormValidationSchema = Yup.object().shape({
 })
 
 export const userInfoFormValidationSchema = Yup.object().shape({
-  image: Yup.mixed()
-    .required('عکس الزامی است'),
+  image: Yup.mixed(),
 
   fullName: Yup.string()
     .required('نام و نام خانوادگی الزامی است'), // فقط حروف فارسی مجاز هستند
