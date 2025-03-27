@@ -2,6 +2,12 @@ import { Feature, Category, SubscriptionPlan, User, AdFormValues } from '@/types
 import { UserRoleType } from '@/utils'
 import { rest } from 'msw'
 
+const getRandomLocation = (baseLat: number, baseLng: number, offset: number) => {
+  const randomLat = baseLat + (Math.random() - 0.5) * offset
+  const randomLng = baseLng + (Math.random() - 0.5) * offset
+  return { lat: parseFloat(randomLat.toFixed(6)), lng: parseFloat(randomLng.toFixed(6)) }
+}
+
 const verificationCodes = new Map<string, string>()
 // export interface User {
 //   id: string
@@ -59,11 +65,6 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
 ]
 
-const getRandomLocation = (baseLat: number, baseLng: number, offset: number) => {
-  const randomLat = baseLat + (Math.random() - 0.5) * offset
-  const randomLng = baseLng + (Math.random() - 0.5) * offset
-  return { lat: parseFloat(randomLat.toFixed(6)), lng: parseFloat(randomLng.toFixed(6)) }
-}
 function getFeaturesByCategory(categoryId: string): Feature[] {
   const categoryFeatures: Set<string> = new Set()
 
@@ -1369,7 +1370,8 @@ const features = [
   },
   {
     id: '2d3acsdf333d1',
-    name: 'بازسازی شده است.',    image: '/static/ads/......png',
+    name: 'بازسازی شده است.',
+    image: '/static/ads/......png',
     type: 'check',
     values: [],
     created: '2024-01-30T15:50:00Z',
@@ -1943,6 +1945,67 @@ const manualData = [
   { propertyId: 'prop-1001', viewedDate: '2024-12-16T22:30:40.000Z' },
 ]
 
+const estates = [
+  {
+    id: '1',
+    name: 'خاوری',
+    city: 'تهران',
+    location: getRandomLocation(35.75, 51.41, 0.02),
+    address: ' ونک-خیابان 33',
+    image: '/static/pic1111.jpg',
+    housing: housing,
+    userInfo: {
+      fullName: 'محمد باقری',
+      fatherName: 'جلیل باقری',
+      notionalCode: '3497971073',
+      businessLicense: 321456789,
+      tradeLicense: 987654321,
+      phoneNumber: '09123456789',
+      businessLicenseImage: '/static/business-license.jpg',
+      nationalCardBackImage: '/static/national-card-back.jpg',
+      nationalCardFrontImage: '/static/national-card-front.jpg',
+      birthCertificateImage: '/static/birth-certificate.jpg',
+    },
+    accountManage: [
+      {
+        id: '1',
+        type: 'withdrawal',
+        price: 900000,
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        type: 'deposit',
+        price: 1150000,
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+      },
+    ],
+    marketerUser: [
+      {
+        id: '1',
+        fullName: 'حسن باقرزاده',
+        fatherName: 'علی',
+        birthDate: '1380/03/1',
+        notionalCode: '0482223344',
+        idCode: '0482223344',
+        gender: 'مرد',
+        maritalStatus: 'مجرد',
+        bankAccountNumber: '5864524485632214',
+        marketerCode: '85221445',
+        shabaNumber: 'IR4006800000000009515',
+        city: 'دماوند',
+
+        phoneNumber: '09125009830',
+        email: 'hassanbagheri@hotmail.com',
+        address: 'دماوند-خیابان اندیشه کوچه 12 واحد 4',
+        activityChart: manualData,
+      },
+    ],
+  },
+]
+
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
@@ -1975,7 +2038,7 @@ export const handlers = [
     if (code !== storedCode) {
       return res(ctx.status(401), ctx.json({ message: 'کد تایید نادرست می‌باشد!', phoneNumber }))
     }
-    const user: User =  {
+    const user: User = {
       id: generateUUID(), // تابعی برای تولید UUID
       phoneNumber,
       role: role,
@@ -1984,7 +2047,6 @@ export const handlers = [
 
     users.set(phoneNumber, user)
     try {
-
       localStorage.setItem('user', JSON.stringify(user))
     } catch (error) {
       console.error('خطا در ذخیره اطلاعات کاربر در localStorage:', error)
