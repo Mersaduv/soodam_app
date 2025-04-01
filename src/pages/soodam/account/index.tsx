@@ -13,7 +13,7 @@ import {
   PdfDownloadIcon,
   WalletAndCardIcon,
 } from '@/icons'
-import { Button, DisplayError, SelectBox, TextField } from '@/components/ui'
+import { Button, Combobox, DisplayError, SelectBox, TextField } from '@/components/ui'
 import { Controller, Resolver, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { userInfoFormValidationSchema } from '@/utils'
@@ -41,6 +41,7 @@ const Account: NextPage = () => {
   const [selectedProvince, setSelectedProvince] = useState(null)
   // const [provinceOptions, setProvinceOptions] = useState([])
   const AllProvinces = iranCity.allProvinces()
+  const [cities, setCities] = useState([])
   // ? Assets
   const { back } = useRouter()
 
@@ -52,12 +53,30 @@ const Account: NextPage = () => {
     setValue,
     getValues,
     watch,
+    reset,
     formState: { errors },
   } = useForm<UserInfoForm>({
     resolver: yupResolver(userInfoFormValidationSchema) as unknown as Resolver<UserInfoForm>,
     mode: 'onChange',
     defaultValues: {},
   })
+
+  // useEffect(() => {
+  //   if (address.province) {
+  //     setCities(iranCity.citiesOfProvince(address.province.id))
+  //   }
+  //   reset(address)
+  // }, [address, reset])
+
+  useEffect(() => {
+    const subscription = watch((value, { name, type }) => {
+      if (name === 'province') {
+        setCities(iranCity.citiesOfProvince(value.province?.id))
+        setValue('city', {} as UserInfoForm['city'])
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, setValue])
 
   const handleBack = () => {
     back()
@@ -226,12 +245,31 @@ const Account: NextPage = () => {
                     />
                   )}
                 />
-                <div className="w-full space-y-1">
+                <div className="space-y-1">
+                  <label htmlFor="" className="text-sm font-normal pb-1">
+                    استان
+                  </label>
+                  <Combobox
+                    control={control}
+                    name="province"
+                    list={AllProvinces}
+                    placeholder="لطفا استان خود را انتخاب کنید"
+                  />
+                  {errors.province?.name && <DisplayError errors={errors.province?.name} />}
+                </div>
+                <div className="space-y-1">
                   <label htmlFor="" className="text-sm font-normal pb-1">
                     شهر
                   </label>
-                  <SelectBox control={control} name="province" list={AllProvinces} placeholder="انتخاب شهر" />
+                  <Combobox control={control} name="city" list={cities} placeholder="لطفا شهر خود را انتخاب کنید" />
+                  {errors.city?.name && <DisplayError errors={errors.city?.name} />}
                 </div>
+                {/* <div className="w-full space-y-1">
+                  <label htmlFor="" className="text-sm font-normal pb-1">
+                    استان
+                  </label>
+                  <SelectBox control={control} name="province" list={AllProvinces} placeholder="انتخاب شهر" />
+                </div> */}
                 <Controller
                   name="birthDate"
                   control={control}

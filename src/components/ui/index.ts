@@ -11,6 +11,7 @@ export { default as TextFiledPrice } from './TextFiledPrice'
 export { default as Alert } from './Alert'
 export { default as Skeleton } from './Skeleton'
 export { default as SelectBox } from './SelectBox'
+export { default as Combobox } from './Combobox'
 
 export * from './Buttons'
 export * from './Checkbox'

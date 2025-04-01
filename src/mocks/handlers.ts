@@ -1945,6 +1945,109 @@ const manualData = [
   { propertyId: 'prop-1001', viewedDate: '2024-12-16T22:30:40.000Z' },
 ]
 
+const chartActivityData = [
+  { propertyId: 'prop-1051', viewedDate: '2025-01-20T10:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1052', viewedDate: '2025-01-20T11:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1053', viewedDate: '2025-01-20T13:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1054', viewedDate: '2025-01-20T14:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1055', viewedDate: '2025-01-20T16:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1056', viewedDate: '2025-01-20T17:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1057', viewedDate: '2025-01-20T19:00:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1058', viewedDate: '2025-01-20T20:30:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1059', viewedDate: '2025-01-20T22:00:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1060', viewedDate: '2025-01-20T23:30:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1061', viewedDate: '2025-01-21T01:00:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1062', viewedDate: '2025-01-21T02:30:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1063', viewedDate: '2025-01-21T04:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1064', viewedDate: '2025-01-21T05:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1065', viewedDate: '2025-01-21T07:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1066', viewedDate: '2025-01-21T08:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1067', viewedDate: '2025-01-21T10:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1068', viewedDate: '2025-01-21T11:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1069', viewedDate: '2025-01-21T13:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1070', viewedDate: '2025-01-21T14:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1071', viewedDate: '2025-01-21T16:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1072', viewedDate: '2025-01-21T17:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1073', viewedDate: '2025-01-21T19:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1074', viewedDate: '2025-01-21T20:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1075', viewedDate: '2025-01-21T22:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1076', viewedDate: '2025-01-21T23:30:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1077', viewedDate: '2025-01-22T01:00:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1078', viewedDate: '2025-01-22T02:30:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1079', viewedDate: '2025-01-22T04:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1080', viewedDate: '2025-01-22T05:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1081', viewedDate: '2025-01-22T07:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1082', viewedDate: '2025-01-22T08:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1083', viewedDate: '2025-01-22T10:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1084', viewedDate: '2025-01-22T11:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1085', viewedDate: '2025-01-22T13:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1086', viewedDate: '2025-01-22T14:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1087', viewedDate: '2025-01-22T16:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1088', viewedDate: '2025-01-22T17:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1089', viewedDate: '2025-01-22T19:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1090', viewedDate: '2025-01-22T20:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1091', viewedDate: '2025-01-22T22:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1092', viewedDate: '2025-01-22T23:30:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1093', viewedDate: '2025-01-23T01:00:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1094', viewedDate: '2025-01-23T02:30:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1095', viewedDate: '2025-01-23T04:00:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1096', viewedDate: '2025-01-23T05:30:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1097', viewedDate: '2025-01-23T07:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1098', viewedDate: '2025-01-23T08:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1099', viewedDate: '2025-01-23T10:00:00.000Z',status:'successful' },
+  { propertyId: 'prop-1100', viewedDate: '2025-01-23T11:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1050', viewedDate: '2025-01-13T14:24:00.000Z',status:'successful' },
+  { propertyId: 'prop-1049', viewedDate: '2025-01-12T21:50:24.000Z',status:'successful' },
+  { propertyId: 'prop-1048', viewedDate: '2025-01-11T05:16:48.000Z',status:'successful' },
+  { propertyId: 'prop-1047', viewedDate: '2025-01-10T12:43:12.000Z',status:'successful' },
+  { propertyId: 'prop-1046', viewedDate: '2025-01-09T20:09:36.000Z',status:'successful' },
+  { propertyId: 'prop-1045', viewedDate: '2025-01-08T10:30:00.000Z',status:'successful' },
+  { propertyId: 'prop-1044', viewedDate: '2025-01-07T08:15:12.000Z',status:'successful' },
+  { propertyId: 'prop-1043', viewedDate: '2025-01-06T16:45:32.000Z',status:'successful' },
+  { propertyId: 'prop-1042', viewedDate: '2025-01-05T14:22:11.000Z',status:'successful' },
+  { propertyId: 'prop-1041', viewedDate: '2025-01-04T09:33:44.000Z',status:'successful' },
+  { propertyId: 'prop-1040', viewedDate: '2025-01-03T07:12:55.000Z',status:'successful' },
+  { propertyId: 'prop-1039', viewedDate: '2025-01-02T18:19:27.000Z',status:'successful' },
+  { propertyId: 'prop-1038', viewedDate: '2025-01-01T12:05:39.000Z',status:'successful' },
+  { propertyId: 'prop-1037', viewedDate: '2024-12-31T10:45:01.000Z',status:'successful' },
+  { propertyId: 'prop-1036', viewedDate: '2024-12-30T08:30:15.000Z',status:'successful' },
+  { propertyId: 'prop-1035', viewedDate: '2024-12-29T16:20:45.000Z',status:'successful' },
+  { propertyId: 'prop-1034', viewedDate: '2024-12-28T14:15:30.000Z',status:'successful' },
+  { propertyId: 'prop-1033', viewedDate: '2024-12-27T11:10:25.000Z',status:'successful' },
+  { propertyId: 'prop-1032', viewedDate: '2024-12-26T09:05:20.000Z',status:'successful' },
+  { propertyId: 'prop-1031', viewedDate: '2024-12-25T07:00:10.000Z',status:'successful' },
+  { propertyId: 'prop-1030', viewedDate: '2024-12-24T05:55:05.000Z',status:'successful' },
+  { propertyId: 'prop-1029', viewedDate: '2024-12-23T04:50:00.000Z',status:'successful' },
+  { propertyId: 'prop-1028', viewedDate: '2024-12-22T03:45:55.000Z',status:'successful' },
+  { propertyId: 'prop-1027', viewedDate: '2024-12-21T02:40:50.000Z',status:'successful' },
+  { propertyId: 'prop-1026', viewedDate: '2024-12-20T01:35:45.000Z',status:'successful' },
+  { propertyId: 'prop-1025', viewedDate: '2024-12-19T00:30:40.000Z',status:'successful' },
+  { propertyId: 'prop-1024', viewedDate: '2024-12-18T23:25:35.000Z',status:'successful' },
+  { propertyId: 'prop-1023', viewedDate: '2024-12-17T22:20:30.000Z',status:'successful' },
+  { propertyId: 'prop-1022', viewedDate: '2024-12-16T21:15:25.000Z',status:'successful' },
+  { propertyId: 'prop-1021', viewedDate: '2024-12-16T20:10:20.000Z',status:'successful' },
+  { propertyId: 'prop-1020', viewedDate: '2024-12-16T19:05:15.000Z',status:'successful' },
+  { propertyId: 'prop-1019', viewedDate: '2024-12-16T18:00:10.000Z',status:'successful' },
+  { propertyId: 'prop-1018', viewedDate: '2024-12-16T16:55:05.000Z',status:'successful' },
+  { propertyId: 'prop-1017', viewedDate: '2024-12-16T15:50:00.000Z',status:'successful' },
+  { propertyId: 'prop-1016', viewedDate: '2024-12-16T14:45:55.000Z',status:'successful' },
+  { propertyId: 'prop-1015', viewedDate: '2024-12-16T13:40:50.000Z',status:'successful' },
+  { propertyId: 'prop-1014', viewedDate: '2024-12-16T12:35:45.000Z',status:'successful' },
+  { propertyId: 'prop-1013', viewedDate: '2024-12-16T11:30:40.000Z',status:'successful' },
+  { propertyId: 'prop-1012', viewedDate: '2024-12-16T10:25:35.000Z',status:'successful' },
+  { propertyId: 'prop-1011', viewedDate: '2024-12-16T09:20:30.000Z',status:'successful' },
+  { propertyId: 'prop-1010', viewedDate: '2024-12-16T08:15:25.000Z',status:'successful' },
+  { propertyId: 'prop-1009', viewedDate: '2024-12-16T07:10:20.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1008', viewedDate: '2024-12-16T06:05:15.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1007', viewedDate: '2024-12-16T05:00:10.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1006', viewedDate: '2024-12-16T03:55:05.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1005', viewedDate: '2024-12-16T02:50:00.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1004', viewedDate: '2024-12-16T01:45:55.000Z',status:'unsuccessful' },
+  { propertyId: 'prop-1003', viewedDate: '2024-12-16T00:40:50.000Z',status:'successful' },
+  { propertyId: 'prop-1002', viewedDate: '2024-12-16T23:35:45.000Z',status:'successful' },
+  { propertyId: 'prop-1001', viewedDate: '2024-12-16T22:30:40.000Z',status:'successful' },
+]
+
 const estates = [
   {
     id: '1',
@@ -2000,7 +2103,7 @@ const estates = [
         phoneNumber: '09125009830',
         email: 'hassanbagheri@hotmail.com',
         address: 'دماوند-خیابان اندیشه کوچه 12 واحد 4',
-        activityChart: manualData,
+        activityChart: chartActivityData,
       },
     ],
   },
@@ -2413,6 +2516,41 @@ export const handlers = [
     }
 
     return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredHousing }))
+  }),
+
+  rest.get('/api/estates', (req, res, ctx) => {
+    const searchParams = req.url.searchParams
+    const title = searchParams.get('title')
+    const type = searchParams.get('type')
+    const status = searchParams.get('status')
+
+    // دریافت پارامترهای bounds در صورت وجود
+    const swLat = searchParams.get('swLat')
+    const swLng = searchParams.get('swLng')
+    const neLat = searchParams.get('neLat')
+    const neLng = searchParams.get('neLng')
+
+    let filteredEstates = [...estates]
+
+    // if (status) {
+    //   filteredEstates = filteredEstates.filter((item) => item.status === parseInt(status))
+    // }
+
+    // فیلتر کردن بر اساس محدوده جغرافیایی در صورت ارسال پارامترها
+    if (swLat && swLng && neLat && neLng) {
+      const swLatNum = parseFloat(swLat)
+      const swLngNum = parseFloat(swLng)
+      const neLatNum = parseFloat(neLat)
+      const neLngNum = parseFloat(neLng)
+
+      filteredEstates = filteredEstates.filter((item) => {
+        const lat = item.location.lat
+        const lng = item.location.lng
+        return lat >= swLatNum && lat <= neLatNum && lng >= swLngNum && lng <= neLngNum
+      })
+    }
+
+    return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredEstates }))
   }),
 
   rest.post('/api/housing/ad', async (req, res, ctx) => {

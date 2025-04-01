@@ -51,6 +51,22 @@ export const subscriptionApiSlice = baseApi.injectEndpoints({
       }),
       providesTags: ['Subscription'],
     }),
+
+    // Get all provinces
+    // getProvinces: builder.query<ServiceResponse<Province[]>, void>({
+    //   query: () => ({
+    //     url: '/api/geolocation/get_provinces',
+    //     method: 'GET',
+    //   }),
+    // }),
+
+    // // Get cities by province ID
+    // getCitiesByProvinceId: builder.query<ServiceResponse<City[]>, number>({
+    //   query: (provinceId) => ({
+    //     url: `/api/geolocation/get_cites_by_id/${provinceId}`,
+    //     method: 'GET',
+    //   }),
+    // }),
   }),
 })
 

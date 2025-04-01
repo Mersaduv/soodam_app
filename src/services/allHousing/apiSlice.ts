@@ -42,7 +42,7 @@ export const housingApiSlice = baseApi.injectEndpoints({
     }),
     addHousing: builder.mutation<ServiceResponse<Housing>, AdFormValues>({
       query: (data) => ({
-        url: '/api/housing/ad',
+        url: '/api/adv/create_adv',
         method: 'POST',
         body: data,
       }),
