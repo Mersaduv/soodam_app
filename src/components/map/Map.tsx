@@ -981,7 +981,8 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords
-          const userCoords = [35.6892, 51.389]
+          // const userCoords = [35.6892, 51.389]
+          const userCoords = [latitude, longitude]
 
           setUserLocation(userCoords)
           dispatch(setUserCityLocation(userCoords))
