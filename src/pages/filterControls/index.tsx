@@ -8,7 +8,7 @@ import { Button, CustomCheckbox, TextField } from '@/components/ui'
 import { Category, QueryParams } from '@/types'
 import { NextPage } from 'next'
 import { ClientLayout } from '@/components/layouts'
-import { useGetCategoriesQuery, useLazyGetFeaturesByCategoryQuery } from '@/services'
+import { useGetCategoriesQuery, useGetMetaDataQuery, useLazyGetFeaturesByCategoryQuery } from '@/services'
 import { Disclosure } from '@headlessui/react'
 import { ArrowLeftIcon } from '@/icons'
 import { useFilters } from '@/hooks/use-filter'
@@ -47,14 +47,14 @@ const FilterControls: NextPage = (props) => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [openDropdowns, setOpenDropdowns] = useState({})
-  const { data: categoriesData, isFetching, ...categoryQueryProps } = useGetCategoriesQuery({ ...query })
+  const { data: categoriesData, isFetching, ...categoryQueryProps } = useGetMetaDataQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
 
   const { filters, updateFilters } = useFilters()
   const [tempFilters, setTempFilters] = useState<{ [key: string]: string | string[] | undefined }>({})
 
   useEffect(() => {
-    if (categoriesData?.data && query.category) {
+    if (categoriesData?.main_categories && query.category) {
       const categoryId = query.category
       const findCategory = (categories) => {
         for (const cat of categories) {
@@ -66,7 +66,7 @@ const FilterControls: NextPage = (props) => {
         }
         return null
       }
-      const category = findCategory(categoriesData.data)
+      const category = findCategory(categoriesData.main_categories)
       if (category) {
         setSelectedCategory(category)
       } else {
@@ -75,7 +75,7 @@ const FilterControls: NextPage = (props) => {
     } else {
       setSelectedCategory(null) // اگر کوئری یا داده‌ها موجود نباشد
     }
-  }, [categoriesData?.data, query.category])
+  }, [categoriesData?.main_categories, query.category])
   const handleTempFilterChange = (field: string, value: string, isFrom: boolean, isDynamic?: boolean) => {
     if (isDynamic) {
       setTempFilters((prev) => ({
@@ -178,17 +178,17 @@ const FilterControls: NextPage = (props) => {
 
   const findParentIndex = useCallback(
     (category: Category) => {
-      if (!categoriesData?.data) return -1
+      if (!categoriesData?.main_categories) return -1
 
-      return categoriesData.data.findIndex((topCategory) => {
+      return categoriesData.main_categories.findIndex((topCategory) => {
         if (topCategory.id === category.id) return true // Check if it's a top-level category
 
-        return topCategory.children?.some(
-          (sub) => sub.id === category.id || sub.children?.some((child) => child.id === category.id)
+        return topCategory.sub_categories?.some(
+          (sub) => sub.id === category.id || sub.sub_categories?.some((child) => child.id === category.id)
         )
       })
     },
-    [categoriesData?.data]
+    [categoriesData?.main_categories]
   )
 
   useEffect(() => {
@@ -238,7 +238,7 @@ const FilterControls: NextPage = (props) => {
               {isOpen && (
                 <div className="mt-2 w-full bg-[#FCFCFC] border-[1.5px] rounded-[8px] z-10">
                   <div className="flex flex-col gap-y-3.5 px-4 py-2">
-                    {categoriesData.data.map((item, index) => (
+                    {categoriesData.main_categories.map((item, index) => (
                       <Disclosure key={item.id}>
                         {() => (
                           <>
@@ -247,8 +247,8 @@ const FilterControls: NextPage = (props) => {
                               className="!mt-0 flex w-full items-center justify-between py-2"
                             >
                               <div className="flex gap-x-1.5 items-center">
-                                {item.imageUrl && (
-                                  <img className="w-[24px] h-[24px]" src={item.imageUrl} alt={item.name} />
+                                {item.image && (
+                                  <img className="w-[24px] h-[24px]" src={item.image} alt={item.name} />
                                 )}
                                 <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
                                   {item.name}
@@ -261,11 +261,11 @@ const FilterControls: NextPage = (props) => {
                               />
                             </Disclosure.Button>
 
-                            {item.children?.length > 0 && openIndex === index && (
+                            {item.sub_categories?.length > 0 && openIndex === index && (
                               <Disclosure.Panel className="-mt-2">
-                                {item.children.map((subItem) => (
+                                {item.sub_categories.map((subItem) => (
                                   <div key={subItem.id}>
-                                    {subItem.children?.length > 0 ? (
+                                    {subItem.sub_categories?.length > 0 ? (
                                       <Disclosure>
                                         {({ open: subOpen }) => (
                                           <>
@@ -285,7 +285,7 @@ const FilterControls: NextPage = (props) => {
                                             </Disclosure.Button>
 
                                             <Disclosure.Panel className="-mt-2">
-                                              {subItem.children.map((childItem) => (
+                                              {subItem.sub_categories.map((childItem) => (
                                                 <div
                                                   key={childItem.id}
                                                   onClick={() => handleSelectCategory(childItem)}

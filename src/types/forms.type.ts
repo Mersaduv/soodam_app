@@ -19,7 +19,6 @@ export interface AdFormValues {
     lat: number
     lng: number
   }
-  drawnPoints: number[]
   price?: number
   discount?: number
 

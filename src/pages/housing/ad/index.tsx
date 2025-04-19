@@ -16,7 +16,7 @@ const AdPage: NextPage = () => {
     if (user && user.role !== 'marketer') {
       push('/marketer')
     } else {
-      push('/housing/ad/new')
+      push('/housing/ad/new?role=marketer')
     }
   }
   return (

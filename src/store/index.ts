@@ -11,6 +11,7 @@ import statesDataReducer from '../store/slices/statesData.slice'
 import apiSlice from '@/services/baseApi'
 import { authApiSlice } from '@/services'
 import { addressesApiSlice } from '@/services/addressesApiSlice'
+import productionApiSlice from '@/services/productionBaseApi'
 
 // Actions
 export * from '../store/slices/auth.slice'
@@ -29,11 +30,12 @@ export const store = configureStore({
     isShowLogin: isShowLoginReducer,
     statesData: statesDataReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
+    [productionApiSlice.reducerPath]: productionApiSlice.reducer,
     [addressesApiSlice.reducerPath]: addressesApiSlice.reducer,
     // [authApiSlice.reducerPath]: authApiSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware, addressesApiSlice.middleware),
+    getDefaultMiddleware().concat(apiSlice.middleware, addressesApiSlice.middleware, productionApiSlice.middleware),
 })
 
 export type AppDispatch = typeof store.dispatch

@@ -28,6 +28,7 @@ import {
   useGetCategoriesQuery,
   useGetFeaturesByCategoryQuery,
   useGetFeaturesQuery,
+  useGetMetaDataQuery,
   useLazyGetFeaturesByCategoryQuery,
 } from '@/services'
 import { useRouter } from 'next/router'
@@ -54,7 +55,7 @@ const RequestRegistrationForm: React.FC = () => {
   const [drawnPoints, setDrawnPoints] = useState([])
   const [drawnPolylines, setDrawnPolylines] = useState([])
   // ? Queries
-  const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
+  const { data: categoriesData, isFetching } = useGetMetaDataQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
 
   const getDealTypeFromCategory = (category: Category) => {
@@ -264,7 +265,7 @@ const RequestRegistrationForm: React.FC = () => {
           <Modal.Body>
             <div className=" mt-2 w-full z-10">
               <div className="flex flex-col gap-y-3.5 px-4 py-2">
-                {categoriesData.data.map((item, index) => (
+                {categoriesData?.main_categories.map((item, index) => (
                   <Disclosure key={item.id}>
                     {() => (
                       <>
@@ -273,7 +274,7 @@ const RequestRegistrationForm: React.FC = () => {
                           className="!mt-0 flex w-full items-center justify-between py-2"
                         >
                           <div className="flex gap-x-1.5 items-center">
-                            {item.imageUrl && <img className="w-[24px] h-[24px]" src={item.imageUrl} alt={item.name} />}
+                            {item.image && <img className="w-[24px] h-[24px]" src={item.image} alt={item.name} />}
                             <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
                               {item.name}
                             </span>
@@ -283,11 +284,11 @@ const RequestRegistrationForm: React.FC = () => {
                           />
                         </Disclosure.Button>
 
-                        {item.children?.length > 0 && openIndex === index && (
+                        {item.sub_categories?.length > 0 && openIndex === index && (
                           <Disclosure.Panel className="-mt-2">
-                            {item.children.map((subItem) => (
+                            {item.sub_categories.map((subItem) => (
                               <div key={subItem.id}>
-                                {subItem.children?.length > 0 ? (
+                                {subItem.sub_categories?.length > 0 ? (
                                   <Disclosure>
                                     {({ open: subOpen }) => (
                                       <>
@@ -305,7 +306,7 @@ const RequestRegistrationForm: React.FC = () => {
                                         </Disclosure.Button>
 
                                         <Disclosure.Panel className="-mt-2">
-                                          {subItem.children.map((childItem) => (
+                                          {subItem.sub_categories.map((childItem) => (
                                             <div
                                               key={childItem.id}
                                               onClick={() => handleSelectCategory(childItem)}

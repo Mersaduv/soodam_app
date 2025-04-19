@@ -5,6 +5,7 @@ interface AuthState {
   phoneNumber: string | null
   fullName: string | null
   role: string | null
+  token: string | null
   loggedIn: boolean
   user: User | null
 }
@@ -12,6 +13,7 @@ interface AuthState {
 const getPhoneNumber = () => (typeof window !== 'undefined' && localStorage.getItem('phoneNumber')) || null
 const getFullName = () => (typeof window !== 'undefined' && localStorage.getItem('fullName')) || null
 const getRole = () => (typeof window !== 'undefined' && localStorage.getItem('role')) || null
+const getToken = () => (typeof window !== 'undefined' && localStorage.getItem('token')) || null
 const getUser = () => {
   if (typeof window !== 'undefined') {
     const user = localStorage.getItem('user')
@@ -31,6 +33,7 @@ const initialState: AuthState = {
   phoneNumber: getPhoneNumber(),
   fullName: getFullName(),
   role: getRole(),
+  token: getToken(),
   loggedIn: getLoggedIn(),
   user: getUser(),
 }
@@ -41,17 +44,19 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (
       state,
-      action: PayloadAction<{ phoneNumber: string; fullName: string; role: string; loggedIn: boolean }>
+      action: PayloadAction<{ phoneNumber: string; fullName: string; role: string; token: string; loggedIn: boolean }>
     ) => {
-      const { phoneNumber, fullName, loggedIn, role } = action.payload
+      const { phoneNumber, fullName, loggedIn, role, token } = action.payload
       state.phoneNumber = phoneNumber
       state.fullName = fullName
       state.loggedIn = loggedIn
       state.role = role
+      state.token = token
       if (typeof window !== 'undefined') {
         localStorage.setItem('phoneNumber', phoneNumber)
         localStorage.setItem('fullName', fullName)
         localStorage.setItem('role', role)
+        localStorage.setItem('token', token)
         localStorage.setItem('loggedIn', JSON.stringify(loggedIn))
       }
     },
@@ -59,12 +64,14 @@ const authSlice = createSlice({
       state.phoneNumber = null
       state.fullName = null
       state.role = null
+      state.token = null
       state.loggedIn = false
       state.user = null
       if (typeof window !== 'undefined') {
         localStorage.removeItem('phoneNumber')
         localStorage.removeItem('fullName')
         localStorage.removeItem('role')
+        localStorage.removeItem('token')
         localStorage.removeItem('loggedIn')
         localStorage.removeItem('hasSeenModal')
         localStorage.removeItem('user')

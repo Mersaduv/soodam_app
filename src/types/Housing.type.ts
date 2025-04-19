@@ -1,6 +1,7 @@
 export interface Housing {
   id: string
   title: string
+  status: number
   location: { lat: number; lng: number }
   highlightFeatures: {
     id: string

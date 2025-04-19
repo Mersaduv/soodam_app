@@ -22,7 +22,7 @@ const NewAdPage: NextPage = () => {
   return (
     <ClientLayout
       isAdConfirmExit={true}
-      title={`${query.role === 'Marketer' ? 'ثبت آگهی به عنوان بازاریاب' : 'ثبت آگهی شخصی'}`}
+      title={`${query.role === 'marketer' ? 'ثبت آگهی به عنوان بازاریاب' : 'ثبت آگهی شخصی'}`}
     >
       <div className="py-[90px] px-4 relative">
         {/* کامپوننت فرم همیشه رندر می‌شود */}

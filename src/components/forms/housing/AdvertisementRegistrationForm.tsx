@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { useForm, Controller, Resolver } from 'react-hook-form'
+import React, { useEffect, useRef, useState } from 'react'
+import { useForm, Controller, Resolver, useFieldArray } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import {
   ArrowLeftIcon,
@@ -29,6 +29,7 @@ import {
   useGetCategoriesQuery,
   useGetFeaturesByCategoryQuery,
   useGetFeaturesQuery,
+  useGetMetaDataQuery,
   useLazyGetFeaturesByCategoryQuery,
 } from '@/services'
 import { useRouter } from 'next/router'
@@ -36,6 +37,20 @@ import { AdFormValues, Category, Feature } from '@/types'
 import { validationSchema } from '@/utils'
 import { IoMdClose } from 'react-icons/io'
 import { setIsSuccess } from '@/store'
+import jalaali from 'jalaali-js'
+const toJalaali = (date: Date) => {
+  const jalaaliDate = jalaali.toJalaali(date)
+  return {
+    day: jalaaliDate.jd,
+    month: jalaaliDate.jm,
+    year: jalaaliDate.jy,
+  }
+}
+const days = Array.from({ length: 31 }, (_, i) => String(i + 1))
+const months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند']
+const currentDateJalaali = toJalaali(new Date())
+const currentYearJalaali = currentDateJalaali.year
+const years = Array.from({ length: 100 }, (_, i) => String(currentYearJalaali - i))
 const rentalTerms = [
   { id: 1, name: 'روزهای عادی (شنبه تا سه شنبه)', icon: CalendarIcon },
   { id: 2, name: 'آخر هفته (چهارشنبه تا جمعه)', icon: CalendarTickIcon },
@@ -73,8 +88,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   const [drawnPoints, setDrawnPoints] = useState([])
   const [selectedNames, setSelectedNames] = useState({})
   const dispatch = useAppDispatch()
+  const formRef = useRef<HTMLFormElement | null>(null)
   // ? Queries
-  const { data: categoriesData, isFetching } = useGetCategoriesQuery({ ...query })
+  const { data: categoriesData, isFetching } = useGetMetaDataQuery({ ...query })
   const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
   const [
     addHousing,
@@ -119,7 +135,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     trigger,
     setValue,
     getValues,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<AdFormValues>({
     resolver: yupResolver(validationSchema({ features: featureData, dealType })) as unknown as Resolver<AdFormValues>,
     mode: 'onChange',
@@ -144,6 +160,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     },
   })
 
+  // const { fields, append, remove } = useFieldArray<AdFormValues, 'media', 'images'>({
+  //   control,
+  //   name: 'media.images',
+  // })
+
   // ? Re-Renders
   useEffect(() => {
     if (selectedLocation) {
@@ -154,7 +175,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
   useEffect(() => {
     if (drawnPoints) {
-      setValue('drawnPoints', drawnPoints)
+      // setValue('drawnPoints', drawnPoints)
     }
   }, [drawnPoints, setValue])
 
@@ -196,7 +217,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   }, [isConvertible, setValue])
 
   //? submit final step
-  const onSubmit = (data: AdFormValues) => {
+  const onSubmit = async (data: AdFormValues) => {
+    const valid = await trigger()
+    if (!valid && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
     console.log('Form submitted:', data, roleUser)
     data.status = 1
     addHousing(data)
@@ -241,6 +266,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     const isStepValid = await validateCurrentStep()
     if (isStepValid && currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1)
+    } else if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }
 
@@ -384,7 +411,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
           <Modal.Body>
             <div className=" mt-2 w-full z-10">
               <div className="flex flex-col gap-y-3.5 px-4 py-2">
-                {categoriesData.data.map((item, index) => (
+                {categoriesData?.main_categories.map((item, index) => (
                   <Disclosure key={item.id}>
                     {() => (
                       <>
@@ -393,7 +420,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           className="!mt-0 flex w-full items-center justify-between py-2"
                         >
                           <div className="flex gap-x-1.5 items-center">
-                            {item.imageUrl && <img className="w-[24px] h-[24px]" src={item.imageUrl} alt={item.name} />}
+                            {item.image && <img className="w-[24px] h-[24px]" src={item.image} alt={item.name} />}
                             <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
                               {item.name}
                             </span>
@@ -403,11 +430,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           />
                         </Disclosure.Button>
 
-                        {item.children?.length > 0 && openIndex === index && (
+                        {item.sub_categories?.length > 0 && openIndex === index && (
                           <Disclosure.Panel className="-mt-2">
-                            {item.children.map((subItem) => (
+                            {item.sub_categories.map((subItem) => (
                               <div key={subItem.id}>
-                                {subItem.children?.length > 0 ? (
+                                {subItem.sub_categories?.length > 0 ? (
                                   <Disclosure>
                                     {({ open: subOpen }) => (
                                       <>
@@ -425,7 +452,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                         </Disclosure.Button>
 
                                         <Disclosure.Panel className="-mt-2">
-                                          {subItem.children.map((childItem) => (
+                                          {subItem.sub_categories.map((childItem) => (
                                             <div
                                               key={childItem.id}
                                               onClick={() => handleSelectCategory(childItem)}
@@ -540,7 +567,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
         )}
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 pt-6">
+        <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 pt-6">
           {/* Step 1: مشخصات */}
           {currentStep === 0 && (
             <div className="space-y-4">
@@ -870,52 +897,60 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
           {currentStep === 2 && (
             <div>
               <div className="relative w-full">
-                <div className="mb-3">
-                  <Controller
-                    name="title"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        adForm
-                        label="عنوان آگهی"
-                        {...field}
-                        control={control}
-                        errors={errors.title}
-                        placeholder="مثال: خانه ویلایی 300 متری خیابان جمهوری"
-                      />
-                    )}
-                  />
-                </div>
-
                 <div className="space-y-3 mb-3">
                   {features &&
                     features.data
-                      .filter((item) => item.type === '')
+                      .filter((item) => item.type === '') // احتمالاً باید نوع مناسب رو مشخص کنید
                       .map((field) => {
+                        const isYearField = field.name.includes('سال')
                         return (
                           <Controller
                             key={field.id}
                             name={`features.${field.id}`}
                             control={control}
-                            render={() => (
-                              <TextField
-                                adForm
-                                isDynamic
-                                label={field.name}
-                                {...field}
-                                name={`features.${field.id}`}
-                                control={control}
-                                errors={errors.features?.[field.id]}
-                                placeholder={field.placeholder}
-                                {...((field.name.includes('متراژ') ||
-                                  field.name.includes('گذر') ||
-                                  field.name.includes('سال')) && {
-                                  inputMode: 'numeric',
-                                  pattern: '[0-9]*',
-                                  type: 'number',
-                                })}
-                              />
-                            )}
+                            render={({ field: controllerField }) => {
+                              if (isYearField) {
+                                return (
+                                  <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{field.name}</label>
+                                    <select
+                                      {...controllerField}
+                                      className="w-full border h-[40px] farsi-digits text-sm border-[#E3E3E7] rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                      <option value="">انتخاب کنید</option>
+                                      {years.map((year) => (
+                                        <option key={year} value={year}>
+                                          {year}
+                                        </option>
+                                      ))} 
+                                    </select>
+                                    {errors.features?.[field.id] && (
+                                      <span className="text-red-500 text-xs">{errors.features[field.id]?.message}</span>
+                                    )}
+                                  </div>
+                                )
+                              }
+
+                              return (
+                                <TextField
+                                  adForm
+                                  isDynamic
+                                  label={field.name}
+                                  {...field}
+                                  name={`features.${field.id}`}
+                                  control={control}
+                                  errors={errors.features?.[field.id]}
+                                  placeholder={field.placeholder}
+                                  {...((field.name.includes('متراژ') ||
+                                    field.name.includes('گذر') ||
+                                    field.name.includes('سال')) && {
+                                    inputMode: 'numeric',
+                                    pattern: '[0-9]*',
+                                    type: 'number',
+                                  })}
+                                />
+                              )
+                            }}
                           />
                         )
                       })}
@@ -1003,7 +1038,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                     onChange={() => {
                                       setSelectedValues((prev) => ({ ...prev, [item.id]: value.id }))
                                       setSelectedNames((prev) => ({ ...prev, [item.id]: value.name }))
-                                      setValue(`features.${item.id}`, value.name) // مقداردهی به فرم
+                                      setValue(`features.${item.id}`, value.name)
+                                      setOpenDropdowns((prev) => ({ ...prev, [item.id]: false }))
                                     }}
                                     className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
                                     id={value.id}
@@ -1086,8 +1122,23 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                         </div>
                       ))}
                 </div>
-
                 <div className="mt-6">
+                  <Controller
+                    name="title"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        adForm
+                        label="عنوان آگهی"
+                        {...field}
+                        control={control}
+                        errors={errors.title}
+                        placeholder="مثال: خانه ویلایی 300 متری خیابان جمهوری"
+                      />
+                    )}
+                  />
+                </div>
+                <div className="mt-4">
                   <label
                     className="block text-sm font-normal mb-2 text-gray-700 md:min-w-max lg:text-sm"
                     htmlFor="description"

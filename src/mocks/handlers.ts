@@ -1,11 +1,33 @@
 import { Feature, Category, SubscriptionPlan, User, AdFormValues } from '@/types'
-import { UserRoleType } from '@/utils'
+import { generateUUID, UserRoleType } from '@/utils'
 import { rest } from 'msw'
+import { point, booleanPointInPolygon } from '@turf/turf'
+import { polygon as turfPolygon } from '@turf/helpers'
+import distance from '@turf/distance'
 
 const getRandomLocation = (baseLat: number, baseLng: number, offset: number) => {
   const randomLat = baseLat + (Math.random() - 0.5) * offset
   const randomLng = baseLng + (Math.random() - 0.5) * offset
   return { lat: parseFloat(randomLat.toFixed(6)), lng: parseFloat(randomLng.toFixed(6)) }
+}
+function normalizePersian(str: string): string {
+  return str
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/[^\u0600-\u06FF\s]/g, '') // حذف علائم غیر فارسی
+    .trim()
+    .toLowerCase()
+}
+
+function getFuzzyScore(str: string, keyword: string): number {
+  if (str.includes(keyword)) return 100
+
+  let matchCount = 0
+  for (let i = 0; i < Math.min(str.length, keyword.length); i++) {
+    if (str[i] === keyword[i]) matchCount++
+  }
+
+  return (matchCount / keyword.length) * 100
 }
 
 const verificationCodes = new Map<string, string>()
@@ -73,8 +95,8 @@ function getFeaturesByCategory(categoryId: string): Feature[] {
 
     featureCategories.filter((fc) => fc.categoryId === category.id).forEach((fc) => categoryFeatures.add(fc.featureId))
 
-    if (category.children) {
-      category.children.forEach(collectFeatures)
+    if (category.sub_categories) {
+      category.sub_categories.forEach(collectFeatures)
     }
   }
 
@@ -1230,26 +1252,26 @@ const categories = [
   {
     id: '1',
     name: 'اجاره مسکونی',
-    children: [
+    sub_categories: [
       { id: '1-1', name: 'اجاره آپارتمان', parentCategory: { id: '1', name: 'اجاره مسکونی' } },
       { id: '1-2', name: 'اجاره خانه و ویلا', parentCategory: { id: '1', name: 'اجاره مسکونی' } },
     ],
-    imageUrl: '/category/house.png',
+    image: '/category/house.png',
   },
   {
     id: '2',
     name: 'فروش مسکونی',
-    children: [
+    sub_categories: [
       { id: '2-1', name: 'فروش آپارتمان', parentCategory: { id: '2', name: 'فروش مسکونی' } },
       { id: '2-2', name: 'فروش خانه و ویلا', parentCategory: { id: '2', name: 'فروش مسکونی' } },
       { id: '2-3', name: 'فروش زمین و کلنگی', parentCategory: { id: '2', name: 'فروش مسکونی' } },
     ],
-    imageUrl: '/category/house.png',
+    image: '/category/house.png',
   },
   {
     id: '3',
     name: 'فروش دفاتر اداری و تجاری',
-    children: [
+    sub_categories: [
       { id: '3-1', name: 'فروش  دفتر کار، اداری و مطب', parentCategory: { id: '3', name: 'فروش دفاتر اداری و تجاری' } },
       { id: '3-2', name: 'فروش  مغازه و غرفه', parentCategory: { id: '3', name: 'فروش دفاتر اداری و تجاری' } },
       {
@@ -1258,12 +1280,12 @@ const categories = [
         parentCategory: { id: '3', name: 'فروش دفاتر اداری و تجاری' },
       },
     ],
-    imageUrl: '/category/buildings.png',
+    image: '/category/buildings.png',
   },
   {
     id: '4',
     name: 'اجاره دفاتر اداری و تجاری',
-    children: [
+    sub_categories: [
       {
         id: '4-1',
         name: 'اجاره دفتر کار ، اداری و مطب',
@@ -1276,29 +1298,29 @@ const categories = [
         parentCategory: { id: '4', name: 'اجاره دفاتر اداری و تجاری' },
       },
     ],
-    imageUrl: '/category/buildings.png',
+    image: '/category/buildings.png',
   },
   {
     id: '5',
     name: 'پروژه‌های ساخت و ساز',
-    children: [
+    sub_categories: [
       {
         id: '5-1',
         name: 'مشارکت در ساخت املاک',
         parentCategory: { id: '5', name: 'پروژه‌های ساخت و ساز' },
-        children: [
+        sub_categories: [
           { id: '5-1-1', name: 'مالک', parentCategory: { id: '5-1', name: 'مشارکت در ساخت املاک' } },
           { id: '5-1-2', name: 'سازنده', parentCategory: { id: '5-1', name: 'مشارکت در ساخت املاک' } },
         ],
       },
       { id: '5-2', name: 'پیش فروش', parentCategory: { id: '5', name: 'پروژه‌های ساخت و ساز' } },
     ],
-    imageUrl: '/category/tr.png',
+    image: '/category/tr.png',
   },
   {
     id: '6',
     name: 'اجاره کوتاه مدت',
-    children: [
+    sub_categories: [
       { id: '6-1', name: 'اجاره کوتاه مدت آپارتمان و سوئیت', parentCategory: { id: '6', name: 'اجاره کوتاه مدت' } },
       { id: '6-2', name: 'اجاره کوتاه مدت باغ و ویلا', parentCategory: { id: '6', name: 'اجاره کوتاه مدت' } },
       {
@@ -1307,7 +1329,7 @@ const categories = [
         parentCategory: { id: '6', name: 'اجاره کوتاه مدت' },
       },
     ],
-    imageUrl: '/category/buliding.png',
+    image: '/category/buliding.png',
   },
 ]
 
@@ -1946,106 +1968,106 @@ const manualData = [
 ]
 
 const chartActivityData = [
-  { propertyId: 'prop-1051', viewedDate: '2025-01-20T10:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1052', viewedDate: '2025-01-20T11:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1053', viewedDate: '2025-01-20T13:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1054', viewedDate: '2025-01-20T14:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1055', viewedDate: '2025-01-20T16:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1056', viewedDate: '2025-01-20T17:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1057', viewedDate: '2025-01-20T19:00:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1058', viewedDate: '2025-01-20T20:30:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1059', viewedDate: '2025-01-20T22:00:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1060', viewedDate: '2025-01-20T23:30:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1061', viewedDate: '2025-01-21T01:00:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1062', viewedDate: '2025-01-21T02:30:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1063', viewedDate: '2025-01-21T04:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1064', viewedDate: '2025-01-21T05:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1065', viewedDate: '2025-01-21T07:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1066', viewedDate: '2025-01-21T08:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1067', viewedDate: '2025-01-21T10:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1068', viewedDate: '2025-01-21T11:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1069', viewedDate: '2025-01-21T13:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1070', viewedDate: '2025-01-21T14:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1071', viewedDate: '2025-01-21T16:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1072', viewedDate: '2025-01-21T17:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1073', viewedDate: '2025-01-21T19:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1074', viewedDate: '2025-01-21T20:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1075', viewedDate: '2025-01-21T22:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1076', viewedDate: '2025-01-21T23:30:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1077', viewedDate: '2025-01-22T01:00:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1078', viewedDate: '2025-01-22T02:30:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1079', viewedDate: '2025-01-22T04:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1080', viewedDate: '2025-01-22T05:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1081', viewedDate: '2025-01-22T07:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1082', viewedDate: '2025-01-22T08:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1083', viewedDate: '2025-01-22T10:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1084', viewedDate: '2025-01-22T11:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1085', viewedDate: '2025-01-22T13:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1086', viewedDate: '2025-01-22T14:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1087', viewedDate: '2025-01-22T16:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1088', viewedDate: '2025-01-22T17:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1089', viewedDate: '2025-01-22T19:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1090', viewedDate: '2025-01-22T20:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1091', viewedDate: '2025-01-22T22:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1092', viewedDate: '2025-01-22T23:30:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1093', viewedDate: '2025-01-23T01:00:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1094', viewedDate: '2025-01-23T02:30:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1095', viewedDate: '2025-01-23T04:00:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1096', viewedDate: '2025-01-23T05:30:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1097', viewedDate: '2025-01-23T07:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1098', viewedDate: '2025-01-23T08:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1099', viewedDate: '2025-01-23T10:00:00.000Z',status:'successful' },
-  { propertyId: 'prop-1100', viewedDate: '2025-01-23T11:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1050', viewedDate: '2025-01-13T14:24:00.000Z',status:'successful' },
-  { propertyId: 'prop-1049', viewedDate: '2025-01-12T21:50:24.000Z',status:'successful' },
-  { propertyId: 'prop-1048', viewedDate: '2025-01-11T05:16:48.000Z',status:'successful' },
-  { propertyId: 'prop-1047', viewedDate: '2025-01-10T12:43:12.000Z',status:'successful' },
-  { propertyId: 'prop-1046', viewedDate: '2025-01-09T20:09:36.000Z',status:'successful' },
-  { propertyId: 'prop-1045', viewedDate: '2025-01-08T10:30:00.000Z',status:'successful' },
-  { propertyId: 'prop-1044', viewedDate: '2025-01-07T08:15:12.000Z',status:'successful' },
-  { propertyId: 'prop-1043', viewedDate: '2025-01-06T16:45:32.000Z',status:'successful' },
-  { propertyId: 'prop-1042', viewedDate: '2025-01-05T14:22:11.000Z',status:'successful' },
-  { propertyId: 'prop-1041', viewedDate: '2025-01-04T09:33:44.000Z',status:'successful' },
-  { propertyId: 'prop-1040', viewedDate: '2025-01-03T07:12:55.000Z',status:'successful' },
-  { propertyId: 'prop-1039', viewedDate: '2025-01-02T18:19:27.000Z',status:'successful' },
-  { propertyId: 'prop-1038', viewedDate: '2025-01-01T12:05:39.000Z',status:'successful' },
-  { propertyId: 'prop-1037', viewedDate: '2024-12-31T10:45:01.000Z',status:'successful' },
-  { propertyId: 'prop-1036', viewedDate: '2024-12-30T08:30:15.000Z',status:'successful' },
-  { propertyId: 'prop-1035', viewedDate: '2024-12-29T16:20:45.000Z',status:'successful' },
-  { propertyId: 'prop-1034', viewedDate: '2024-12-28T14:15:30.000Z',status:'successful' },
-  { propertyId: 'prop-1033', viewedDate: '2024-12-27T11:10:25.000Z',status:'successful' },
-  { propertyId: 'prop-1032', viewedDate: '2024-12-26T09:05:20.000Z',status:'successful' },
-  { propertyId: 'prop-1031', viewedDate: '2024-12-25T07:00:10.000Z',status:'successful' },
-  { propertyId: 'prop-1030', viewedDate: '2024-12-24T05:55:05.000Z',status:'successful' },
-  { propertyId: 'prop-1029', viewedDate: '2024-12-23T04:50:00.000Z',status:'successful' },
-  { propertyId: 'prop-1028', viewedDate: '2024-12-22T03:45:55.000Z',status:'successful' },
-  { propertyId: 'prop-1027', viewedDate: '2024-12-21T02:40:50.000Z',status:'successful' },
-  { propertyId: 'prop-1026', viewedDate: '2024-12-20T01:35:45.000Z',status:'successful' },
-  { propertyId: 'prop-1025', viewedDate: '2024-12-19T00:30:40.000Z',status:'successful' },
-  { propertyId: 'prop-1024', viewedDate: '2024-12-18T23:25:35.000Z',status:'successful' },
-  { propertyId: 'prop-1023', viewedDate: '2024-12-17T22:20:30.000Z',status:'successful' },
-  { propertyId: 'prop-1022', viewedDate: '2024-12-16T21:15:25.000Z',status:'successful' },
-  { propertyId: 'prop-1021', viewedDate: '2024-12-16T20:10:20.000Z',status:'successful' },
-  { propertyId: 'prop-1020', viewedDate: '2024-12-16T19:05:15.000Z',status:'successful' },
-  { propertyId: 'prop-1019', viewedDate: '2024-12-16T18:00:10.000Z',status:'successful' },
-  { propertyId: 'prop-1018', viewedDate: '2024-12-16T16:55:05.000Z',status:'successful' },
-  { propertyId: 'prop-1017', viewedDate: '2024-12-16T15:50:00.000Z',status:'successful' },
-  { propertyId: 'prop-1016', viewedDate: '2024-12-16T14:45:55.000Z',status:'successful' },
-  { propertyId: 'prop-1015', viewedDate: '2024-12-16T13:40:50.000Z',status:'successful' },
-  { propertyId: 'prop-1014', viewedDate: '2024-12-16T12:35:45.000Z',status:'successful' },
-  { propertyId: 'prop-1013', viewedDate: '2024-12-16T11:30:40.000Z',status:'successful' },
-  { propertyId: 'prop-1012', viewedDate: '2024-12-16T10:25:35.000Z',status:'successful' },
-  { propertyId: 'prop-1011', viewedDate: '2024-12-16T09:20:30.000Z',status:'successful' },
-  { propertyId: 'prop-1010', viewedDate: '2024-12-16T08:15:25.000Z',status:'successful' },
-  { propertyId: 'prop-1009', viewedDate: '2024-12-16T07:10:20.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1008', viewedDate: '2024-12-16T06:05:15.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1007', viewedDate: '2024-12-16T05:00:10.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1006', viewedDate: '2024-12-16T03:55:05.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1005', viewedDate: '2024-12-16T02:50:00.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1004', viewedDate: '2024-12-16T01:45:55.000Z',status:'unsuccessful' },
-  { propertyId: 'prop-1003', viewedDate: '2024-12-16T00:40:50.000Z',status:'successful' },
-  { propertyId: 'prop-1002', viewedDate: '2024-12-16T23:35:45.000Z',status:'successful' },
-  { propertyId: 'prop-1001', viewedDate: '2024-12-16T22:30:40.000Z',status:'successful' },
+  { propertyId: 'prop-1051', viewedDate: '2025-01-20T10:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1052', viewedDate: '2025-01-20T11:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1053', viewedDate: '2025-01-20T13:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1054', viewedDate: '2025-01-20T14:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1055', viewedDate: '2025-01-20T16:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1056', viewedDate: '2025-01-20T17:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1057', viewedDate: '2025-01-20T19:00:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1058', viewedDate: '2025-01-20T20:30:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1059', viewedDate: '2025-01-20T22:00:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1060', viewedDate: '2025-01-20T23:30:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1061', viewedDate: '2025-01-21T01:00:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1062', viewedDate: '2025-01-21T02:30:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1063', viewedDate: '2025-01-21T04:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1064', viewedDate: '2025-01-21T05:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1065', viewedDate: '2025-01-21T07:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1066', viewedDate: '2025-01-21T08:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1067', viewedDate: '2025-01-21T10:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1068', viewedDate: '2025-01-21T11:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1069', viewedDate: '2025-01-21T13:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1070', viewedDate: '2025-01-21T14:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1071', viewedDate: '2025-01-21T16:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1072', viewedDate: '2025-01-21T17:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1073', viewedDate: '2025-01-21T19:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1074', viewedDate: '2025-01-21T20:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1075', viewedDate: '2025-01-21T22:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1076', viewedDate: '2025-01-21T23:30:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1077', viewedDate: '2025-01-22T01:00:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1078', viewedDate: '2025-01-22T02:30:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1079', viewedDate: '2025-01-22T04:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1080', viewedDate: '2025-01-22T05:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1081', viewedDate: '2025-01-22T07:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1082', viewedDate: '2025-01-22T08:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1083', viewedDate: '2025-01-22T10:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1084', viewedDate: '2025-01-22T11:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1085', viewedDate: '2025-01-22T13:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1086', viewedDate: '2025-01-22T14:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1087', viewedDate: '2025-01-22T16:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1088', viewedDate: '2025-01-22T17:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1089', viewedDate: '2025-01-22T19:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1090', viewedDate: '2025-01-22T20:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1091', viewedDate: '2025-01-22T22:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1092', viewedDate: '2025-01-22T23:30:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1093', viewedDate: '2025-01-23T01:00:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1094', viewedDate: '2025-01-23T02:30:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1095', viewedDate: '2025-01-23T04:00:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1096', viewedDate: '2025-01-23T05:30:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1097', viewedDate: '2025-01-23T07:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1098', viewedDate: '2025-01-23T08:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1099', viewedDate: '2025-01-23T10:00:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1100', viewedDate: '2025-01-23T11:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1050', viewedDate: '2025-01-13T14:24:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1049', viewedDate: '2025-01-12T21:50:24.000Z', status: 'successful' },
+  { propertyId: 'prop-1048', viewedDate: '2025-01-11T05:16:48.000Z', status: 'successful' },
+  { propertyId: 'prop-1047', viewedDate: '2025-01-10T12:43:12.000Z', status: 'successful' },
+  { propertyId: 'prop-1046', viewedDate: '2025-01-09T20:09:36.000Z', status: 'successful' },
+  { propertyId: 'prop-1045', viewedDate: '2025-01-08T10:30:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1044', viewedDate: '2025-01-07T08:15:12.000Z', status: 'successful' },
+  { propertyId: 'prop-1043', viewedDate: '2025-01-06T16:45:32.000Z', status: 'successful' },
+  { propertyId: 'prop-1042', viewedDate: '2025-01-05T14:22:11.000Z', status: 'successful' },
+  { propertyId: 'prop-1041', viewedDate: '2025-01-04T09:33:44.000Z', status: 'successful' },
+  { propertyId: 'prop-1040', viewedDate: '2025-01-03T07:12:55.000Z', status: 'successful' },
+  { propertyId: 'prop-1039', viewedDate: '2025-01-02T18:19:27.000Z', status: 'successful' },
+  { propertyId: 'prop-1038', viewedDate: '2025-01-01T12:05:39.000Z', status: 'successful' },
+  { propertyId: 'prop-1037', viewedDate: '2024-12-31T10:45:01.000Z', status: 'successful' },
+  { propertyId: 'prop-1036', viewedDate: '2024-12-30T08:30:15.000Z', status: 'successful' },
+  { propertyId: 'prop-1035', viewedDate: '2024-12-29T16:20:45.000Z', status: 'successful' },
+  { propertyId: 'prop-1034', viewedDate: '2024-12-28T14:15:30.000Z', status: 'successful' },
+  { propertyId: 'prop-1033', viewedDate: '2024-12-27T11:10:25.000Z', status: 'successful' },
+  { propertyId: 'prop-1032', viewedDate: '2024-12-26T09:05:20.000Z', status: 'successful' },
+  { propertyId: 'prop-1031', viewedDate: '2024-12-25T07:00:10.000Z', status: 'successful' },
+  { propertyId: 'prop-1030', viewedDate: '2024-12-24T05:55:05.000Z', status: 'successful' },
+  { propertyId: 'prop-1029', viewedDate: '2024-12-23T04:50:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1028', viewedDate: '2024-12-22T03:45:55.000Z', status: 'successful' },
+  { propertyId: 'prop-1027', viewedDate: '2024-12-21T02:40:50.000Z', status: 'successful' },
+  { propertyId: 'prop-1026', viewedDate: '2024-12-20T01:35:45.000Z', status: 'successful' },
+  { propertyId: 'prop-1025', viewedDate: '2024-12-19T00:30:40.000Z', status: 'successful' },
+  { propertyId: 'prop-1024', viewedDate: '2024-12-18T23:25:35.000Z', status: 'successful' },
+  { propertyId: 'prop-1023', viewedDate: '2024-12-17T22:20:30.000Z', status: 'successful' },
+  { propertyId: 'prop-1022', viewedDate: '2024-12-16T21:15:25.000Z', status: 'successful' },
+  { propertyId: 'prop-1021', viewedDate: '2024-12-16T20:10:20.000Z', status: 'successful' },
+  { propertyId: 'prop-1020', viewedDate: '2024-12-16T19:05:15.000Z', status: 'successful' },
+  { propertyId: 'prop-1019', viewedDate: '2024-12-16T18:00:10.000Z', status: 'successful' },
+  { propertyId: 'prop-1018', viewedDate: '2024-12-16T16:55:05.000Z', status: 'successful' },
+  { propertyId: 'prop-1017', viewedDate: '2024-12-16T15:50:00.000Z', status: 'successful' },
+  { propertyId: 'prop-1016', viewedDate: '2024-12-16T14:45:55.000Z', status: 'successful' },
+  { propertyId: 'prop-1015', viewedDate: '2024-12-16T13:40:50.000Z', status: 'successful' },
+  { propertyId: 'prop-1014', viewedDate: '2024-12-16T12:35:45.000Z', status: 'successful' },
+  { propertyId: 'prop-1013', viewedDate: '2024-12-16T11:30:40.000Z', status: 'successful' },
+  { propertyId: 'prop-1012', viewedDate: '2024-12-16T10:25:35.000Z', status: 'successful' },
+  { propertyId: 'prop-1011', viewedDate: '2024-12-16T09:20:30.000Z', status: 'successful' },
+  { propertyId: 'prop-1010', viewedDate: '2024-12-16T08:15:25.000Z', status: 'successful' },
+  { propertyId: 'prop-1009', viewedDate: '2024-12-16T07:10:20.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1008', viewedDate: '2024-12-16T06:05:15.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1007', viewedDate: '2024-12-16T05:00:10.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1006', viewedDate: '2024-12-16T03:55:05.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1005', viewedDate: '2024-12-16T02:50:00.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1004', viewedDate: '2024-12-16T01:45:55.000Z', status: 'unsuccessful' },
+  { propertyId: 'prop-1003', viewedDate: '2024-12-16T00:40:50.000Z', status: 'successful' },
+  { propertyId: 'prop-1002', viewedDate: '2024-12-16T23:35:45.000Z', status: 'successful' },
+  { propertyId: 'prop-1001', viewedDate: '2024-12-16T22:30:40.000Z', status: 'successful' },
 ]
 
 const estates = [
@@ -2109,13 +2131,6 @@ const estates = [
   },
 ]
 
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
-}
 export const handlers = [
   rest.post('/api/auth/send-code', async (req, res, ctx) => {
     const { phoneNumber } = await req.json<{ phoneNumber: string }>()
@@ -2486,10 +2501,15 @@ export const handlers = [
   rest.get('/api/all-housing', (req, res, ctx) => {
     const searchParams = req.url.searchParams
     const title = searchParams.get('title')
-    const type = searchParams.get('type')
-    const status = searchParams.get('status')
+    const rawCategoryParam = searchParams.get('category')
+    const categoryIds = rawCategoryParam ? rawCategoryParam.split(',').map((id) => id.trim()) : []
 
-    // دریافت پارامترهای bounds در صورت وجود
+    const featureParam = searchParams.get('feature')
+    const featureIds = featureParam ? featureParam.split(',') : []
+
+    const status = searchParams.get('status')
+    const drawnPointsRaw = searchParams.get('drawnPoints')
+    const userCityParam = searchParams.get('userCity')
     const swLat = searchParams.get('swLat')
     const swLng = searchParams.get('swLng')
     const neLat = searchParams.get('neLat')
@@ -2501,7 +2521,6 @@ export const handlers = [
       filteredHousing = filteredHousing.filter((item) => item.status === parseInt(status))
     }
 
-    // فیلتر کردن بر اساس محدوده جغرافیایی در صورت ارسال پارامترها
     if (swLat && swLng && neLat && neLng) {
       const swLatNum = parseFloat(swLat)
       const swLngNum = parseFloat(swLng)
@@ -2512,6 +2531,88 @@ export const handlers = [
         const lat = item.location.lat
         const lng = item.location.lng
         return lat >= swLatNum && lat <= neLatNum && lng >= swLngNum && lng <= neLngNum
+      })
+    }
+    const userCity = JSON.parse(localStorage.getItem('userCity'))
+    if (drawnPointsRaw && drawnPointsRaw.length > 0) {
+      try {
+        const rawPoints = JSON.parse(drawnPointsRaw)
+
+        // تبدیل به [lng, lat]
+        const polygonCoords = rawPoints.map(([lat, lng]) => [lng, lat])
+
+        // بستن حلقه
+        if (
+          polygonCoords.length > 0 &&
+          (polygonCoords[0][0] !== polygonCoords.at(-1)?.[0] || polygonCoords[0][1] !== polygonCoords.at(-1)?.[1])
+        ) {
+          polygonCoords.push(polygonCoords[0])
+        }
+
+        const turfPoly = turfPolygon([polygonCoords])
+
+        filteredHousing = filteredHousing.filter((housing) => {
+          const { lat, lng } = housing.location || {}
+          if (!lat || !lng) return false
+          const p = point([lng, lat])
+          return booleanPointInPolygon(p, turfPoly)
+        })
+      } catch (err) {
+        console.warn('Invalid drawnPoints', err)
+      }
+    } 
+     if (userCityParam == '1' && userCity?.coordinates?.length === 2) {
+      console.log(userCityParam , " passsssssssssssssssss");
+      
+      const [cityLat, cityLng] = userCity.coordinates
+      const cityPoint = point([cityLng, cityLat])
+      const radiusKm = 10
+
+      filteredHousing = filteredHousing.filter((housing) => {
+        const { lat, lng } = housing.location || {}
+        if (!lat || !lng) return false
+        const housingPoint = point([lng, lat])
+        const d = distance(cityPoint, housingPoint, { units: 'kilometers' })
+        return d <= radiusKm
+      })
+    }
+
+    if (categoryIds.length > 0) {
+      filteredHousing = filteredHousing.sort((a, b) => {
+        const aMatch = categoryIds.includes(a.categoryId) ? 1 : 0
+        const bMatch = categoryIds.includes(b.categoryId) ? 1 : 0
+        return bMatch - aMatch // موارد منطبق رو بیاره بالا
+      })
+    }
+
+    if (featureIds.length > 0) {
+      filteredHousing = filteredHousing.sort((a, b) => {
+        const aMatch = a.features?.some((f) => featureIds.includes(f.id)) ? 1 : 0
+        const bMatch = b.features?.some((f) => featureIds.includes(f.id)) ? 1 : 0
+        return bMatch - aMatch // موارد منطبق رو بیاره بالا
+      })
+    }
+
+    if (title) {
+      const normalizedTitle = normalizePersian(title.trim())
+
+      filteredHousing.sort((a, b) => {
+        const aTitle = normalizePersian(a.title || '')
+        const bTitle = normalizePersian(b.title || '')
+
+        // امتیاز مشابهت فازی
+        const aFuzzy = getFuzzyScore(aTitle, normalizedTitle)
+        const bFuzzy = getFuzzyScore(bTitle, normalizedTitle)
+
+        // آیا ابتدای عنوان با سرچ مطابقت دارد؟
+        const aStarts = aTitle.startsWith(normalizedTitle) ? 10 : 0
+        const bStarts = bTitle.startsWith(normalizedTitle) ? 10 : 0
+
+        // امتیاز نهایی ترکیبی
+        const aScore = aFuzzy + aStarts
+        const bScore = bFuzzy + bStarts
+
+        return bScore - aScore // امتیاز بیشتر، بالاتر
       })
     }
 
@@ -2595,8 +2696,8 @@ export const handlers = [
         if (category.id === id) {
           return category // دسته‌بندی پیدا شد
         }
-        if (category.children) {
-          const found = findCategoryWithChildren(category.children, id)
+        if (category.sub_categories) {
+          const found = findCategoryWithChildren(category.sub_categories, id)
           if (found) {
             return found // دسته‌بندی در فرزندان یافت شد
           }

@@ -76,6 +76,13 @@ export const housingApiSlice = baseApi.injectEndpoints({
       }),
       providesTags: (result, error, arg) => [{ type: 'Requests', id: arg }],
     }),
+    deleteHousing: builder.mutation<ServiceResponse<Housing>, IdQuery>({
+      query: ({ id }) => ({
+        url: `/api/housing/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Housing'],
+    }),
   }),
 })
 
@@ -86,4 +93,6 @@ export const {
   useAddHousingMutation,
   useGetRequestsQuery,
   useGetRequestByIdQuery,
+  useDeleteHousingMutation,
+  useLazyGetHousingQuery: useLazyFetchHousingQuery
 } = housingApiSlice

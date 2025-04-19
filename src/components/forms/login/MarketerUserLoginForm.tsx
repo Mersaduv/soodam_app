@@ -360,7 +360,7 @@ const MarketerUserLoginForm: React.FC = () => {
                         {...field}
                         value="single"
                         checked={field.value === 'single'}
-                        name="default-radio"
+                        name="maritalStatus"
                         className="hidden"
                       />
                       <div className={`w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]`}>
@@ -380,9 +380,9 @@ const MarketerUserLoginForm: React.FC = () => {
                         id="default-radio-2"
                         type="radio"
                         {...field}
-                        value="single"
+                        value="married"
                         checked={field.value === 'married'}
-                        name="default-radio"
+                        name="maritalStatus"
                         className="hidden"
                       />
                       <div className={`w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]`}>

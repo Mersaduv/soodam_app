@@ -46,7 +46,13 @@ import {
 import { useGetSubscriptionStatusQuery, useGetViewedPropertiesQuery, useViewPropertyMutation } from '@/services'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
-import { formatPrice, formatPriceLoc, getProvinceFromCoordinates, IRAN_PROVINCES } from '@/utils'
+import {
+  formatPrice,
+  formatPriceLoc,
+  getProvinceFromCoordinates,
+  IRAN_PROVINCES,
+  iranProvincesByPopulation,
+} from '@/utils'
 import Link from 'next/link'
 interface Props {
   housingData: Housing[]
@@ -318,7 +324,7 @@ const DrawingControl = ({ polylineRef, housingData, onDrawingComplete }) => {
   const isDrawing = useAppSelector((state) => state.statesData.isDrawing)
   const drawnPoints = useAppSelector((state) => state.statesData.drawnPoints)
   const mode = useAppSelector((state) => state.statesData.mode)
- 
+
   const updateDrawnPoints = (points) => {
     dispatch(setDrawnPoints(points))
   }
@@ -515,12 +521,12 @@ const DrawingControl = ({ polylineRef, housingData, onDrawingComplete }) => {
 
   useEffect(() => {
     if (drawnPoints.length > 0) {
-      const lineColor = mode === 'checking' ? 'white' : '#f1071e';
-      updatePolyline(drawnPoints, lineColor);
+      const lineColor = mode === 'checking' ? 'white' : '#f1071e'
+      updatePolyline(drawnPoints, lineColor)
     } else if (polylineRef.current) {
-      polylineRef.current.remove();
+      polylineRef.current.remove()
     }
-  }, [drawnPoints, mode, updatePolyline]);
+  }, [drawnPoints, mode, updatePolyline])
 
   const throttledUpdate = useCallback(
     throttle((points) => {
@@ -850,7 +856,7 @@ const MapController = () => {
 const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   // ? Assets
   const { query, push } = useRouter()
-  const {phoneNumber } = useAppSelector((state) => state.auth)
+  const { phoneNumber } = useAppSelector((state) => state.auth)
   const { housingMap } = useAppSelector((state) => state.statesData)
   const center = useAppSelector((state) => state.statesData.center)
   const zoom = useAppSelector((state) => state.statesData.zoom)
@@ -859,7 +865,11 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   const { isDrawing, drawnPoints, mode, itemFilesInArea, isSatelliteView } = useAppSelector((state) => state.statesData)
   const [isShow, modalHandlers] = useDisclosure()
   // const [itemFiles, setItemFiles] = useState([])
-  const [tileLayerUrl, setTileLayerUrl] = useState(isSatelliteView ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+  const [tileLayerUrl, setTileLayerUrl] = useState(
+    isSatelliteView
+      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+  )
   // const [zoomLevel, setZoomLevel] = useState(12)
   // const [isDrawing, setIsDrawing] = useState(false)
   // const [drawnPoints, setDrawnPoints] = useState([])
@@ -949,17 +959,54 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
     }
   }, [viewedPropertiesData])
 
+  const haversineDistance = (coords1: number[], coords2: number[]) => {
+    const toRad = (value: number) => (value * Math.PI) / 180
+
+    const [lat1, lon1] = coords1
+    const [lat2, lon2] = coords2
+
+    const R = 6371 // شعاع زمین به کیلومتر
+    const dLat = toRad(lat2 - lat1)
+    const dLon = toRad(lon2 - lon1)
+
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+    return R * c // فاصله بر حسب کیلومتر
+  }
+
   const handleGPSClick = () => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords
-          setUserLocation([latitude, longitude])
-          dispatch(setUserCityLocation([latitude, longitude]))
+          const userCoords = [35.6892, 51.389]
 
-          // پن کردن نقشه به موقعیت کاربر
+          setUserLocation(userCoords)
+          dispatch(setUserCityLocation(userCoords))
+
+          let nearestProvince = null
+          let minDistance = Infinity
+
+          for (const province of iranProvincesByPopulation) {
+            const provinceCoords = province.geom.coordinates.reverse() // تبدیل به [lat, lng]
+            const distance = haversineDistance(userCoords, provinceCoords)
+            if (distance < minDistance) {
+              minDistance = distance
+              nearestProvince = {
+                name: province.province,
+                coordinates: provinceCoords,
+              }
+            }
+          }
+
+          if (nearestProvince) {
+            localStorage.setItem('userCity', JSON.stringify(nearestProvince))
+          }
+
           if (mapRef.current) {
-            mapRef.current.flyTo([latitude, longitude], 15)
+            mapRef.current.flyTo(userCoords, 15)
           }
         },
         (error) => {
@@ -1025,9 +1072,10 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   }
 
   const toggleMapType = () => {
-    setTileLayerUrl(isSatelliteView
-      ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    setTileLayerUrl(
+      isSatelliteView
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
     )
   }
 
@@ -1043,13 +1091,13 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
   const handleNavigate = (): void => {
     const logged = localStorage.getItem('loggedIn')
     const role = localStorage.getItem('role')
-    console.log(role);
-    
+    console.log(role)
+
     if (role === 'user' || role === null) {
       push('/authentication/login?role=memberUser')
     } else if (logged === 'true') {
       push('/housing/ad')
-    } 
+    }
   }
 
   const handleMarkerClick = async (property: Housing) => {
@@ -1116,12 +1164,15 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
         },
       })
       const data = await response.json()
-      // console.log(data, 'response')
+      console.log(data, 'data ----------- data')
 
-      if (data && data.postal_address) {
-        dispatch(setAddress(data.postal_address))
+      if (data && data.province && data.county) {
+        const simplifiedAddress = `${data.province} ${data.county && `، شهرستان ${data.county}`} ${
+          data.city && `،شهر ${data.city}`
+        }`
+        dispatch(setAddress(simplifiedAddress))
       } else {
-        dispatch(setAddress('آدرس یافت نشد'))
+        dispatch(setAddress('اطلاعات کافی برای آدرس یافت نشد'))
       }
     } catch (error) {
       console.log('خطا در دریافت آدرس:', error)

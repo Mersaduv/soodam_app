@@ -2,8 +2,11 @@ export interface Category {
   id: string
   name: string
   description?: string
-  isActive?: boolean
-  imageUrl?: string
-  children?: Category[]
+  status?: boolean
+  key?: string
+  review?: number
+  total_adv?: number
+  image?: string
+  sub_categories?: Category[]
   parentCategory?: Category
 }

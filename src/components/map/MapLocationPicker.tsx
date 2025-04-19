@@ -415,6 +415,31 @@ function throttle(func, limit) {
   }
 }
 
+const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationChange }) => {
+  const [position, setPosition] = useState<[number, number]>([35.6892, 51.389]) // مقدار پیش‌فرض تهران
+
+  const customIcon = L.divIcon({
+    html: renderToStaticMarkup(
+      <div className="bg-red-500 rounded-full">
+        <HiOutlineLocationMarker size={24} color="white" />
+      </div>
+    ),
+    className: 'custo m-marker-icon',
+    iconSize: [24, 24], // اندازه آیکون
+    iconAnchor: [12, 24], // نقطه‌ای که روی موقعیت تنظیم می‌شود
+  })
+
+  useMapEvents({
+    click(e) {
+      const newPosition: [number, number] = [e.latlng.lat, e.latlng.lng]
+      setPosition(newPosition)
+      onLocationChange(newPosition)
+    },
+  })
+
+  return <Marker icon={customIcon} position={position}></Marker>
+}
+
 const MapLocationPicker = (props: Props) => {
   const { selectedLocation, handleLocationChange, label, drawnPoints, setDrawnPoints, ads } = props
   const { query, push } = useRouter()
@@ -623,15 +648,17 @@ const MapLocationPicker = (props: Props) => {
           )}
         </div>
 
-        <div className="absolute flex flex-col gap-y-2.5 bottom-[9px] left-3 z-[999]">
-          <button
-            type="button"
-            className="bg-white hover:bg-slate-100 w-[32px] h-[32px] rounded-lg flex-center shadow-icon"
-            onClick={clearDrawings}
-          >
-            <GrClear width="16px" height="16px" />
-          </button>
-        </div>
+        {!ads && (
+          <div className="absolute flex flex-col gap-y-2.5 bottom-[9px] left-3 z-[999]">
+            <button
+              type="button"
+              className="bg-white hover:bg-slate-100 w-[32px] h-[32px] rounded-lg flex-center shadow-icon"
+              onClick={clearDrawings}
+            >
+              <GrClear width="16px" height="16px" />
+            </button>
+          </div>
+        )}
 
         <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
           <Modal.Content
@@ -689,6 +716,7 @@ const MapLocationPicker = (props: Props) => {
             }
           />
           {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
+          {ads && <LocationPicker onLocationChange={handleLocationChange} />}
         </MapContainer>
       </div>
     </div>
