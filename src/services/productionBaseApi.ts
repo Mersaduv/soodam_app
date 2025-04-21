@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 const productionApiSlice = createApi({
   reducerPath: 'productionApi',
   baseQuery: fetchBaseQuery({
-    baseUrl:'http://194.5.193.119:4000',
+    baseUrl:'/',
     timeout: 60000,
   }),
 
