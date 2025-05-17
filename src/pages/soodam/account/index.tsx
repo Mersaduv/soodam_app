@@ -16,12 +16,13 @@ import {
 import { Button, Combobox, DisplayError, SelectBox, TextField } from '@/components/ui'
 import { Controller, Resolver, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { userInfoFormValidationSchema } from '@/utils'
+import { getToken, userInfoFormValidationSchema } from '@/utils'
 import { UserInfoForm } from '@/types'
 import { useEffect, useState } from 'react'
 import Select from 'react-select'
 const iranCity = require('iran-city')
 import jalaali from 'jalaali-js'
+import axios from 'axios'
 const toJalaali = (date: Date) => {
   const jalaaliDate = jalaali.toJalaali(date)
   return {
@@ -38,11 +39,9 @@ const years = Array.from({ length: 100 }, (_, i) => String(currentYearJalaali - 
 
 const Account: NextPage = () => {
   const [selectedFile, setSelectedFiles] = useState<any[]>([])
-  const [selectedProvince, setSelectedProvince] = useState(null)
   // const [provinceOptions, setProvinceOptions] = useState([])
-  const AllProvinces = iranCity.allProvinces()
+  const [provinces, setProvinces] = useState([])
   const [cities, setCities] = useState([])
-  // ? Assets
   const { back } = useRouter()
 
   const {
@@ -60,6 +59,7 @@ const Account: NextPage = () => {
     mode: 'onChange',
     defaultValues: {},
   })
+  const selectedProvince = watch('province') // ? Assets
 
   // useEffect(() => {
   //   if (address.province) {
@@ -81,8 +81,47 @@ const Account: NextPage = () => {
   const handleBack = () => {
     back()
   }
+  // const createAds = {
+  //   title: data.title,
+  //   security_code_owner_building: data.nationalCode || '',
+  //   phone_number_owner_building: data.phoneNumber,
+  //   description: data.description,
+  //   sub_category_id: data.category,
+  //   sub_sub_category_id: 0,
+  //   full_address: {
+  //     province_id: 27,
+  //     city_id: 968,
+  //     address: data.address,
+  //     zip_code: data.postalCode,
+  //     longitude: data.location.lng,
+  //     latitude: data.location.lat,
+  //   },
+  //   features: formattedFeatures,
+  //   medias: data.mediaImages.map((item) => ({
+  //     media: item.url,
+  //     type: getFileExtension(item.url),
+  //   })),
+  // }
   const onSubmit = (data: UserInfoForm) => {
     console.log('Form submitted:', data)
+    
+    const createUser = {
+      first_name: data.fullName,
+      last_name: data.fatherName,
+      father_name: data.fatherName,
+      security_number: data.notionalCode,
+      email: data.email,
+      // mobile_number: data.mobileNumber,
+      birthday: data.birthDate,
+      gender: data.gender,
+      full_address: {
+        id: 0,
+        province_id: data.province.id,
+        city_id: data.city.id,
+        longitude: 0,
+        latitude: 0,
+      },
+    }
   }
   const handleDateChange = (field: 'day' | 'month' | 'year', value: string) => {
     const birthDate = watch('birthDate') || ''
@@ -115,9 +154,45 @@ const Account: NextPage = () => {
     }
   }
 
-  const handleProvinceChange = (option) => {
-    setSelectedProvince(option)
-  }
+  useEffect(() => {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`, // ← تابع را اجرا کن
+        },
+      })
+      .then((res) => {
+        setProvinces(res.data)
+      })
+      .catch((err) => {
+        console.error('Error fetching provinces:', err)
+      })
+  }, [])
+
+  useEffect(() => {
+    if (selectedProvince?.id) {
+      axios
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`, // ← اینجا هم تابع را اجرا کن
+          },
+        })
+        .then((res) => {
+          setCities(res.data)
+          setValue('city', { name: '', id: 0 })
+        })
+        .catch((err) => {
+          console.error('Error fetching cities:', err)
+          setCities([])
+        })
+    } else {
+      setCities([])
+      setValue('city', { name: '', id: 0 })
+    }
+  }, [selectedProvince, setValue])
+
   if (errors) {
     console.log(errors, 'errors')
   }
@@ -246,21 +321,17 @@ const Account: NextPage = () => {
                   )}
                 />
                 <div className="space-y-1">
-                  <label htmlFor="" className="text-sm font-normal pb-1">
-                    استان
-                  </label>
+                  <label className="text-sm font-normal pb-1">استان</label>
                   <Combobox
                     control={control}
                     name="province"
-                    list={AllProvinces}
+                    list={provinces}
                     placeholder="لطفا استان خود را انتخاب کنید"
                   />
                   {errors.province?.name && <DisplayError errors={errors.province?.name} />}
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="" className="text-sm font-normal pb-1">
-                    شهر
-                  </label>
+                  <label className="text-sm font-normal pb-1">شهر</label>
                   <Combobox control={control} name="city" list={cities} placeholder="لطفا شهر خود را انتخاب کنید" />
                   {errors.city?.name && <DisplayError errors={errors.city?.name} />}
                 </div>

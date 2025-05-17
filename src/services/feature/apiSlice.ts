@@ -25,40 +25,6 @@ export const featureApiSlice = baseApi.injectEndpoints({
           : ['Feature'],
     }),
 
-    getFeaturesByCategory: builder.query<ServiceResponse<Feature[]>, string>({
-      query: (id) => ({
-        url: `/api/features/by-category/${id}`,
-        method: 'GET',
-      }),
-      providesTags: (result) =>
-        result?.data
-          ? [
-              ...result?.data.map(({ id }) => ({
-                type: 'Feature' as const,
-                id: id,
-              })),
-              'Feature',
-            ]
-          : ['Feature'],
-    }),
-
-    getRequestFeaturesByCategory: builder.query<ServiceResponse<Feature[]>, string>({
-      query: (id) => ({
-        url: `/api/request-features/by-category/${id}`,
-        method: 'GET',
-      }),
-      providesTags: (result) =>
-        result?.data
-          ? [
-              ...result?.data.map(({ id }) => ({
-                type: 'Feature' as const,
-                id: id,
-              })),
-              'Feature',
-            ]
-          : ['Feature'],
-    }),
-
 
     getRequests: builder.query<ServiceResponse<Request[]>, QueryParams>({
       query: ({ ...params }) => {
@@ -84,8 +50,4 @@ export const featureApiSlice = baseApi.injectEndpoints({
 
 export const {
   useGetFeaturesQuery,
-  useGetFeaturesByCategoryQuery,
-  useLazyGetFeaturesByCategoryQuery,
-  useGetRequestFeaturesByCategoryQuery,
-  useLazyGetRequestFeaturesByCategoryQuery,
 } = featureApiSlice

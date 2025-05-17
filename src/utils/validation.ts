@@ -7,6 +7,14 @@ export const phoneSchema = Yup.object().shape({
     .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
 })
 
+export const adminPhoneSchema = Yup.object().shape({
+  phoneNumber: Yup.string()
+    .required('شماره تماس الزامی است')
+    .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
+  security_number: Yup.string().required('کد ملی الزامی است'),
+})
+
+
 export const codeSchema = Yup.object().shape({
   code: Yup.string().length(6, 'کد باید ۵ رقمی باشد').required('کد تایید الزامی است'),
 })
@@ -42,68 +50,68 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
     }),
 
     // مرحله 2
-    price: Yup.number()
-      .transform((value) => (isNaN(value) || value === '' ? undefined : value))
-      .when('$dealType', {
-        is: 'sale',
-        then: (schema) => schema.required('قیمت فروش الزامی است'),
-        otherwise: (schema) => schema.nullable(),
-      }),
+    // price: Yup.number()
+    //   .transform((value) => (isNaN(value) || value === '' ? undefined : value))
+    //   .when('$dealType', {
+    //     is: 'sale',
+    //     then: (schema) => schema.required('قیمت فروش الزامی است'),
+    //     otherwise: (schema) => schema.nullable(),
+    //   }),
 
-    discount: Yup.number()
-      .transform((value) => (isNaN(value) || value === '' ? undefined : value))
-      .when('$dealType', {
-        is: 'sale',
-        then: (schema) =>
-          schema
-            .nullable()
-            .transform((value) => (isNaN(value) ? undefined : value))
-            .min(0, 'تخفیف نمی‌تواند منفی باشد')
-            .test('max-discount', 'تخفیف نمی‌تواند بیشتر از قیمت اصلی باشد', function (value) {
-              return !value || value <= this.parent.price
-            }),
-        otherwise: (schema) => schema.nullable(),
-      }),
+    // discount: Yup.number()
+    //   .transform((value) => (isNaN(value) || value === '' ? undefined : value))
+    //   .when('$dealType', {
+    //     is: 'sale',
+    //     then: (schema) =>
+    //       schema
+    //         .nullable()
+    //         .transform((value) => (isNaN(value) ? undefined : value))
+    //         .min(0, 'تخفیف نمی‌تواند منفی باشد')
+    //         .test('max-discount', 'تخفیف نمی‌تواند بیشتر از قیمت اصلی باشد', function (value) {
+    //           return !value || value <= this.parent.price
+    //         }),
+    //     otherwise: (schema) => schema.nullable(),
+    //   }),
 
-    deposit: Yup.number()
-      .transform((value) => (isNaN(value) || value === '' ? undefined : value))
-      .when('$dealType', {
-        is: 'rent',
-        then: (schema) => schema.required('مبلغ ودیعه الزامی است'),
-        otherwise: (schema) => schema.nullable(),
-      }),
+    // deposit: Yup.number()
+    //   .transform((value) => (isNaN(value) || value === '' ? undefined : value))
+    //   .when('$dealType', {
+    //     is: 'rent',
+    //     then: (schema) => schema.required('مبلغ ودیعه الزامی است'),
+    //     otherwise: (schema) => schema.nullable(),
+    //   }),
 
-    rent: Yup.number()
-      .transform((value) => (isNaN(value) || value === '' ? undefined : value))
-      .when('$dealType', {
-        is: 'rent',
-        then: (schema) => schema.required('مبلغ اجاره ماهیانه الزامی است'),
-        otherwise: (schema) => schema.nullable(),
-      }),
+    // rent: Yup.number()
+    //   .transform((value) => (isNaN(value) || value === '' ? undefined : value))
+    //   .when('$dealType', {
+    //     is: 'rent',
+    //     then: (schema) => schema.required('مبلغ اجاره ماهیانه الزامی است'),
+    //     otherwise: (schema) => schema.nullable(),
+    //   }),
 
-    capacity: Yup.number()
-      .transform((value) => (isNaN(value) || value === '' ? undefined : value))
-      .when('$dealType', {
-        is: 'shortRent',
-        then: (schema) => schema.required('تعیین ظرفیت الزامی است'),
-        otherwise: (schema) => schema.nullable(),
-      }),
+    // capacity: Yup.number()
+    //   .transform((value) => (isNaN(value) || value === '' ? undefined : value))
+    //   .when('$dealType', {
+    //     is: 'shortRent',
+    //     then: (schema) => schema.required('تعیین ظرفیت الزامی است'),
+    //     otherwise: (schema) => schema.nullable(),
+    //   }),
 
-    producerProfitPercentage: Yup.number()
-      .transform((value) => (isNaN(value) || value === '' ? undefined : value))
-      .when('$dealType', {
-        is: 'constructionProjects',
-        then: (schema) => schema.required('تعیین سود سازنده الزامی است'),
-        otherwise: (schema) => schema.nullable(),
-      }),
+    // producerProfitPercentage: Yup.number()
+    //   .transform((value) => (isNaN(value) || value === '' ? undefined : value))
+    //   .when('$dealType', {
+    //     is: 'constructionProjects',
+    //     then: (schema) => schema.required('تعیین سود سازنده الزامی است'),
+    //     otherwise: (schema) => schema.nullable(),
+    //   }),
 
-    ownerProfitPercentage: Yup.number()
-      .transform((value) => (isNaN(value) || value === '' ? undefined : value))
-      .when('$dealType', {
-        is: 'constructionProjects',
-        then: (schema) => schema.required('تعیین سود مالک الزامی است'),
-        otherwise: (schema) => schema.nullable(),
-      }),
+    // ownerProfitPercentage: Yup.number()
+    //   .transform((value) => (isNaN(value) || value === '' ? undefined : value))
+    //   .when('$dealType', {
+    //     is: 'constructionProjects',
+    //     then: (schema) => schema.required('تعیین سود مالک الزامی است'),
+    //     otherwise: (schema) => schema.nullable(),
+    //   }),
 
     title: Yup.string().required('عنوان الزامی است'),
 
@@ -111,7 +119,7 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
     features: Yup.object().shape(
       contextData &&
         contextData.features
-          .filter((item) => item.type === '')
+          .filter((item) => item.type === 'text')
           .reduce((schema, field) => {
             schema[field.id] = Yup.string()
               .required(`${field.name} الزامی است`)
@@ -330,4 +338,10 @@ export const userInfoFormValidationSchema = Yup.object().shape({
 
   gender: Yup.string()
     .required('جنسیت الزامی است'), // فقط مقادیر male یا female مجاز هستند
+})
+
+export const estateConsultantRegisterFormValidationSchema = Yup.object().shape({
+  fullName: Yup.string().required('نام و نام خانوادگی الزامی است'),
+  fatherName: Yup.string().required('نام پدر الزامی است'),
+  notionalCode: Yup.string().required('کد ملی الزامی است'),
 })

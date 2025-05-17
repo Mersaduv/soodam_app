@@ -14,6 +14,9 @@ const nextConfig: import('next').NextConfig = {
     });
     return config;
   },
+  images: {
+    domains: ['localhost', '194.5.193.119'],
+  },
   experimental: {
     turbo: {
       rules: {

@@ -8,10 +8,11 @@ import { Button, CustomCheckbox, TextField } from '@/components/ui'
 import { Category, QueryParams } from '@/types'
 import { NextPage } from 'next'
 import { ClientLayout } from '@/components/layouts'
-import { useGetCategoriesQuery, useGetMetaDataQuery, useLazyGetFeaturesByCategoryQuery } from '@/services'
+import { useGetCategoriesQuery, useGetMetaDataQuery } from '@/services'
 import { Disclosure } from '@headlessui/react'
 import { ArrowLeftIcon } from '@/icons'
 import { useFilters } from '@/hooks/use-filter'
+import { useLazyGetFeaturesByCategoryQuery } from '@/services/productionBaseApi'
 type FilterKeys =
   | 'priceRangeFrom'
   | 'priceRangeTo'
@@ -45,10 +46,11 @@ const FilterControls: NextPage = (props) => {
   // ? State
   const [isOpen, setIsOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
+  const [selectedParentCategory, setSelectedParentCategory] = useState<Category | null>(null)
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [openDropdowns, setOpenDropdowns] = useState({})
   const { data: categoriesData, isFetching, ...categoryQueryProps } = useGetMetaDataQuery({ ...query })
-  const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
+  const [triggerGetFeaturesByCategory, { data: features, isSuccess }] = useLazyGetFeaturesByCategoryQuery()
 
   const { filters, updateFilters } = useFilters()
   const [tempFilters, setTempFilters] = useState<{ [key: string]: string | string[] | undefined }>({})
@@ -132,33 +134,28 @@ const FilterControls: NextPage = (props) => {
     if (!category) return null
 
     const categoryName = category.name.toLowerCase()
-    const parentCategoryName = category.parentCategory?.name.toLowerCase() || ''
 
-    if (
-      categoryName.includes('ساخت') ||
-      categoryName.includes('ساز') ||
-      parentCategoryName.includes('ساخت') ||
-      parentCategoryName.includes('ساز')
-    ) {
-      return 'constructionProjects'
+    if (categoryName.includes('مالک') || categoryName.includes('سازنده') || categoryName.includes('پیش فروش')) {
+      return 'constructionProjects' // اجاره کوتاه مدت
     }
 
-    if (categoryName.includes('اجاره کوتاه مدت') || parentCategoryName.includes('اجاره کوتاه مدت')) {
-      return 'shortRent'
+    if (categoryName.includes('اجاره کوتاه')) {
+      return 'shortRent' // اجاره کوتاه مدت
     }
 
-    if (categoryName.includes('اجاره') || parentCategoryName.includes('اجاره')) {
-      return 'rent'
+    if (categoryName.includes('اجاره')) {
+      return 'rent' // اجاره بلندمدت
     }
 
-    if (categoryName.includes('فروش') || parentCategoryName.includes('فروش')) {
-      return 'sale'
+    if (categoryName.includes('فروش')) {
+      return 'sale' // فروش
     }
 
-    return null
+    return null // نامشخص
   }
 
-  const handleSelectCategory = useCallback((category: Category) => {
+  const handleSelectCategory = useCallback((category: Category, parent?: Category) => {
+    if (parent) setSelectedParentCategory(parent)
     setSelectedCategory(category)
     setTempFilters((prev) => ({
       ...prev,
@@ -192,21 +189,26 @@ const FilterControls: NextPage = (props) => {
   )
 
   useEffect(() => {
-    const fetchFeatures = async (category: Category | null, level = 0) => {
-      if (!category || level > 2) return
+    const fetchFeatures = async (category: Category, parent: Category = null) => {
+      if (!category) return
 
       // Trigger the query manually
-      const fetchedFeatures = await triggerGetFeaturesByCategory(category.id)
-      if (fetchedFeatures?.data?.data?.length === 0 && category.parentCategory) {
-        // No features, try parent category
-        fetchFeatures(category.parentCategory, level + 1)
-      }
+      const fetchedFeatures = await triggerGetFeaturesByCategory({
+        sub_category_id: parent !== null ? parent.id : category.id,
+        sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
+      })
     }
 
     if (selectedCategory) {
-      fetchFeatures(selectedCategory)
+      fetchFeatures(selectedCategory, selectedParentCategory)
     }
   }, [selectedCategory, triggerGetFeaturesByCategory])
+
+  useEffect(() => {
+    if (isSuccess) {
+      setSelectedParentCategory(null)
+    }
+  }, [isSuccess])
 
   const dealType = getDealTypeFromCategory(selectedCategory)
 
@@ -247,9 +249,7 @@ const FilterControls: NextPage = (props) => {
                               className="!mt-0 flex w-full items-center justify-between py-2"
                             >
                               <div className="flex gap-x-1.5 items-center">
-                                {item.image && (
-                                  <img className="w-[24px] h-[24px]" src={item.image} alt={item.name} />
-                                )}
+                                {item.image && <img className="w-[24px] h-[24px]" src={item.image} alt={item.name} />}
                                 <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
                                   {item.name}
                                 </span>
@@ -285,10 +285,10 @@ const FilterControls: NextPage = (props) => {
                                             </Disclosure.Button>
 
                                             <Disclosure.Panel className="-mt-2">
-                                              {subItem.sub_categories.map((childItem) => (
+                                              {subItem.sub_sub_category.map((childItem) => (
                                                 <div
                                                   key={childItem.id}
-                                                  onClick={() => handleSelectCategory(childItem)}
+                                                  onClick={() => handleSelectCategory(childItem, subItem)}
                                                   className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
                                                     selectedCategory?.id === childItem.id ? 'bg-gray-50 rounded-lg' : ''
                                                   }`}
@@ -541,182 +541,185 @@ const FilterControls: NextPage = (props) => {
                   )}
 
                   <div className="space-y-4 mt-4">
-                    {features?.data
-                      .filter((item) => item.type === '')
-                      .map((field) => (
-                        <div key={field.id} className="flex">
-                          <div className="flex gap-2 w-full">
-                            <div className="flex items-end pb-3 font-normal text-sm">از</div>
-                            <FilterTextField
-                              isFromTo
-                              compacted
-                              label={field.name}
-                              type="number"
-                              value={tempFilters[`${field.id}-From`] || ''}
-                              onChange={(value) => handleTempFilterChange(field.id, value, true, true)}
-                              placeholder={field.placeholder}
-                            />
-                          </div>
+                    {features &&
+                      features
+                        .filter((item) => item.type === 'text')
+                        .map((field) => (
+                          <div key={field.id} className="flex">
+                            <div className="flex gap-2 w-full">
+                              <div className="flex items-end pb-3 font-normal text-sm">از</div>
+                              <FilterTextField
+                                isFromTo
+                                compacted
+                                label={field.name}
+                                type="number"
+                                value={tempFilters[`${field.id}-From`] || ''}
+                                onChange={(value) => handleTempFilterChange(field.id, value, true, true)}
+                                placeholder={field.placeholder}
+                              />
+                            </div>
 
-                          <div className="flex gap-2 w-full">
-                            <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
-                            <FilterTextField
-                              isFromTo
-                              compacted
-                              label="isTo"
-                              type="number"
-                              value={tempFilters[`${field.id}-To`] || ''}
-                              onChange={(value) => handleTempFilterChange(field.id, value, false, true)}
-                              placeholder={field.placeholder}
-                            />
+                            <div className="flex gap-2 w-full">
+                              <div className="flex items-end pb-3 pr-2 font-normal text-sm">تا</div>
+                              <FilterTextField
+                                isFromTo
+                                compacted
+                                label="isTo"
+                                type="number"
+                                value={tempFilters[`${field.id}-To`] || ''}
+                                onChange={(value) => handleTempFilterChange(field.id, value, false, true)}
+                                placeholder={field.placeholder}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                   </div>
                   <div className="space-y-4 mt-4">
-                    {features?.data
-                      .filter((item) => item.type === 'selective')
-                      .map((field) => (
-                        <div key={field.id} className="w-full mb-3">
-                          <h1 className="font-normal text-sm mb-2">{field.name}</h1>
+                    {features &&
+                      features
+                        .filter((item) => item.type === 'choice')
+                        .map((field) => (
+                          <div key={field.id} className="w-full mb-3">
+                            <h1 className="font-normal text-sm mb-2">{field.name}</h1>
 
-                          {/* دکمه باز/بستن Dropdown و نمایش مقادیر انتخاب‌شده */}
-                          <div
-                            className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer"
-                            onClick={() => toggleDropdownFeature(field.id)}
-                          >
-                            <div className="flex items-center space-x-1 overflow-hidden">
+                            {/* دکمه باز/بستن Dropdown و نمایش مقادیر انتخاب‌شده */}
+                            <div
+                              className="bg-white px-4 h-[40px] rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer"
+                              onClick={() => toggleDropdownFeature(field.id)}
+                            >
                               <div className="flex items-center space-x-1 overflow-hidden">
-                                {Array.isArray(tempFilters[field.id]) && tempFilters[field.id].length > 0 ? (
-                                  (tempFilters[field.id] as string[]).map((selectedId, index) => {
-                                    const selectedItem = field.values.find((v) => v.id === selectedId)
-                                    return (
-                                      <span key={index} className="text-sm text-gray-700 truncate">
-                                        {selectedItem?.name}
-                                        {index < (tempFilters[field.id] as string[]).length - 1 && ', '}
-                                      </span>
-                                    )
-                                  })
-                                ) : (
-                                  <span className="text-sm text-gray-400">انتخاب کنید</span>
-                                )}
+                                <div className="flex items-center space-x-1 overflow-hidden">
+                                  {Array.isArray(tempFilters[field.id]) && tempFilters[field.id].length > 0 ? (
+                                    (tempFilters[field.id] as string[]).map((selectedId, index) => {
+                                      const selectedItem = Array.isArray(field.value) ? field.value.find((v) => v.id === selectedId) : undefined
+                                      return (
+                                        <span key={index} className="text-sm text-gray-700 truncate">
+                                          {selectedItem?.value}
+                                          {index < (tempFilters[field.id] as string[]).length - 1 && ', '}
+                                        </span>
+                                      )
+                                    })
+                                  ) : (
+                                    <span className="text-sm text-gray-400">انتخاب کنید</span>
+                                  )}
+                                </div>
                               </div>
+                              <ArrowLeftIcon
+                                className={`w-5 h-5 text-[#9D9D9D] transition-transform ${
+                                  openDropdowns[field.id] ? 'rotate-180' : ''
+                                }`}
+                              />
                             </div>
-                            <ArrowLeftIcon
-                              className={`w-5 h-5 text-[#9D9D9D] transition-transform ${
-                                openDropdowns[field.id] ? 'rotate-180' : ''
-                              }`}
-                            />
-                          </div>
 
-                          {/* لیست گزینه‌ها */}
-                          {openDropdowns[field.id] && (
-                            <div className="w-full mt-1.5 bg-[#FCFCFC] border border-[#E3E3E7] rounded-lg p-1">
-                              {field.values.map((value) => (
-                                <label
-                                  key={value.id}
-                                  className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
-                                >
-                                  <div className="flex items-center cursor-pointer relative">
-                                    <input
-                                      type="checkbox"
-                                      name={`filter-${field.id}`}
-                                      checked={
-                                        (Array.isArray(tempFilters[field.id]) &&
-                                          tempFilters[field.id].includes(value.id)) ||
-                                        false
-                                      }
-                                      onChange={() => {
-                                        setTempFilters((prev) => {
-                                          const currentValues = Array.isArray(prev[field.id]) ? prev[field.id] : []
-                                          const updatedValues = currentValues.includes(value.id)
-                                            ? Array.isArray(currentValues) &&
-                                              currentValues.filter((id) => id !== value.id)
-                                            : [...currentValues, value.id]
-                                          return {
-                                            ...prev,
-                                            [field.id]: updatedValues.length > 0 ? updatedValues : undefined,
-                                          }
-                                        })
-                                      }}
-                                      className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
-                                    />
-                                    {/* آیکون تیک */}
-                                    <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-3.5 w-3.5"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                      >
-                                        <path
-                                          fillRule="evenodd"
-                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                          clipRule="evenodd"
-                                        />
-                                      </svg>
-                                    </span>
-                                  </div>
-                                  <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.name}</span>
-                                </label>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                            {/* لیست گزینه‌ها */}
+                            {openDropdowns[field.id] && (
+                              <div className="w-full mt-1.5 bg-[#FCFCFC] border border-[#E3E3E7] rounded-lg p-1">
+                                {Array.isArray(field.value) && field.value.map((value) => (
+                                  <label
+                                    key={value.id}
+                                    className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
+                                  >
+                                    <div className="flex items-center cursor-pointer relative">
+                                      <input
+                                        type="checkbox"
+                                        name={`filter-${field.id}`}
+                                        checked={
+                                          (Array.isArray(tempFilters[field.id]) &&
+                                            tempFilters[field.id].includes(value.id)) ||
+                                          false
+                                        }
+                                        onChange={() => {
+                                          setTempFilters((prev) => {
+                                            const currentValues = Array.isArray(prev[field.id]) ? prev[field.id] : []
+                                            const updatedValues = currentValues.includes(value.id)
+                                              ? Array.isArray(currentValues) &&
+                                                currentValues.filter((id) => id !== value.id)
+                                              : [...currentValues, value.id]
+                                            return {
+                                              ...prev,
+                                              [field.id]: updatedValues.length > 0 ? updatedValues : undefined,
+                                            }
+                                          })
+                                        }}
+                                        className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
+                                      />
+                                      {/* آیکون تیک */}
+                                      <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-3.5 w-3.5"
+                                          viewBox="0 0 20 20"
+                                          fill="currentColor"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                      </span>
+                                    </div>
+                                    <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.value}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
                   </div>
 
                   <div className="space-y-4 mt-4">
-                    {features?.data
-                      .filter((item) => item.type === 'radio')
-                      .map((field) => (
-                        <div key={field.id} className="flex items-center justify-between bg-white rounded-lg mb-3">
-                          <span className="font-normal text-sm">{field.name}</span>
-                          <div className="flex gap-4">
-                            {/* گزینه اولویت دارد */}
-                            <label className="flex items-center cursor-pointer">
-                              <input
-                                type="radio"
-                                className="hidden"
-                                checked={tempFilters[field.id] === 'اولویت دارد'}
-                                onChange={() => {
-                                  setTempFilters((prev) => ({
-                                    ...prev,
-                                    [field.id]: prev[field.id] === 'اولویت دارد' ? undefined : 'اولویت دارد',
-                                  }))
-                                }}
-                              />
-                              <div className="w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]">
-                                {tempFilters[field.id] === 'اولویت دارد' && (
-                                  <div className="w-3 h-3 rounded-full bg-[#D52133]" />
-                                )}
-                              </div>
-                              <span className="mr-2 font-normal text-xs">اولویت دارد</span>
-                            </label>
+                    {features &&
+                      features
+                        .filter((item) => item.type === 'bool')
+                        .map((field) => (
+                          <div key={field.id} className="flex items-center justify-between bg-white rounded-lg mb-3">
+                            <span className="font-normal text-sm">{field.name}</span>
+                            <div className="flex gap-4">
+                              {/* گزینه اولویت دارد */}
+                              <label className="flex items-center cursor-pointer">
+                                <input
+                                  type="radio"
+                                  className="hidden"
+                                  checked={tempFilters[field.id] === 'اولویت دارد'}
+                                  onChange={() => {
+                                    setTempFilters((prev) => ({
+                                      ...prev,
+                                      [field.id]: prev[field.id] === 'اولویت دارد' ? undefined : 'اولویت دارد',
+                                    }))
+                                  }}
+                                />
+                                <div className="w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]">
+                                  {tempFilters[field.id] === 'اولویت دارد' && (
+                                    <div className="w-3 h-3 rounded-full bg-[#D52133]" />
+                                  )}
+                                </div>
+                                <span className="mr-2 font-normal text-xs">اولویت دارد</span>
+                              </label>
 
-                            {/* گزینه اولویت ندارد */}
-                            <label className="flex items-center cursor-pointer">
-                              <input
-                                type="radio"
-                                className="hidden"
-                                checked={!tempFilters[field.id] || tempFilters[field.id] === 'اولویت ندارد'}
-                                onChange={() => {
-                                  setTempFilters((prev) => ({
-                                    ...prev,
-                                    [field.id]: prev[field.id] === 'اولویت ندارد' ? undefined : 'اولویت ندارد',
-                                  }))
-                                }}
-                              />
-                              <div className="w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]">
-                                {(tempFilters[field.id] === 'اولویت ندارد' || !tempFilters[field.id]) && (
-                                  <div className="w-3 h-3 rounded-full bg-[#D52133]" />
-                                )}
-                              </div>
-                              <span className="mr-2 font-normal text-xs">اولویت ندارد</span>
-                            </label>
+                              {/* گزینه اولویت ندارد */}
+                              <label className="flex items-center cursor-pointer">
+                                <input
+                                  type="radio"
+                                  className="hidden"
+                                  checked={!tempFilters[field.id] || tempFilters[field.id] === 'اولویت ندارد'}
+                                  onChange={() => {
+                                    setTempFilters((prev) => ({
+                                      ...prev,
+                                      [field.id]: prev[field.id] === 'اولویت ندارد' ? undefined : 'اولویت ندارد',
+                                    }))
+                                  }}
+                                />
+                                <div className="w-6 h-6 rounded-full border flex items-center justify-center border-[#E3E3E7]">
+                                  {(tempFilters[field.id] === 'اولویت ندارد' || !tempFilters[field.id]) && (
+                                    <div className="w-3 h-3 rounded-full bg-[#D52133]" />
+                                  )}
+                                </div>
+                                <span className="mr-2 font-normal text-xs">اولویت ندارد</span>
+                              </label>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                   </div>
                 </div>
               </>

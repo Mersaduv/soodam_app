@@ -93,8 +93,8 @@ function LoginPage() {
       if (query?.role === roles.MemberUser) {
         dispatch(setIsMemberUserLogin(true))
       }
-      if (query?.role === roles.MarketerConsultant) {
-        push('/marketer-consultant')
+      if (query?.role === roles.EstateConsultant) {
+        push('/estate-consultant')
       }
     }, 50)
   }

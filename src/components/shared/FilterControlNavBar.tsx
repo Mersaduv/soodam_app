@@ -4,30 +4,32 @@ import { sorts } from '@/utils'
 
 import { Check, Close, HomeIcon, SearchNormalIcon, Sort as SortIcon } from '@/icons'
 
-import { useChangeRoute, useDebounce, useDisclosure } from '@/hooks'
+import { useAppSelector, useChangeRoute, useDebounce, useDisclosure } from '@/hooks'
 
 import { Modal } from '@/components/ui'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { QueryParams } from '@/types'
 import { useGetFeaturesQuery, useGetSingleCategoryQuery } from '@/services'
 
-interface Props {}
-const FilterControlNavBar: React.FC = () => {
+interface Props {
+  isEstateHeader?: boolean
+}
+const FilterControlNavBar: React.FC<Props> = ({ isEstateHeader }) => {
   // ? Assets
   const { query, push } = useRouter()
   const type = query?.type?.toString() ?? ''
-
+  const map = useAppSelector((state) => state.map)
   const categoryId = query.category as string
   const { data } = useGetSingleCategoryQuery({ id: categoryId }, { skip: !categoryId })
   const { data: featuresData } = useGetFeaturesQuery({ pageSize: 9999 })
   const categoryName = data?.data.name
   const featureIdToName = useMemo(() => {
-    if (!featuresData?.data) return {};
+    if (!featuresData?.data) return {}
     return featuresData.data.reduce((acc, feature) => {
-      acc[feature.id] = feature.name;
-      return acc;
-    }, {} as Record<string, string>);
-  }, [featuresData]);
+      acc[feature.id] = feature.name
+      return acc
+    }, {} as Record<string, string>)
+  }, [featuresData])
   const filterGroups: Record<string, string[]> = {
     category: ['category'],
     priceRange: ['priceRangeFrom', 'priceRangeTo'],
@@ -92,18 +94,18 @@ const FilterControlNavBar: React.FC = () => {
       if (from || to) return 'درصد سود'
     } else {
       // ویژگی‌های پویا
-      const featureName = featureIdToName[groupName] || groupName; // اگر نام نبود، آیدی نمایش داده شود
-      if (groupKeys.length === 2 && groupKeys[0].endsWith("-From") && groupKeys[1].endsWith("-To")) {
-        const from = query[groupKeys[0]] as string;
-        const to = query[groupKeys[1]] as string;
+      const featureName = featureIdToName[groupName] || groupName // اگر نام نبود، آیدی نمایش داده شود
+      if (groupKeys.length === 2 && groupKeys[0].endsWith('-From') && groupKeys[1].endsWith('-To')) {
+        const from = query[groupKeys[0]] as string
+        const to = query[groupKeys[1]] as string
         if (from || to) {
           // return `${featureName}: ${from ? `از ${from}` : ""} ${to ? `تا ${to}` : ""}`.trim();
-          return `${featureName}`.trim();
+          return `${featureName}`.trim()
         }
       } else if (groupKeys.length === 1) {
-        const value = query[groupKeys[0]] as string;
+        const value = query[groupKeys[0]] as string
         if (value) {
-          return `${featureName}`;
+          return `${featureName}`
           // return `${featureName}: ${value}`;
         }
       }
@@ -118,6 +120,8 @@ const FilterControlNavBar: React.FC = () => {
   }
 
   const appliedFilterGroups = Object.entries(allFilterGroups)
+    .filter(([groupName, groupKeys]) => groupName !== 'id')
+    .filter(([groupName, groupKeys]) => groupName !== 'estateName')
     .filter(([_, groupKeys]) => groupKeys.some((key) => key in query))
     .map(([groupName, groupKeys]) => ({
       groupName,
@@ -161,7 +165,7 @@ const FilterControlNavBar: React.FC = () => {
     <div ref={containerRef} className="flex gap-x-2 hide-scrollbar cursor-grab pr-4" onMouseDown={handleMouseDown}>
       <div
         onClick={handleNavigate}
-        className={`w-fit ${
+        className={`w-fit ${isEstateHeader && !map.mode && 'bg-white'} ${
           appliedFilterGroups.length > 0 && 'bg-[#D52133] text-white farsi-digits'
         } cursor-pointer whitespace-nowrap my-[12px] flex-center px-4 font-normal text-[16px] border rounded-[59px] h-[40px] text-[#7A7A7A]`}
       >
@@ -172,7 +176,12 @@ const FilterControlNavBar: React.FC = () => {
           key={groupName}
           className="cursor-pointer w-fit my-[12px] flex-center gap-1 px-4 pl-2 font-normal text-sm border rounded-[59px] bg-[#D52133] text-white"
         >
-          <span onClick={handleNavigate} className="font-normal whitespace-nowrap text-[16px] text-white h-[40px] flex-center">{displayText}</span>
+          <span
+            onClick={handleNavigate}
+            className="font-normal whitespace-nowrap text-[16px] text-white h-[40px] flex-center"
+          >
+            {displayText}
+          </span>
           <button onClick={() => removeFilterGroup(groupKeys)} className="text-white font-bold">
             <Close className=" text-white text-2xl" />
           </button>

@@ -58,7 +58,7 @@ const Lists: NextPage = () => {
     console.log(savedHouses, 'savedHouses', saveHousingData, 'saveHousingData')
   }
   const handleHousingCardClick = (housing: Housing) => {
-    push(`/housing/${housing.adCode}`)
+    push(`/housing/${housing.id}`)
   }
   if (isFetching) return <div>loading...</div>
   // ? Render(s)

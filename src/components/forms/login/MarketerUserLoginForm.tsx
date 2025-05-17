@@ -27,9 +27,7 @@ import { useDisclosure } from '@/hooks'
 import { Disclosure } from '@headlessui/react'
 import {
   useGetCategoriesQuery,
-  useGetFeaturesByCategoryQuery,
   useGetFeaturesQuery,
-  useLazyGetFeaturesByCategoryQuery,
 } from '@/services'
 import { useRouter } from 'next/router'
 import { AdFormValues, Category, Feature, MarketerUserForm, RequestFormValues } from '@/types'

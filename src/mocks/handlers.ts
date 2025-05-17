@@ -87,7 +87,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
 ]
 
-function getFeaturesByCategory(categoryId: string): Feature[] {
+function getFeaturesByCategory(categoryId: string) {
   const categoryFeatures: Set<string> = new Set()
 
   const collectFeatures = (category: Category | undefined): void => {
@@ -1340,7 +1340,7 @@ const features = [
     name: 'متراژ',
     placeholder: 'مثال : 100 متر',
     image: '/static/ads/......png',
-    type: '',
+    type: 'text',
     values: [],
     created: '2024-03-15T10:30:00Z',
     updated: '2024-06-20T14:45:00Z',
@@ -1349,7 +1349,7 @@ const features = [
     id: 'f87ac4dDsfsd1',
     name: 'متراژ نیم طبقه',
     placeholder: 'مثال : 100 متر',
-    type: '',
+    type: 'text',
     values: [],
     created: '2024-03-10T09:20:00Z',
     updated: '2024-06-15T11:30:00Z',
@@ -1358,7 +1358,7 @@ const features = [
     id: 'b92df63e',
     name: 'سال ساخت',
     placeholder: 'مثال : 1394 ',
-    type: '',
+    type: 'text',
     values: [],
     created: '2024-02-25T08:15:00Z',
     updated: '2024-05-30T16:20:00Z',
@@ -1367,7 +1367,7 @@ const features = [
     id: 'b41ddsFer422224333',
     name: 'متراژ بر ملک',
     placeholder: 'متراژ بر ملک را وارد کنید',
-    type: '',
+    type: 'text',
     values: [],
     created: '2024-02-20T11:45:00Z',
     updated: '2024-05-25T13:10:00Z',
@@ -1376,7 +1376,7 @@ const features = [
     id: 'b41ddsfssafsdse824333',
     name: 'متراژ زمین',
     placeholder: 'مثال : 100 متر',
-    type: '',
+    type: 'text',
     values: [],
     created: '2024-02-15T13:25:00Z',
     updated: '2024-05-20T15:40:00Z',
@@ -1385,7 +1385,7 @@ const features = [
     id: 'f87safe3d1',
     name: 'گذر',
     placeholder: 'متراژ گذر را تایپ کنید',
-    type: '',
+    type: 'text',
     values: [],
     created: '2024-01-30T15:50:00Z',
     updated: '2024-04-25T10:15:00Z',
@@ -1412,7 +1412,7 @@ const features = [
   {
     id: 'a51c28f7',
     name: 'تعداد اتاق',
-    type: 'selective',
+    type: 'choice',
     image: '/static/ads/......png',
     values: [
       { id: 'c73fa8b4', name: 'بدون اتاق' },
@@ -1429,7 +1429,7 @@ const features = [
   {
     id: 'e91ab5c7',
     name: 'تعداد کل طبقات ساختمان',
-    type: 'selective',
+    type: 'choice',
     values: [
       { id: 'c27bd94e', name: '1' },
       { id: 'f83ad72b', name: '2' },
@@ -1443,7 +1443,7 @@ const features = [
   {
     id: 'd38fa91b',
     name: 'طبقه',
-    type: 'selective',
+    type: 'choice',
     values: [
       { id: 'f12ce98d', name: 'همکف' },
       { id: 'c89ab73f', name: '1' },
@@ -1457,7 +1457,7 @@ const features = [
   {
     id: 'd3Dss86y71b',
     name: 'نیم طبقه',
-    type: 'selective',
+    type: 'choice',
     values: [
       { id: 'c89ab73f', name: '1' },
       { id: 'a34df82b', name: '2' },
@@ -1469,7 +1469,7 @@ const features = [
   {
     id: 'd38fa92p',
     name: 'تعداد واحد در طبقه',
-    type: 'selective',
+    type: 'choice',
     values: [
       { id: 'f12ce98d', name: 'همکف' },
       { id: 'c89ab73f', name: '1' },
@@ -1486,7 +1486,7 @@ const features = [
   {
     id: 'b41fc83a',
     name: 'جهت ساختمان',
-    type: 'selective',
+    type: 'choice',
     values: [
       { id: 'c57de92a', name: 'شمالی' },
       { id: 'e34bf71d', name: 'جنوبی' },
@@ -1499,7 +1499,7 @@ const features = [
   {
     id: 'f89cd72e',
     name: 'نمای ساختمان',
-    type: 'selective',
+    type: 'choice',
     values: [
       { id: 'b52ad74f', name: 'سنگ' },
       { id: 'c61fb83d', name: 'کامپوزیت' },
@@ -1511,7 +1511,7 @@ const features = [
   {
     id: 'b41ddsfs8ue8243wd333',
     name: 'وضعیت بر ملک',
-    type: 'selective',
+    type: 'choice',
     values: [
       { id: 'c73fasdds8b4', name: 'دو نبش' },
       { id: 'e15dsfre33339a6', name: 'سه نبش' },
@@ -1527,7 +1527,7 @@ const features = [
     id: 'f73bd91c',
     name: 'آسانسور',
     image: '/static/ads/......png',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-03-25T08:45:00Z',
     updated: '2023-06-20T13:15:00Z',
@@ -1535,7 +1535,7 @@ const features = [
   {
     id: 'b68ad74e',
     name: 'پارکینگ',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-03-20T07:45:00Z',
     updated: '2023-06-15T12:15:00Z',
@@ -1543,7 +1543,7 @@ const features = [
   {
     id: 'c97fe82b',
     name: 'انباری',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-03-15T06:45:00Z',
     updated: '2023-06-10T11:15:00Z',
@@ -1551,7 +1551,7 @@ const features = [
   {
     id: 'e12ad83c',
     name: 'بالکن',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-03-10T05:45:00Z',
     updated: '2023-06-05T10:15:00Z',
@@ -1559,7 +1559,7 @@ const features = [
   {
     id: 'f84ab71d',
     name: 'سیستم خنک کننده',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-03-05T04:45:00Z',
     updated: '2023-05-30T09:15:00Z',
@@ -1567,7 +1567,7 @@ const features = [
   {
     id: 'a36cd92e',
     name: 'سیستم گرم کننده',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-02-28T03:45:00Z',
     updated: '2023-05-25T08:15:00Z',
@@ -1575,7 +1575,7 @@ const features = [
   {
     id: 'c85fe91b',
     name: 'آبگرمکن',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-02-25T02:45:00Z',
     updated: '2023-05-20T07:15:00Z',
@@ -1583,7 +1583,7 @@ const features = [
   {
     id: 'd93ab82c',
     name: 'سرویس بهداشتی (فرنگی)',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-02-20T01:45:00Z',
     updated: '2023-05-15T06:15:00Z',
@@ -1591,7 +1591,7 @@ const features = [
   {
     id: 'e45cd73f',
     name: 'کابینت (MDF)',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-02-15T00:45:00Z',
     updated: '2023-05-10T05:15:00Z',
@@ -1599,7 +1599,7 @@ const features = [
   {
     id: 'f91ab64e',
     name: 'روف گاردن (باغچه پشت بام)',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-02-10T23:45:00Z',
     updated: '2023-05-05T04:15:00Z',
@@ -1607,7 +1607,7 @@ const features = [
   {
     id: 'a53fe92b',
     name: 'استخر',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-02-05T22:45:00Z',
     updated: '2023-04-30T03:15:00Z',
@@ -1615,7 +1615,7 @@ const features = [
   {
     id: 'b81ad74c',
     name: 'وان و جکوزی (حمام)',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-02-01T21:45:00Z',
     updated: '2023-04-25T02:15:00Z',
@@ -1623,7 +1623,7 @@ const features = [
   {
     id: 'b41ad7r9',
     name: 'سونا',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-01-25T20:45:00Z',
     updated: '2023-04-20T01:15:00Z',
@@ -1631,7 +1631,7 @@ const features = [
   {
     id: 'b41ad0a3',
     name: 'لاندری (اتاق لباسشویی)',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-01-20T19:45:00Z',
     updated: '2023-04-15T00:15:00Z',
@@ -1639,7 +1639,7 @@ const features = [
   {
     id: 'b4134ffe4333',
     name: 'مستر (حمام والدین)',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-01-15T18:45:00Z',
     updated: '2023-04-10T23:15:00Z',
@@ -1647,7 +1647,7 @@ const features = [
   {
     id: 'b41dewew9824333',
     name: 'کلوزت (اتاق لباس)',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-01-10T17:45:00Z',
     updated: '2023-04-05T22:15:00Z',
@@ -1655,7 +1655,7 @@ const features = [
   {
     id: 'b41ddsfs8ue824333',
     name: 'بافت فرسوده',
-    type: 'radio',
+    type: 'bool',
     values: [],
     created: '2023-01-05T16:45:00Z',
     updated: '2023-04-01T21:15:00Z',
@@ -2077,7 +2077,7 @@ const estates = [
     city: 'تهران',
     location: getRandomLocation(35.75, 51.41, 0.02),
     address: ' ونک-خیابان 33',
-    image: '/static/pic1111.jpg',
+    image: '/static/IMG-20240805-WA0098.jpg',
     housing: housing,
     userInfo: {
       fullName: 'محمد باقری',
@@ -2128,6 +2128,8 @@ const estates = [
         activityChart: chartActivityData,
       },
     ],
+    created: new Date().toISOString(),
+    updated: new Date().toISOString(),
   },
 ]
 
@@ -2144,36 +2146,45 @@ export const handlers = [
     return res(ctx.status(200), ctx.json({ message: 'کد تایید ارسال شد', code: randomCode }))
   }),
 
-  rest.post('/api/auth/verify-code', async (req, res, ctx) => {
-    const { code, phoneNumber, role } = await req.json<{ code: string; phoneNumber: string; role: UserRoleType }>()
+  // rest.post('/api/auth/verify-code', async (req, res, ctx) => {
+  //   const { code, phoneNumber, role } = await req.json<{ code: string; phoneNumber: string; role: UserRoleType }>()
 
-    const storedCode = verificationCodes.get(phoneNumber)
+  //   const storedCode = verificationCodes.get(phoneNumber)
 
-    if (!storedCode) {
-      return res(ctx.status(401), ctx.json({ message: 'کد تایید منقضی شده است' }))
-    }
+  //   if (!storedCode) {
+  //     return res(ctx.status(401), ctx.json({ message: 'کد تایید منقضی شده است' }))
+  //   }
 
-    if (code !== storedCode) {
-      return res(ctx.status(401), ctx.json({ message: 'کد تایید نادرست می‌باشد!', phoneNumber }))
-    }
-    const user: User = {
-      id: generateUUID(), // تابعی برای تولید UUID
-      phoneNumber,
-      role: role,
-      subscription: undefined, // کاربر جدید هنوز اشتراک ندارد
-    }
+  //   if (code !== storedCode) {
+  //     return res(ctx.status(401), ctx.json({ message: 'کد تایید نادرست می‌باشد!', phoneNumber }))
+  //   }
+  //   const user: User = {
+  //     id: generateUUID(), // تابعی برای تولید UUID
+  //     phone_number: phoneNumber,
+  //     role: role,
+  //     userType: 'user',
+  //     first_name: '',
+  //     last_name: '',
+  //     father_name: '',
+  //     security_number: '',
+  //     province: '',
+  //     city: '',
+  //     address: '',
+  //     zip_code: '',
+  //     subscription: undefined, // کاربر جدید هنوز اشتراک ندارد
+  //   }
 
-    users.set(phoneNumber, user)
-    try {
-      localStorage.setItem('user', JSON.stringify(user))
-    } catch (error) {
-      console.error('خطا در ذخیره اطلاعات کاربر در localStorage:', error)
-      return res(ctx.status(500), ctx.json({ message: 'خطا در ذخیره اطلاعات کاربر' }))
-    }
-    verificationCodes.clear()
+  //   users.set(phoneNumber, user)
+  //   try {
+  //     localStorage.setItem('user', JSON.stringify(user))
+  //   } catch (error) {
+  //     console.error('خطا در ذخیره اطلاعات کاربر در localStorage:', error)
+  //     return res(ctx.status(500), ctx.json({ message: 'خطا در ذخیره اطلاعات کاربر' }))
+  //   }
+  //   verificationCodes.clear()
 
-    return res(ctx.status(200), ctx.json({ message: 'ورود موفقیت‌آمیز بود', phoneNumber, role, user }))
-  }),
+  //   return res(ctx.status(200), ctx.json({ message: 'ورود موفقیت‌آمیز بود', phoneNumber, role, user }))
+  // }),
 
   // Handler for purchasing subscription
   rest.post('/api/subscription/purchase', async (req, res, ctx) => {
@@ -2510,10 +2521,8 @@ export const handlers = [
     const status = searchParams.get('status')
     const drawnPointsRaw = searchParams.get('drawnPoints')
     const userCityParam = searchParams.get('userCity')
-    const swLat = searchParams.get('swLat')
-    const swLng = searchParams.get('swLng')
-    const neLat = searchParams.get('neLat')
-    const neLng = searchParams.get('neLng')
+    const centerLat = parseFloat(searchParams.get('centerLat'))
+    const centerLng = parseFloat(searchParams.get('centerLng'))
 
     let filteredHousing = [...housing]
 
@@ -2521,16 +2530,23 @@ export const handlers = [
       filteredHousing = filteredHousing.filter((item) => item.status === parseInt(status))
     }
 
-    if (swLat && swLng && neLat && neLng) {
-      const swLatNum = parseFloat(swLat)
-      const swLngNum = parseFloat(swLng)
-      const neLatNum = parseFloat(neLat)
-      const neLngNum = parseFloat(neLng)
+    if (!isNaN(centerLat) && !isNaN(centerLng)) {
+      const radiusInKm = 10 // شعاع 10 کیلومتر
+      const deg2rad = (deg) => deg * (Math.PI / 180)
+      const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+        const R = 6371 // شعاع زمین برحسب کیلومتر
+        const dLat = deg2rad(lat2 - lat1)
+        const dLon = deg2rad(lon2 - lon1)
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        return R * c
+      }
 
       filteredHousing = filteredHousing.filter((item) => {
-        const lat = item.location.lat
-        const lng = item.location.lng
-        return lat >= swLatNum && lat <= neLatNum && lng >= swLngNum && lng <= neLngNum
+        const distance = getDistanceFromLatLonInKm(centerLat, centerLng, item.location.lat, item.location.lng)
+        return distance <= radiusInKm
       })
     }
     const userCity = JSON.parse(localStorage.getItem('userCity'))
@@ -2560,10 +2576,10 @@ export const handlers = [
       } catch (err) {
         console.warn('Invalid drawnPoints', err)
       }
-    } 
-     if (userCityParam == '1' && userCity?.coordinates?.length === 2) {
-      console.log(userCityParam , " passsssssssssssssssss");
-      
+    }
+    if (userCityParam == '1' && userCity?.coordinates?.length === 2) {
+      console.log(userCityParam, ' passsssssssssssssssss')
+
       const [cityLat, cityLng] = userCity.coordinates
       const cityPoint = point([cityLng, cityLat])
       const radiusKm = 10

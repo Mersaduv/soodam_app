@@ -1,4 +1,4 @@
-import { Housing } from '@/types'
+import { Estate, Housing } from '@/types'
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
 interface State {
@@ -18,6 +18,7 @@ interface State {
   isSatelliteView: boolean
   isSuccess: boolean
   userCityLocation: number[]
+  estateMap: Estate[]
 }
 
 const initialState: State = {
@@ -37,6 +38,7 @@ const initialState: State = {
   isSatelliteView: false,
   isSuccess: false,
   userCityLocation: [35.745929, 51.402726],
+  estateMap: [],
 }
 
 const updateSlice = createSlice({

@@ -43,9 +43,9 @@ const HousingSliders: React.FC<Props> = (props) => {
         className="mySwiper"
         onClick={() => setIsOpen(true)}
       >
-        {data.images.map((item, index) => (
+        {data.medias.map((item, index) => (
           <SwiperSlide key={index}>
-            <Image className="w-full h-[263px] object-cover cursor-pointer" width={1000} height={0} src={item} alt={`image-${index}`} />
+            <Image className="w-full h-[263px] object-cover cursor-pointer" width={1000} height={0} src={`${process.env.NEXT_PUBLIC_API_URL}/${item.media_url}`} alt={`image-${index}`} />
           </SwiperSlide>
         ))}
       </Swiper>
@@ -53,7 +53,7 @@ const HousingSliders: React.FC<Props> = (props) => {
       {isOpen && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex justify-center items-center">
           <button className="absolute top-[90px] right-5 text-white border rounded-full" onClick={() => setIsOpen(false)}>
-           <Close className='text-4xl' />
+            <Close className="text-4xl" />
           </button>
           <Swiper
             pagination={{ clickable: true }}
@@ -61,13 +61,13 @@ const HousingSliders: React.FC<Props> = (props) => {
             modules={[Pagination, Thumbs]}
             className="w-full max-w-4xl"
           >
-            {data.images.map((item, index) => (
+            {data.medias.map((item, index) => (
               <SwiperSlide key={index}>
                 <Image
                   className="w-full h-auto max-h-[60vh] object-contain"
                   width={1000}
                   height={0}
-                  src={item}
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/${item.media_url}`}
                   alt={`fullscreen-${index}`}
                 />
               </SwiperSlide>

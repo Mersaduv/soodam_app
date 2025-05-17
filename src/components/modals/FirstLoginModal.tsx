@@ -5,6 +5,7 @@ import { Modal } from '../ui'
 import { roles } from '@/utils'
 import { useAppSelector, useAppDispatch } from '@/hooks'
 import { clearCredentials } from '@/store'
+import { useRouter } from 'next/router'
 
 interface FirstLoginModalProps {
   isShow: boolean
@@ -14,12 +15,49 @@ interface FirstLoginModalProps {
 const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) => {
   const { role, phoneNumber, user } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
+  const { push } = useRouter()
 
   const handleClick = (pathname: string, query: { role: string }) => {
     localStorage.removeItem('role')
     localStorage.removeItem('user')
+    if (user && user.role !== 'marketer') {
+      push('/marketer')
+      return
+    }
     dispatch(clearCredentials())
     localStorage.setItem('role', 'user')
+    onClose()
+  }
+
+  const handleClickNewAdAsMarketerNav = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    const role = localStorage.getItem('role')
+
+    if (role === 'user' || !role) {
+      push(`/authentication/login?role=${roles.Marketer}`)
+      return
+    }
+    if (user && user.role !== roles.Marketer) {
+      push('/marketer')
+    } else {
+      push('/soodam')
+    }
+    onClose()
+  }
+
+  const handleClickEstateConsultant = () => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    const role = localStorage.getItem('role')
+
+    if (role === 'user' || !role) {
+      push(`/authentication/login?role=${roles.EstateConsultant}`)
+      return
+    }
+    if (user && user.role !== roles.EstateConsultant) {
+      push(`/authentication/login?role=${roles.EstateConsultant}`)
+    } else {
+      push('/estate-consultant')
+    }
     onClose()
   }
 
@@ -57,33 +95,33 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
               <Image src="/static/smart-home-contol.png" alt="کاربر معمولی" layout="intrinsic" width={95} height={95} />
             </Link>
 
-            <Link
-              href={{
-                pathname: '/authentication/login',
-                query: { role: roles.Marketer },
-              }}
-              onClick={() => handleClick('/authentication/login', { role: roles.Marketer })}
+            <div
+              // href={{
+              //   pathname: '/authentication/login',
+              //   query: { role: roles.Marketer },
+              // }}
+              onClick={handleClickNewAdAsMarketerNav}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
                 <p className="text-sm">ورود به عنوان بازاریاب</p>
               </div>
               <Image src="/static/becoming-rich.png" alt="بازاریاب" layout="intrinsic" width={95} height={95} />
-            </Link>
+            </div>
 
-            <Link
-              href={{
-                pathname: '/authentication/login',
-                query: { role: roles.MarketerConsultant },
-              }}
-              onClick={() => handleClick('/authentication/login', { role: roles.MarketerConsultant })}
+            <div
+              // href={{
+              //   pathname: '/authentication/login',
+              //   query: { role: roles.EstateConsultant },
+              // }}
+              onClick={handleClickEstateConsultant}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
                 <p className="text-sm">ورود به عنوان مشاور املاک</p>
               </div>
               <Image src="/static/business-deal.png" alt="املاک" layout="intrinsic" width={95} height={95} />
-            </Link>
+            </div>
           </div>
         </Modal.Body>
       </Modal.Content>

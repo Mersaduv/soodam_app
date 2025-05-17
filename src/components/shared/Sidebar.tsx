@@ -18,6 +18,7 @@ import {
 } from '@/icons'
 import { useRouter } from 'next/router'
 import { setIsShowLogin } from '@/store'
+import { roles } from '@/utils'
 
 export default function Sidebar() {
   const [isSidebar, sidebarHandlers] = useDisclosure()
@@ -48,6 +49,21 @@ export default function Sidebar() {
       push('/housing/ad/new')
     }
   }
+
+  const handleClickEstateConsultant = () => {
+      const user = JSON.parse(localStorage.getItem('user'))
+      const role = localStorage.getItem('role')
+  
+      if (role === 'user' || !role) {
+        push(`/authentication/login?role=${roles.EstateConsultant}`)
+        return
+      }
+      if (user && user.role !== roles.EstateConsultant) {
+        push(`/authentication/login?role=${roles.EstateConsultant}`)
+      } else {
+        push('/estate-consultant')
+      }
+    }
 
   useEffect(() => {
     if (isSidebar) document.body.style.overflow = 'hidden'
@@ -83,6 +99,24 @@ export default function Sidebar() {
           <div className="flex flex-col gap-y-3.5">
             {menuItems.map((item, index) => {
               if (item.subItems.length === 0) {
+                if(item.title ==='مشاورین املاک')
+                {
+                  return (
+                    <div
+                      key={index}
+                      onClick={handleClickEstateConsultant}
+                      className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
+                    >
+                      <div className="flex gap-x-2.5 items-end">
+                        {item.icon}
+                        <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
+                          {item.title}
+                        </span>
+                      </div>
+                      <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
+                    </div>
+                  )
+                }
                 if (item.title === 'ثبت نام به عنوان بازاریاب') {
                   return (
                     <div

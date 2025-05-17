@@ -110,11 +110,12 @@ interface HeaderProps {
   onClose: () => void
   right?: boolean
   children?: React.ReactNode
+  wfull?: boolean
 }
 
 const Header: React.FC<HeaderProps> = (props) => {
   // ? Props
-  const { onClose, children, right } = props
+  const { onClose, children, right, wfull } = props
 
   // ? Render(s)
   return (
@@ -131,7 +132,7 @@ const Header: React.FC<HeaderProps> = (props) => {
           </button>
         </div>
       ) : (
-        <div className="flex relative items-center justify-center  pb-2">
+        <div className={`flex relative items-center justify-center ${wfull ? 'w-full' : ''}  pb-2`}>
           <h2 className="font-medium">{children}</h2>
           <button
             type="button"

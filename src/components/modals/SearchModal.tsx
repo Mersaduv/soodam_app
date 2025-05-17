@@ -8,7 +8,7 @@ import { LuHistory } from 'react-icons/lu'
 
 import { useAppDispatch, useAppSelector, useDebounce, useDisclosure } from '@/hooks'
 import { FaArrowRight } from 'react-icons/fa'
-import { Close, GpsIcon, LocationSmIcon, Search, SearchNormalIcon } from '@/icons'
+import { Close, GpsIcon, LocationSmIcon, Search, SearchNormalIcon, SendIcon } from '@/icons'
 import { EmptySearchList } from '@/components/emptyList'
 // import { ProductDiscountTag, ProductPriceDisplay } from '@/components/product'
 // import { DataStateDisplay } from '@/components/shared'
@@ -77,7 +77,7 @@ export function parseSearchQuery(
   let featureIds: string[] = []
 
   for (const feat of features ?? []) {
-    const allNames = [feat.name?.toLowerCase(), ...(feat.values ?? []).map((v) => v.name?.toLowerCase())]
+    const allNames = [feat.name?.toLowerCase(), ...(Array.isArray(feat.value) ? feat.value.map((v) => v.value?.toLowerCase()) : [])]
 
     const match = allNames.find((name) => queryWords.some((word) => name?.includes(word)))
 
@@ -323,7 +323,7 @@ const SearchModal: React.FC<Props> = (props) => {
     <div className="flex-1">
       <div
         onClick={searchModalHanlders.open}
-        className="flex gap-1.5 h-[48px] pr-3 w-full cursor-text rounded-lg z-0  bg-[#F2F2F3] items-center transition duration-700 ease-in-out"
+        className="flex gap-1.5 h-[48px] pr-3 w-full cursor-text rounded-lg z-0  bg-[#F2F2F3] border border-[#E3E3E7] items-center transition duration-700 ease-in-out"
       >
         <div>
           <SearchNormalIcon width="24px" height="20px" />
@@ -417,7 +417,7 @@ const SearchModal: React.FC<Props> = (props) => {
                         className="flex items-center gap-3 hover:bg-slate-100 w-full py-2 text-gray-600 px-4 cursor-pointer"
                       >
                         <div className="bg-gray-50 flex-center rounded-full p-3">
-                          <LocationSmIcon width="16px" height="16px" />
+                        <SendIcon width="16px" height="16px" />
                         </div>
                         <div>{item.province}</div>
                       </div>

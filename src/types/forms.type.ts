@@ -2,6 +2,11 @@ export interface PhoneFormValues {
   phoneNumber?: string
 }
 
+export interface AdminPhoneFormValues {
+  phoneNumber?: string
+  security_number?: string
+}
+
 export interface CodeFormValues {
   code: string
   phoneNumber?: number
@@ -19,30 +24,54 @@ export interface AdFormValues {
     lat: number
     lng: number
   }
+  // deal 1
   price?: number
   discount?: number
-
+  // deal 2
   deposit?: number
   rent?: number
   convertible?: boolean
-
+  // deal 3
   producerProfitPercentage?: number
   ownerProfitPercentage?: number
-
+  // deal 4
   capacity?: number
   extraPeople?: number
   rentalTerms?: { id: number; name: string }
 
   title?: string
   features: {
-    [key: string]: string
+    [key: string]: string | boolean | { id: string; value: string }
   }
   description: string
 
-  media: {
-    images: File[]
-    videos?: File[]
+  mediaImages: { url: string }[]
+  mediaVideos: { url: string }[]
+}
+
+export interface CreateAds {
+  title: string
+  security_code_owner_building: string
+  phone_number_owner_building: string
+  description: string
+  deposit: number
+  rent: number
+  price: number
+  sub_category_id: string | number
+  sub_sub_category_id: number
+  full_address: {
+    province_id: number
+    city_id: number
+    address: string
+    zip_code: string
+    longitude: number
+    latitude: number
   }
+  features: any
+  media: {
+    media: string
+    type: string
+  }[][]
 }
 
 export interface RequestFormValues {
@@ -148,4 +177,32 @@ export interface ContactUsForm {
   phoneNumber: string
   address: string
   description: string
+}
+
+export interface EstateConsultantForm {
+  fullName: string
+  fatherName: string
+  notionalCode: string
+  province: {
+    id?: number
+    name: string
+    slug?: string
+  }
+  city: {
+    id?: number
+    name: string
+    slug?: string
+    province_id?: number
+  }
+  licenseNumber: string
+  businessLicenseNumber: string
+  businessLicenseImage: File
+  businessLicenseImageBack: File
+  businessLicenseImageFront: File
+  IdImage: File
+  agreeToTerms: boolean
+  location: {
+    lat: number
+    lng: number
+  }
 }

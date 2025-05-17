@@ -5,7 +5,7 @@ import { clearCredentials, setCredentials } from '@/store'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import productionApiSlice from '../productionBaseApi'
 import { User } from '@/types'
-import { generateUUID, UserRoleType } from '@/utils'
+import { generateUUID, getProvinceFromCoordinates, getToken, UserRoleType } from '@/utils'
 // export const authApiSlice = createApi({
 //   reducerPath: 'authApi',
 //   baseQuery: fetchBaseQuery({
@@ -98,14 +98,40 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled
           if (data) {
+            localStorage.setItem('token', data.token)
+            const userInfoData = await dispatch(authApiSlice.endpoints.getUserInfo.initiate()).unwrap()
+            console.log(userInfoData, 'userInfoData----------')
+
+            const birthdate = `${userInfoData[0].birthday._date__year}/${userInfoData[0].birthday._date__month}/${userInfoData[0].birthday._date__day}`
+
+            const address = userInfoData[0].address
+            const latitude = address.latitude
+            const longitude = address.longitude
+            const cityName = getProvinceFromCoordinates(latitude, longitude)
+
             const user: User = {
-              id: generateUUID(),
-              phoneNumber: args.phoneNumber,
+              id: userInfoData[0].id,
+              first_name: userInfoData[0].first_name,
+              last_name: userInfoData[0].last_name,
+              father_name: userInfoData[0].father_name,
+              security_number: userInfoData[0].security_number,
+              email: userInfoData[0].email,
+              phone_number: userInfoData[0].phone_number,
               role: args.role as UserRoleType,
+              birthday: birthdate,
+              province: userInfoData[0].province,
+              city: userInfoData[0].city,
+              user_wallet: userInfoData[0].user_wallet,
+              address: userInfoData[0].address,
+              avatar: userInfoData[0].avatar,
+              // userType: userInfoData[0].phone_number == '09014689030' ? 'ادمین اصلی' : 'کاربر',
+
               subscription: undefined,
             }
+
             localStorage.setItem('user', JSON.stringify(user))
-            localStorage.setItem('userCity', JSON.stringify({ name: 'تهران', coordinates: [51.389, 35.6892] }))
+            localStorage.setItem('userCity', JSON.stringify({ name: cityName, coordinates: [longitude, latitude] }))
+
             dispatch(
               setCredentials({
                 fullName: '',
@@ -120,6 +146,26 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
           console.error('verifyLogin:', error)
         }
       },
+    }),
+
+    getUserInfo: builder.query<User[], void>({
+      query: () => ({
+        url: `/api/user/get_user_info`,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }),
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({
+                type: 'User' as const,
+                id: id,
+              })),
+              'User',
+            ]
+          : ['User'],
     }),
 
     getVerifyCode: builder.mutation<{ code: string }, { phoneNumber: string }>({

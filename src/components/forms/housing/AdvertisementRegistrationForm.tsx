@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useForm, Controller, Resolver, useFieldArray } from 'react-hook-form'
+import { useForm, Controller, Resolver, useFieldArray, set } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import {
   ArrowLeftIcon,
@@ -24,20 +24,20 @@ import * as yup from 'yup'
 import dynamic from 'next/dynamic'
 import { useAppDispatch, useDisclosure } from '@/hooks'
 import { Disclosure } from '@headlessui/react'
-import {
-  useAddHousingMutation,
-  useGetCategoriesQuery,
-  useGetFeaturesByCategoryQuery,
-  useGetFeaturesQuery,
-  useGetMetaDataQuery,
-  useLazyGetFeaturesByCategoryQuery,
-} from '@/services'
+import { useGetCategoriesQuery, useGetFeaturesQuery, useGetMetaDataQuery } from '@/services'
 import { useRouter } from 'next/router'
-import { AdFormValues, Category, Feature } from '@/types'
+import { AdFormValues, Category, CreateAds, Feature } from '@/types'
 import { validationSchema } from '@/utils'
 import { IoMdClose } from 'react-icons/io'
 import { setIsSuccess } from '@/store'
+import { Control, FieldError } from 'react-hook-form'
 import jalaali from 'jalaali-js'
+import {
+  useAddHousingMutation,
+  useLazyGetFeaturesByCategoryQuery,
+  useUploadMediaMutation,
+} from '@/services/productionBaseApi'
+import { title } from 'process'
 const toJalaali = (date: Date) => {
   const jalaaliDate = jalaali.toJalaali(date)
   return {
@@ -57,6 +57,18 @@ const rentalTerms = [
   { id: 3, name: 'روزهای خاص (تعطیلات و مناسبت ها)', icon: CalendarSearchIcon },
   { id: 4, name: 'هزینه هر نفر اضافه (به ازای هر شب)', icon: ProfileAddIcon },
 ]
+const getFileExtension = (url: string): string => {
+  const cleanUrl = url.split('?')[0] // حذف query string
+  const extension = cleanUrl.split('.').pop()
+  return extension ? `.${extension}` : ''
+}
+
+const dealFieldsMap = {
+  sale: ['price', 'discount'],
+  rent: ['deposit', 'rent', 'convertible'],
+  shortRent: ['capacity', 'extraPeople', 'rentalTerm'],
+  constructionProjects: ['producerProfitPercentage', 'ownerProfitPercentage'],
+}
 
 const MapLocationPicker = dynamic(() => import('@/components/map/MapLocationPicker'), { ssr: false })
 interface Props {
@@ -87,40 +99,37 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   const [playingIndex, setPlayingIndex] = useState(null)
   const [drawnPoints, setDrawnPoints] = useState([])
   const [selectedNames, setSelectedNames] = useState({})
+  const [selectedParentCategory, setSelectedParentCategory] = useState<Category | null>(null)
   const dispatch = useAppDispatch()
-  const formRef = useRef<HTMLFormElement | null>(null)
+  const formRef = useRef<HTMLDivElement | null>(null)
+  const previousDealType = useRef<string | null>(null)
   // ? Queries
   const { data: categoriesData, isFetching } = useGetMetaDataQuery({ ...query })
-  const [triggerGetFeaturesByCategory, { data: features }] = useLazyGetFeaturesByCategoryQuery()
+  const [triggerGetFeaturesByCategory, { data: features, isSuccess }] = useLazyGetFeaturesByCategoryQuery()
   const [
     addHousing,
     { isLoading: isLoadingCreate, isSuccess: isSuccessCreate, isError: isErrorCreate, error: errorCreate },
   ] = useAddHousingMutation()
+  const [createUrl, { data: dataUpload, isSuccess: isSuccessUpload }] = useUploadMediaMutation()
 
   const getDealTypeFromCategory = (category: Category) => {
     if (!category) return null
 
     const categoryName = category.name.toLowerCase()
-    const parentCategoryName = category.parentCategory?.name.toLowerCase() || ''
 
-    if (
-      categoryName.includes('ساخت') ||
-      categoryName.includes('ساز') ||
-      parentCategoryName.includes('ساخت') ||
-      parentCategoryName.includes('ساز')
-    ) {
+    if (categoryName.includes('مالک') || categoryName.includes('سازنده') || categoryName.includes('پیش فروش')) {
       return 'constructionProjects' // اجاره کوتاه مدت
     }
 
-    if (categoryName.includes('اجاره کوتاه مدت') || parentCategoryName.includes('اجاره کوتاه مدت')) {
+    if (categoryName.includes('اجاره کوتاه')) {
       return 'shortRent' // اجاره کوتاه مدت
     }
 
-    if (categoryName.includes('اجاره') || parentCategoryName.includes('اجاره')) {
+    if (categoryName.includes('اجاره')) {
       return 'rent' // اجاره بلندمدت
     }
 
-    if (categoryName.includes('فروش') || parentCategoryName.includes('فروش')) {
+    if (categoryName.includes('فروش')) {
       return 'sale' // فروش
     }
 
@@ -135,6 +144,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     trigger,
     setValue,
     getValues,
+    resetField,
     formState: { errors, isValid },
   } = useForm<AdFormValues>({
     resolver: yupResolver(validationSchema({ features: featureData, dealType })) as unknown as Resolver<AdFormValues>,
@@ -142,16 +152,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     context: { dealType },
     defaultValues: {
       features: featureData
-        .filter((item) => item.type === 'radio')
+        .filter((item) => item.type === 'bool')
         .reduce((acc, field) => {
           acc[field.id] = 'اولویت ندارد'
           return acc
         }, {}),
       convertible: false,
-      media: {
-        images: [],
-        videos: [],
-      },
+      mediaImages: [],
+      mediaVideos: [],
       location: {
         lat: 0,
         lng: 0,
@@ -160,10 +168,20 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     },
   })
 
-  // const { fields, append, remove } = useFieldArray<AdFormValues, 'media', 'images'>({
-  //   control,
-  //   name: 'media.images',
-  // })
+  const { fields, append, remove } = useFieldArray<AdFormValues>({
+    control,
+    name: 'mediaImages',
+  })
+  const {
+    fields: videoFields,
+    append: appendVideo,
+    remove: removeVideo,
+  } = useFieldArray<AdFormValues>({
+    control,
+    name: 'mediaVideos',
+  })
+
+  const handleAddUploadedImage = ({ url }: { url: string }) => append({ url })
 
   // ? Re-Renders
   useEffect(() => {
@@ -184,29 +202,52 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   //     setValue('category', selectedCategory.id)
   //     setIsSelectCategorySkip(false)
   //   }
+
   useEffect(() => {
-    const fetchFeatures = async (category: Category | null, level = 0) => {
-      if (!category || level > 2) return
+    const fetchFeatures = async (category: Category, parent: Category = null) => {
+      if (!category) return
 
       setCurrentCategoryId(category.id)
 
-      // Trigger the query manually
-      const fetchedFeatures = await triggerGetFeaturesByCategory(category.id)
-      if (fetchedFeatures?.data?.data?.length === 0 && category.parentCategory) {
-        // No features, try parent category
-        fetchFeatures(category.parentCategory, level + 1)
-      }
+      const fetchedFeatures = await triggerGetFeaturesByCategory({
+        sub_category_id: parent !== null ? parent.id : category.id,
+        sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
+      })
+
+      //   // فقط اگه ویژگی نداشت، دیگه دنبال بالا رفتن تو parentCategory نیستیم چون حذف شده
+      //   // پس نیازی به fetchFeatures دوباره نداریم
     }
 
     if (selectedCategory) {
       setValue('category', selectedCategory.id)
-      fetchFeatures(selectedCategory)
+      fetchFeatures(selectedCategory, selectedParentCategory)
     }
-  }, [selectedCategory, setValue, triggerGetFeaturesByCategory])
+  }, [
+    selectedCategory,
+    setValue,
+    // triggerGetFeaturesByCategory
+  ])
+
+  useEffect(() => {
+    const fetchFeatures = async (category: Category, parent: Category = null) => {
+      if (!category) return
+
+      // Trigger the query manually
+      const fetchedFeatures = await triggerGetFeaturesByCategory({
+        sub_category_id: parent !== null ? parent.id : category.id,
+        sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
+      })
+    }
+
+    if (selectedCategory) {
+      setValue('category', selectedCategory.id)
+      fetchFeatures(selectedCategory, selectedParentCategory)
+    }
+  }, [selectedCategory, triggerGetFeaturesByCategory])
 
   useEffect(() => {
     if (features) {
-      setFeatureData(features.data)
+      setFeatureData(features)
     }
   }, [features])
 
@@ -222,9 +263,69 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     if (!valid && formRef.current) {
       formRef.current.scrollIntoView({ behavior: 'smooth' })
     }
+    console.log(data.features, 'F....data.features', featureData, 'featureData')
+
+    const formattedFeatures = Object.keys(data.features)
+      .map((key) => {
+        const featureInfo = featureData.find((f) => f.id == key) // پیدا کردن اطلاعات ویژگی بر اساس id
+        if (!featureInfo) return null
+        console.log(featureData, '1. featureData')
+        console.log(featureInfo, '2. featureInfo')
+
+        let value: any = data.features[key]
+        console.log(value, '3. data.features[key]', data.features[key])
+
+        if (featureInfo.type === 'bool') {
+          value = value === 'دارد' ? true : false
+        } else if (featureInfo.type === 'choice') {
+          if (Array.isArray(featureInfo.value)) {
+            const selectedValue = featureInfo.value.find((v) => v.id === value.id)
+            value = selectedValue ? { id: selectedValue.id, value: selectedValue.value } : null
+          }
+        }
+        console.log(value, 'F. value,value')
+
+        return {
+          id: featureInfo.id,
+          name: featureInfo.name,
+          key: featureInfo.key, // یا هرچی که بجاش داری
+          type: featureInfo.type,
+          value,
+        }
+      })
+      .filter(Boolean) // حذف null ها در صورت نبودن feature
+    const finalData = {
+      ...data,
+      features: formattedFeatures,
+    }
+
+    console.log(finalData, 'finalData')
     console.log('Form submitted:', data, roleUser)
     data.status = 1
-    addHousing(data)
+    const createAds = {
+      title: data.title,
+      security_code_owner_building: data.nationalCode || '',
+      phone_number_owner_building: data.phoneNumber,
+      description: data.description,
+      sub_category_id: data.category,
+      sub_sub_category_id: 0,
+      full_address: {
+        province_id: 27,
+        city_id: 968,
+        address: data.address,
+        zip_code: data.postalCode,
+        longitude: data.location.lng,
+        latitude: data.location.lat,
+      },
+      features: formattedFeatures,
+      medias: data.mediaImages.map((item) => ({
+        media: item.url,
+        type: getFileExtension(item.url),
+      })),
+    }
+    console.log(createAds, 'data-submit')
+
+    addHousing(createAds)
   }
   useEffect(() => {
     if (isSuccessCreate) {
@@ -242,8 +343,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
         fieldsToValidate = [
           'price',
           'discount',
-          'deposit',
-          'rent',
+          // 'deposit',
+          // 'rent',
           'capacity',
           'producerProfitPercentage',
           'ownerProfitPercentage',
@@ -261,14 +362,22 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     return result
   }
 
+  useEffect(() => {
+    if (previousDealType.current && previousDealType.current !== dealType) {
+      const fieldsToReset = dealFieldsMap[previousDealType.current as keyof typeof dealFieldsMap]
+      fieldsToReset?.forEach((field) => resetField(field as keyof AdFormValues))
+    }
+    previousDealType.current = dealType
+  }, [dealType, resetField])
+
   //? handlers
   const handleNext = async () => {
     const isStepValid = await validateCurrentStep()
     if (isStepValid && currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1)
     } else if (formRef.current) {
-      formRef.current.scrollIntoView({ behavior: 'smooth' })
     }
+    formRef.current.scrollIntoView({ behavior: 'smooth' })
   }
 
   const handlePrev = () => {
@@ -285,7 +394,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     setSelectedLocation(location)
   }
 
-  const handleSelectCategory = (category: Category) => {
+  const handleSelectCategory = (category: Category, parent?: Category) => {
+    if (parent) setSelectedParentCategory(parent)
     if (selectedCategory && selectedCategory.id === category.id) {
       setSelectedCategory(null)
       setValue('category', null)
@@ -311,30 +421,48 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (selectedFiles.length === maxFiles) return
-    if (files) {
-      const validFiles: any[] = []
+    const fileList = e.target.files
+    if (!fileList) return
 
-      Array.from(files).forEach((file) => {
-        const img = new Image()
-        img.src = URL.createObjectURL(file)
+    const files = Array.from(fileList)
+    createUrl(files)
+    // if (selectedFiles.length === maxFiles) return
+    // if (files) {
+    //   const validFiles: any[] = []
 
-        img.onload = () => {
-          URL.revokeObjectURL(img.src)
-          validFiles.push(file)
-          if (validFiles.length === Array.from(files).length) {
-            setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles])
-            if (validFiles.length > 0) {
-              setValue('media.images', ((getValues('media.images') as File[]) || []).concat(validFiles))
-            } else {
-              setValue('media.images', [])
-            }
-          }
-        }
+    //   Array.from(files).forEach((file) => {
+    //     const img = new Image()
+    //     img.src = URL.createObjectURL(file)
+
+    //     img.onload = () => {
+    //       URL.revokeObjectURL(img.src)
+    //       validFiles.push(file)
+    //       if (validFiles.length === Array.from(files).length) {
+    //         setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles])
+    //         if (validFiles.length > 0) {
+    //           setValue('media.images', ((getValues('media.images') as File[]) || []).concat(validFiles))
+    //         } else {
+    //           setValue('media.images', [])
+    //         }
+    //       }
+    //     }
+    //   })
+    // }
+  }
+
+  useEffect(() => {
+    if (isSuccessUpload && dataUpload) {
+      dataUpload.media_url.forEach((item) => {
+        append({ url: item.media })
       })
     }
-  }
+  }, [isSuccessUpload])
+
+  useEffect(() => {
+    if (isSuccess) {
+      setSelectedParentCategory(null)
+    }
+  }, [isSuccess])
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -345,29 +473,27 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   }
 
   const handleDelete = (index: number, type = 'pic') => {
-    if (type === 'pic') {
-      setSelectedFiles((prevFiles) => {
-        const updatedFiles = [...prevFiles]
-        updatedFiles.splice(index, 1)
-        return updatedFiles
-      })
-
-      setValue(
-        'media.images',
-        ((getValues('media.images') as File[]) || []).filter((_, i) => i !== index)
-      )
-    } else {
-      setSelectedVideos((prevFiles) => {
-        const updatedFiles = [...prevFiles]
-        updatedFiles.splice(index, 1)
-        return updatedFiles
-      })
-
-      setValue(
-        'media.videos',
-        ((getValues('media.videos') as File[]) || []).filter((_, i) => i !== index)
-      )
-    }
+    // if (type === 'pic') {
+    //   setSelectedFiles((prevFiles) => {
+    //     const updatedFiles = [...prevFiles]
+    //     updatedFiles.splice(index, 1)
+    //     return updatedFiles
+    //   })
+    //   setValue(
+    //     'media.images',
+    //     ((getValues('media.images') as File[]) || []).filter((_, i) => i !== index)
+    //   )
+    // } else {
+    //   setSelectedVideos((prevFiles) => {
+    //     const updatedFiles = [...prevFiles]
+    //     updatedFiles.splice(index, 1)
+    //     return updatedFiles
+    //   })
+    //   setValue(
+    //     'media.videos',
+    //     ((getValues('media.videos') as File[]) || []).filter((_, i) => i !== index)
+    //   )
+    // }
   }
 
   const mapCategoryName = (name: string) => {
@@ -385,11 +511,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
   let stepTitle = 'قیمت'
   if (
-    selectedCategory?.parentCategory?.name?.includes('ساخت') ||
-    selectedCategory?.parentCategory?.name?.includes('ساز')
+    selectedCategory?.name?.includes('مالک') ||
+    selectedCategory?.name?.includes('سازنده') ||
+    selectedCategory?.name?.includes('پیش فروش')
   ) {
     stepTitle = 'سود'
-  } else if (selectedCategory?.parentCategory?.name?.includes('اجاره کوتاه مدت')) {
+  } else if (selectedCategory?.name?.includes('اجاره کوتاه')) {
     stepTitle = 'شرایط اجاره'
   }
 
@@ -399,7 +526,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     console.log(errors, 'errors--errors')
   }
   return (
-    <div className="relative mb-44">
+    <div ref={formRef} className="relative mb-44">
       <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
         <Modal.Content
           onClose={handleModalClose}
@@ -420,7 +547,13 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           className="!mt-0 flex w-full items-center justify-between py-2"
                         >
                           <div className="flex gap-x-1.5 items-center">
-                            {item.image && <img className="w-[24px] h-[24px]" src={item.image} alt={item.name} />}
+                            {item.image && (
+                              <img
+                                className="w-[24px] h-[24px]"
+                                src={`${process.env.NEXT_PUBLIC_API_URL}/${item.image}`}
+                                alt={item.name}
+                              />
+                            )}
                             <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
                               {item.name}
                             </span>
@@ -434,7 +567,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           <Disclosure.Panel className="-mt-2">
                             {item.sub_categories.map((subItem) => (
                               <div key={subItem.id}>
-                                {subItem.sub_categories?.length > 0 ? (
+                                {subItem.sub_sub_category?.length > 0 ? (
                                   <Disclosure>
                                     {({ open: subOpen }) => (
                                       <>
@@ -452,10 +585,10 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                         </Disclosure.Button>
 
                                         <Disclosure.Panel className="-mt-2">
-                                          {subItem.sub_categories.map((childItem) => (
+                                          {subItem.sub_sub_category.map((childItem) => (
                                             <div
                                               key={childItem.id}
-                                              onClick={() => handleSelectCategory(childItem)}
+                                              onClick={() => handleSelectCategory(childItem, subItem)}
                                               className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
                                                 selectedCategory?.id === childItem.id ? 'bg-gray-50 rounded-lg' : ''
                                               }`}
@@ -567,7 +700,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
         )}
 
         {/* Form Content */}
-        <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 pt-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 px-4 pt-6">
           {/* Step 1: مشخصات */}
           {currentStep === 0 && (
             <div className="space-y-4">
@@ -684,113 +817,183 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
           {currentStep === 1 &&
             (dealType === 'sale' ? (
               <div className="space-y-4">
-                <Controller
-                  name="price"
-                  control={control}
-                  render={({ field }) => (
-                    <TextFiledPrice
-                      adForm
-                      label="قیمت فروش"
-                      type="text"
-                      name="price"
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      errors={errors.price}
-                      formatPrice={true}
-                      placeholder="مثال : 100 میلیون تومان"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                    />
-                  )}
-                />
-
-                <Controller
-                  name="discount"
-                  control={control}
-                  render={({ field }) => (
-                    <TextFiledPrice
-                      adForm
-                      label="تخفیف"
-                      type="text"
-                      name="discount"
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      errors={errors.discount}
-                      placeholder="مثال : 10 میلیون(اختیاری)"
-                      formatPrice={true}
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                    />
-                  )}
-                />
+                {features &&
+                  features.map((field) => {
+                    switch (field.key) {
+                      case 'text_selling_price':
+                      case 'text_discount':
+                        return (
+                          <Controller
+                            key={field.id}
+                            name={`features.${field.id}`}
+                            control={control}
+                            render={({ field: controllerField }) => (
+                              <TextFiledPrice
+                                adForm
+                                label={field.name}
+                                type="text"
+                                name={`features.${field.id}`}
+                                value={
+                                  typeof controllerField.value === 'string' || typeof controllerField.value === 'number'
+                                    ? controllerField.value
+                                    : ''
+                                }
+                                onChange={controllerField.onChange}
+                                onBlur={controllerField.onBlur}
+                                errors={errors.features?.[field.id]}
+                                placeholder={`مثال : ${
+                                  field.key === 'text_selling_price'
+                                    ? 'مثال : 100 میلیون تومان'
+                                    : 'مثال : 10 میلیون(اختیاری)'
+                                }`}
+                                formatPrice={true}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                              />
+                            )}
+                          />
+                        )
+                      default:
+                        return null
+                    }
+                  })}
               </div>
             ) : dealType === 'rent' ? (
               <div className="space-y-4">
-                <Controller
-                  name="deposit"
-                  control={control}
-                  render={({ field }) => (
-                    <TextFiledPrice
-                      adForm
-                      label="رهن یا ودیعه"
-                      type="text"
-                      name="deposit"
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      errors={errors.deposit}
-                      placeholder="مثال : 100 میلیون تومان"
-                      formatPrice={true}
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                    />
-                  )}
-                />
+                {features &&
+                  features.map((field) => {
+                    switch (field.key) {
+                      case 'text_mortgage_deposit':
+                      case 'text_monthly_rent':
+                        return (
+                          <Controller
+                            key={field.id}
+                            name={`features.${field.id}`}
+                            control={control}
+                            render={({ field: controllerField }) => (
+                              <TextFiledPrice
+                                adForm
+                                label={field.name}
+                                type="text"
+                                name={`features.${field.id}`}
+                                value={
+                                  typeof controllerField.value === 'string' || typeof controllerField.value === 'number'
+                                    ? controllerField.value
+                                    : ''
+                                }
+                                onChange={controllerField.onChange}
+                                onBlur={controllerField.onBlur}
+                                errors={errors.features?.[field.id]}
+                                placeholder={`مثال : ${
+                                  field.key === 'text_mortgage_deposit' ? '100 میلیون تومان' : '10 میلیون تومان'
+                                }`}
+                                formatPrice={true}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                              />
+                            )}
+                          />
+                        )
 
-                <Controller
-                  name="rent"
-                  control={control}
-                  render={({ field }) => (
-                    <TextFiledPrice
-                      adForm
-                      label="اجاره ماهیانه"
-                      type="text"
-                      name="rent"
-                      value={field.value}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      errors={errors.rent}
-                      placeholder="مثال : 10 میلیون "
-                      formatPrice={true}
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                    />
-                  )}
-                />
+                      case 'bool_convertible':
+                        return (
+                          <div key={field.id} className="flex flex-row-reverse items-center gap-2 w-full pt-2">
+                            <CustomCheckbox
+                              name={`features.${field.id}`}
+                              checked={isConvertible}
+                              onChange={() => {
+                                setIsConvertible((prev) => !prev)
+                                setValue(`features.${field.id}`, !isConvertible)
+                              }}
+                              label=""
+                              customStyle="bg"
+                            />
+                            <label
+                              htmlFor={`features.${field.id}`}
+                              className="flex items-center gap-2 w-full font-normal text-sm"
+                            >
+                              <RepeatIcon width="24px" height="24px" />
+                              {field.name}
+                            </label>
+                          </div>
+                        )
 
-                <div className="flex flex-row-reverse items-center gap-2 w-full pt-2">
-                  <CustomCheckbox
-                    name={`convertible`}
-                    checked={isConvertible}
-                    onChange={() => setIsConvertible((prev) => !prev)}
-                    label=""
-                    customStyle="bg"
-                  />
-                  <label htmlFor="convertible" className="flex items-center gap-2 w-full font-normal text-sm">
-                    <RepeatIcon width="24px" height="24px" />
-                    قابل تبدیل
-                  </label>
-                </div>
+                      default:
+                        return null
+                    }
+                  })}
+
                 <div className="flex items-center gap-2">
                   <InfoCircleIcon width="16px" height="16px" />
                   <span className="text-[#5A5A5A] font-normal text-xs">
-                    به ازای هر یک میلیون تومان ودیعه 30 هزار تومان اجاره عرف بازار می باشد.
+                    به ازای هر یک میلیون تومان ودیعه 30 هزار تومان اجاره عرف بازار می‌باشد.
                   </span>
                 </div>
               </div>
-            ) : dealType === 'shortRent' ? (
+            ) : // <div className="space-y-4">
+            //   <Controller
+            //     name="deposit"
+            //     control={control}
+            //     render={({ field }) => (
+            //       <TextFiledPrice
+            //         adForm
+            //         label="رهن یا ودیعه"
+            //         type="text"
+            //         name="deposit"
+            //         value={field.value}
+            //         onChange={field.onChange}
+            //         onBlur={field.onBlur}
+            //         errors={errors.deposit}
+            //         placeholder="مثال : 100 میلیون تومان"
+            //         formatPrice={true}
+            //         inputMode="numeric"
+            //         pattern="[0-9]*"
+            //       />
+            //     )}
+            //   />
+
+            //   <Controller
+            //     name="rent"
+            //     control={control}
+            //     render={({ field }) => (
+            //       <TextFiledPrice
+            //         adForm
+            //         label="اجاره ماهیانه"
+            //         type="text"
+            //         name="rent"
+            //         value={field.value}
+            //         onChange={field.onChange}
+            //         onBlur={field.onBlur}
+            //         errors={errors.rent}
+            //         placeholder="مثال : 10 میلیون "
+            //         formatPrice={true}
+            //         inputMode="numeric"
+            //         pattern="[0-9]*"
+            //       />
+            //     )}
+            //   />
+
+            //   <div className="flex flex-row-reverse items-center gap-2 w-full pt-2">
+            //     <CustomCheckbox
+            //       name={`convertible`}
+            //       checked={isConvertible}
+            //       onChange={() => setIsConvertible((prev) => !prev)}
+            //       label=""
+            //       customStyle="bg"
+            //     />
+            //     <label htmlFor="convertible" className="flex items-center gap-2 w-full font-normal text-sm">
+            //       <RepeatIcon width="24px" height="24px" />
+            //       قابل تبدیل
+            //     </label>
+            //   </div>
+            //   <div className="flex items-center gap-2">
+            //     <InfoCircleIcon width="16px" height="16px" />
+            //     <span className="text-[#5A5A5A] font-normal text-xs">
+            //       به ازای هر یک میلیون تومان ودیعه 30 هزار تومان اجاره عرف بازار می باشد.
+            //     </span>
+            //   </div>
+            // </div>
+            dealType === 'shortRent' ? (
               <div className="space-y-4">
                 <Controller
                   name="capacity"
@@ -853,7 +1056,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
               </div>
             ) : dealType === 'constructionProjects' ? (
               <div className="space-y-4">
-                <Controller
+                {/* <Controller
                   name="producerProfitPercentage"
                   control={control}
                   render={({ field }) => (
@@ -887,7 +1090,44 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       pattern="[0-9]*"
                     />
                   )}
-                />
+                /> */}
+
+                {features &&
+                  features.map((field) => {
+                    switch (field.key) {
+                      case 'text_owner_profit_percentage':
+                      case 'text_producer_profit_percentage':
+                        return (
+                          <Controller
+                            key={field.id}
+                            name={`features.${field.id}`}
+                            control={control}
+                            render={({ field: controllerField }) => (
+                              <TextFiledPrice
+                                adForm
+                                label={field.name}
+                                type="text"
+                                name={`features.${field.id}`}
+                                value={
+                                  typeof controllerField.value === 'string' || typeof controllerField.value === 'number'
+                                    ? controllerField.value
+                                    : ''
+                                }
+                                onChange={controllerField.onChange}
+                                onBlur={controllerField.onBlur}
+                                errors={errors.features?.[field.id]}
+                                placeholder={`مثال: 50 درصد`}
+                                formatPrice={true}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                              />
+                            )}
+                          />
+                        )
+                      default:
+                        return null
+                    }
+                  })}
               </div>
             ) : (
               <div>نوع معامله مشخص نیست</div>
@@ -899,8 +1139,17 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
               <div className="relative w-full">
                 <div className="space-y-3 mb-3">
                   {features &&
-                    features.data
-                      .filter((item) => item.type === '') // احتمالاً باید نوع مناسب رو مشخص کنید
+                    features
+                      .filter(
+                        (item) =>
+                          item.type === 'text' &&
+                          item.key !== 'text_mortgage_deposit' &&
+                          item.key !== 'text_monthly_rent' &&
+                          item.key !== 'text_discount' &&
+                          item.key !== 'text_selling_price' &&
+                          item.key !== 'text_owner_profit_percentage' &&
+                          item.key !== 'text_producer_profit_percentage'
+                      )
                       .map((field) => {
                         const isYearField = field.name.includes('سال')
                         return (
@@ -914,7 +1163,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                   <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">{field.name}</label>
                                     <select
-                                      {...controllerField}
+                                      onChange={controllerField.onChange}
+                                      onBlur={controllerField.onBlur}
+                                      name={controllerField.name}
+                                      ref={controllerField.ref}
+                                      value={typeof controllerField.value === 'string' ? controllerField.value : ''}
                                       className="w-full border h-[40px] farsi-digits text-sm border-[#E3E3E7] rounded-lg px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
                                       <option value="">انتخاب کنید</option>
@@ -922,7 +1175,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                         <option key={year} value={year}>
                                           {year}
                                         </option>
-                                      ))} 
+                                      ))}
                                     </select>
                                     {errors.features?.[field.id] && (
                                       <span className="text-red-500 text-xs">{errors.features[field.id]?.message}</span>
@@ -940,7 +1193,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                   name={`features.${field.id}`}
                                   control={control}
                                   errors={errors.features?.[field.id]}
-                                  placeholder={field.placeholder}
+                                  placeholder={field.placeholder || ''}
                                   {...((field.name.includes('متراژ') ||
                                     field.name.includes('گذر') ||
                                     field.name.includes('سال')) && {
@@ -957,8 +1210,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 </div>
                 <div className="space-y-4 mb-4">
                   {features &&
-                    features.data
-                      .filter((item) => item.type === 'check')
+                    features
+                      .filter((item) => item.key === 'bool_renovated' || item.key === 'bool_document')
                       .map((field) => (
                         <div
                           key={field.id}
@@ -1003,8 +1256,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 </div>
 
                 {features &&
-                  features.data
-                    .filter((item) => item.type === 'selective')
+                  features
+                    .filter((item) => item.type === 'choice')
                     .map((item) => (
                       <div key={item.id} className="w-full mb-3">
                         <h1 className="font-normal text-sm mb-2">{item.name}</h1>
@@ -1025,45 +1278,46 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                         </div>
                         {openDropdowns[item.id] && (
                           <div className="w-full mt-1.5 bg-[#FCFCFC] border border-[#E3E3E7] rounded-lg p-1">
-                            {item.values.map((value) => (
-                              <label
-                                key={value.id}
-                                className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
-                              >
-                                <div className="flex items-center cursor-pointer relative">
-                                  <input
-                                    type="radio"
-                                    name={`radio-${item.id}`}
-                                    checked={selectedValues[item.id] === value.id}
-                                    onChange={() => {
-                                      setSelectedValues((prev) => ({ ...prev, [item.id]: value.id }))
-                                      setSelectedNames((prev) => ({ ...prev, [item.id]: value.name }))
-                                      setValue(`features.${item.id}`, value.name)
-                                      setOpenDropdowns((prev) => ({ ...prev, [item.id]: false }))
-                                    }}
-                                    className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
-                                    id={value.id}
-                                  />
-                                  <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-3.5 w-3.5"
-                                      viewBox="0 0 20 20"
-                                      fill="currentColor"
-                                      stroke="currentColor"
-                                      strokeWidth="1"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clipRule="evenodd"
-                                      ></path>
-                                    </svg>
-                                  </span>
-                                </div>
-                                <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.name}</span>
-                              </label>
-                            ))}
+                            {Array.isArray(item.value) &&
+                              item.value.map((value) => (
+                                <label
+                                  key={value.id}
+                                  className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
+                                >
+                                  <div className="flex items-center cursor-pointer relative">
+                                    <input
+                                      type="radio"
+                                      name={`radio-${item.id}`}
+                                      checked={selectedValues[item.id] === value.id}
+                                      onChange={() => {
+                                        setSelectedValues((prev) => ({ ...prev, [item.id]: value.id }))
+                                        setSelectedNames((prev) => ({ ...prev, [item.id]: value.value }))
+                                        setValue(`features.${item.id}`, { id: value.id, value: value.value }) // 👈 ذخیره به شکل صحیح
+                                        setOpenDropdowns((prev) => ({ ...prev, [item.id]: false }))
+                                      }}
+                                      className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
+                                      id={value.id}
+                                    />
+                                    <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-3.5 w-3.5"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        strokeWidth="1"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                          clipRule="evenodd"
+                                        ></path>
+                                      </svg>
+                                    </span>
+                                  </div>
+                                  <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.value}</span>
+                                </label>
+                              ))}
                           </div>
                         )}
                         <div className="w-fit" dir={'ltr'}>
@@ -1074,8 +1328,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
                 <div className="space-y-4 mt-5">
                   {features &&
-                    features.data
-                      .filter((item) => item.type === 'radio')
+                    features
+                      .filter(
+                        (item) =>
+                          item.type === 'bool' &&
+                          item.key !== 'bool_renovated' &&
+                          item.key !== 'bool_document' &&
+                          item.key !== 'bool_convertible'
+                      )
                       .map((field) => (
                         <div className="flex items-center justify-between  bg-white rounded-lg">
                           <span className="font-normal text-sm">{field.name}</span>
@@ -1170,7 +1430,15 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                   <h3 className="font-medium text-start">عکس آگهی</h3>
                 </div>
                 <div>
-                  <input type="file" multiple className="hidden" id="Thumbnail" onChange={handleFileChange} />
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp"
+                    multiple
+                    className="hidden"
+                    id="Thumbnail"
+                    onChange={handleFileChange}
+                  />
+
                   <label htmlFor="Thumbnail" className="block cursor-pointer h-[102px] custom-dashed">
                     <div className="flex justify-center flex-col items-center w-full h-full gap-y-2">
                       <CameraIcon width="43px" height="43px" />
@@ -1180,11 +1448,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     </div>
                   </label>
                   <div className="grid grid-cols-4 gap-3 mt-3">
-                    {selectedFiles.map((file, index) => (
+                    {fields.map((file, index) => (
                       <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
                         <img
-                          src={URL.createObjectURL(file)}
-                          alt={file.name}
+                          src={`${process.env.NEXT_PUBLIC_API_URL}/${file.url}`}
+                          alt={`file-${index}`}
                           className="h-[58px] w-full object-cover rounded-[4px]"
                         />
                         <button
@@ -1201,7 +1469,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       </div>
                     ))}
                     {/* نمایش جایگاه‌های خالی */}
-                    {Array.from({ length: maxFiles - selectedFiles.length }).map((_, index) => (
+                    {Array.from({ length: maxFiles - fields.length }).map((_, index) => (
                       <div
                         key={`empty-${index}`}
                         className="w-full h-[58px] custom-dashed rounded-[4px] shadow-product flex items-center justify-center text-gray-500"
@@ -1211,7 +1479,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     ))}
                   </div>
                 </div>
-                {errors?.media?.images && <p className="text-red-500 text-sm mt-1">{errors.media.images.message}</p>}
+                {/* {errors?.media?.images && <p className="text-red-500 text-sm mt-1">{errors.media.images.message}</p>} */}
               </div>
 
               <div className="mb-6">

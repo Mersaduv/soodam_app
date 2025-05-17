@@ -6,8 +6,9 @@ import { HousingSkeleton } from '@/components/skeleton'
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { ArchiveTickIcon } from '@/icons'
 import { useGetHousingQuery } from '@/services'
+import { useGetAdvByGeolocationQuery } from '@/services/productionBaseApi'
 import { setRefetchMap } from '@/store'
-import { Housing } from '@/types'
+import { Housing, ServiceResponse } from '@/types'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -33,27 +34,30 @@ export default function Home() {
     data: housingData,
     isFetching,
     ...housingQueryProps
-  } = useGetHousingQuery(
+  } = useGetAdvByGeolocationQuery(
     {
-      ...query,
-      type,
-      status: 2,
-      swLat: bounds ? bounds.getSouthWest().lat : undefined,
-      swLng: bounds ? bounds.getSouthWest().lng : undefined,
-      neLat: bounds ? bounds.getNorthEast().lat : undefined,
-      neLng: bounds ? bounds.getNorthEast().lng : undefined,
+      province: 8,
+      city: 300,
+      street: '',
+      address: '',
+      zip_code: '',
+      longitude: bounds ? bounds.getCenter().lng : undefined,
+      latitude: bounds ? bounds.getCenter().lat : undefined,
     },
     { skip: !shouldFetch }
   )
   useEffect(() => {
-    const storedBounds = localStorage.getItem('storedBounds')
-    if (storedBounds && !bounds) {
-      const parsedBounds = JSON.parse(storedBounds)
+    const storedCenter = localStorage.getItem('storedCenter')
+    if (storedCenter && !bounds) {
+      const parsedCenter = JSON.parse(storedCenter)
       if (typeof window !== 'undefined') {
         const L = require('leaflet')
+        const center = L.latLng(parsedCenter.centerLat, parsedCenter.centerLng)
+        // برای ایجاد یک bounds فرضی با ابعاد کوچک اطراف مرکز (مثلاً یک دایره کوچک 0.01 درجه‌ای)
+        const offset = 0.01
         const newBounds = L.latLngBounds(
-          [parsedBounds.swLat, parsedBounds.swLng],
-          [parsedBounds.neLat, parsedBounds.neLng]
+          [center.lat - offset, center.lng - offset],
+          [center.lat + offset, center.lng + offset]
         )
         setBounds(newBounds)
       }
@@ -81,22 +85,20 @@ export default function Home() {
   const handleHousingCardClick = (housing: Housing) => {
     if (bounds) {
       if (typeof window !== 'undefined') {
-        const L = require('leaflet')
+        const center = bounds.getCenter()
         localStorage.setItem(
-          'storedBounds',
+          'storedCenter',
           JSON.stringify({
-            neLat: bounds.getNorthEast().lat,
-            neLng: bounds.getNorthEast().lng,
-            swLat: bounds.getSouthWest().lat,
-            swLng: bounds.getSouthWest().lng,
+            centerLat: center.lat,
+            centerLng: center.lng,
           })
         )
       }
-      router.push(`/housing/${housing.adCode}`)
+      router.push(`/housing/${housing.id}`)
     }
   }
 
-  const housingList = housingData?.data || []
+  const housingList = housingData || []
 
   return (
     <ClientLayout>
@@ -121,13 +123,13 @@ export default function Home() {
           <DataStateDisplay
             {...housingQueryProps}
             isFetching={isFetching}
-            dataLength={housingData?.data ? housingData.data.length : 0}
+            dataLength={housingData?.length ? housingData.length : 0}
             loadingComponent={<HousingSkeleton />}
             emptyComponent={<EmptyCustomList />}
           >
-            {housingData && housingData.data.length > 0 && (
+            {housingData && housingData.length > 0 && (
               <section className="flex flex-wrap justify-center gap-3">
-                {housingData.data.map((item) => (
+                {housingData.map((item) => (
                   <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
                 ))}
               </section>

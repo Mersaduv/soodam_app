@@ -105,9 +105,68 @@ body {
   border-radius: 5px;
 }
 
+.custom-dashed-admin {
+  background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='100' ry='100' stroke='%23333' stroke-width='3' stroke-dasharray='14%2c 17' stroke-dashoffset='77' stroke-linecap='square'/%3e%3c/svg%3e");
+  border-radius: 100px;
+  width: 80px;
+  height: 80px;
+}
+
 .shadow-bottom {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 .shadow-request {
   box-shadow: 0px 1px 12px 0px rgba(26, 30, 37, 0.12);
 }
+.bg-dashed {
+  background-image: url("/static/Circle.png") !important;
+  background-size: cover; /* یا contain */
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 80px !important;
+  height: 80px !important;
+}
+.bg-dashed2 {
+  background-image: url("/static/Circle.png") !important;
+  background-size: cover; /* یا contain */
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 80px !important;
+  height: 80px !important;
+}
+.bg-dashed3 {
+  background-image: url("/static/Circle.png") !important;
+  background-size: cover; /* یا contain */
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 80px !important;
+  height: 80px !important;
+}
+
+.bg-dashed4 {
+  background-image: url("/static/Circle.png") !important;
+  background-size: cover; /* یا contain */
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 80px !important;
+  height: 80px !important;
+}
+
+.bg-dashed5 {
+  background-image: url("/static/Circle.png") !important;
+  background-size: cover; /* یا contain */
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 80px !important;
+  height: 80px !important;
+}
+
+.bg-dashed6 {
+  background-image: url("/static/Circle (1).png") !important;
+  background-size: cover; /* یا contain */
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 80px !important;
+  height: 80px !important;
+}
+

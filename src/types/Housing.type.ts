@@ -1,40 +1,48 @@
+import { Feature } from "./Feature.type"
+
 export interface Housing {
   id: string
   title: string
+  description: string
   status: number
   location: { lat: number; lng: number }
-  highlightFeatures: {
-    id: string
-    image: string
-    title: string
-    value: string
-  }[]
-  features: {
-    id: string
-    image: string
-    title: string
-    value: string
-  }[]
-  rentalTerm: {
+  main_category: {
     id: string
     name: string
   }
-  deposit: number
-  rent: number
-  price: number
-  ownerProfitPercentage: number
-  producerProfitPercentage: number
-  capacity: number
-  extraPeople: number
-  address: string
-  categoryId: string
-  category: string
-  created: string
-  updated: string
-  adCode: string
-  images: string[]
+  sub_category: {
+    id: string
+    name: string
+  }
+  user: {
+    id: string
+    phone_number: string
+    first_name: string
+    last_name: string
+  }
+  address?: {
+    province: {
+      id: string
+      name: string
+    }
+    city: string
+    address: string
+    zip_code: string
+    longitude: number
+    latitude: number
+  }
+  review: number
+  highlight_features: Feature[]
+  features: Feature[]
+  created_at: string
+  updated_at: string
+  medias: {
+    id: string
+    media_url: string
+    media_type: string
+  }[]
+  adCode?: string
   views: number
   save: number
-  description: string
-  contactOwner: string
+  contactOwner?: string
 }

@@ -109,8 +109,13 @@ const createIconWithPrice = (
   const html = ReactDOMServer.renderToString(
     zoom > 12 ? (
       <div
-        className={`w-fit relative  mt-5 ${property.price > 0 ? 'mr-1' : '-mr-4'} ${
-          property.ownerProfitPercentage > 0 || property.producerProfitPercentage > 0 ? '-mr-7' : '-mr-4'
+        className={`w-fit relative  mt-5 ${
+          Number(property.features.find((item) => item.key === 'text_selling_price')?.value) > 0 ? 'mr-1' : '-mr-4'
+        } ${
+          Number(property.features.find((item) => item.key === 'text_owner_profit_percentage')?.value) > 0 ||
+          Number(property.features.find((item) => item.key === 'text_producer_profit_percentage')?.value) > 0
+            ? '-mr-7'
+            : '-mr-4'
         } `}
       >
         <div
@@ -150,25 +155,28 @@ const createIconWithPrice = (
                 </div>
               </div>
             )} */}
-            {property.price > 0 ? (
+            {Number(property.features.find((item) => item.key === 'text_selling_price')?.value) > 0 ? (
               <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits pb-[1px]`}>
                 {' '}
-                {formatPrice(property.price)}
+                {formatPrice(Number(property.features.find((item) => item.key === 'text_selling_price')?.value))}
               </span>
-            ) : property.deposit > 0 || property.rent > 0 ? (
+            ) : Number(property.features.find((item) => item.key === 'text_mortgage_deposit')?.value) > 0 ||
+              Number(property.features.find((item) => item.key === 'text_monthly_rent')?.value) > 0 ? (
               <div className={`flex-center gap-x-1`}>
-                {property.deposit > 0 && (
+                {Number(property.features.find((item) => item.key === 'text_mortgage_deposit')?.value) > 0 && (
                   <div className="flex-center gap-x-0.5">
                     <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits`}>
-                      {formatPrice(property.deposit)}
+                      {formatPrice(
+                        Number(property.features.find((item) => item.key === 'text_mortgage_deposit')?.value)
+                      )}
                     </span>
                     <span className={`text-[8px] font-normal ${isViewed && 'text-white'}`}>رهن</span>
                   </div>
                 )}{' '}
-                {property.rent > 0 && (
+                {Number(property.features.find((item) => item.key === 'text_monthly_rent')?.value) > 0 && (
                   <div className="flex-center gap-x-0.5">
                     <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
-                      {formatPrice(property.rent)}
+                      {formatPrice(Number(property.features.find((item) => item.key === 'text_monthly_rent')?.value))}
                     </span>
                     <span className={`text-[8px] font-normal ${isViewed && 'text-white'}`}>اجاره</span>
                   </div>
@@ -176,22 +184,24 @@ const createIconWithPrice = (
               </div>
             ) : null}
 
-            {(property.ownerProfitPercentage > 0 || property.producerProfitPercentage > 0) && (
+            {(Number(property.features.find((item) => item.key === 'text_owner_profit_percentage')?.value) > 0 ||
+              Number(property.features.find((item) => item.key === 'text_producer_profit_percentage')?.value) > 0) && (
               <div className={`flex-center gap-x-1`}>
-                {property.ownerProfitPercentage > 0 && (
+                {Number(property.features.find((item) => item.key === 'text_owner_profit_percentage')?.value) > 0 && (
                   <div className="flex-center gap-x-0.5">
                     <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
-                      {property.ownerProfitPercentage}
+                      {Number(property.features.find((item) => item.key === 'text_owner_profit_percentage')?.value)}
                     </span>
                     <span className={`text-[8px] font-normal ${isViewed && 'text-white'} whitespace-nowrap`}>
                       سود مالک
                     </span>
                   </div>
                 )}
-                {property.producerProfitPercentage > 0 && (
+                {Number(property.features.find((item) => item.key === 'text_producer_profit_percentage')?.value) >
+                  0 && (
                   <div className="flex-center gap-x-0.5">
                     <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
-                      {property.producerProfitPercentage}
+                      {Number(property.features.find((item) => item.key === 'text_producer_profit_percentage')?.value)}
                     </span>
                     <span className={`text-[8px] font-normal ${isViewed && 'text-white'} whitespace-nowrap`}>
                       سود سازنده
@@ -201,24 +211,24 @@ const createIconWithPrice = (
               </div>
             )}
 
-            {(property.capacity > 0 ||
-              property.extraPeople > 0 ||
+            {/* {(Number(property.features.find((item) => item.key === 'text_capacity')?.value) > 0 ||
+              Number(property.features.find((item) => item.key === 'text_extra_people')?.value) > 0 ||
               (property.rentalTerm && property.rentalTerm.name)) && (
               <div className={`flex-center gap-x-1`}>
-                {property.capacity > 0 && (
+                {Number(property.features.find((item) => item.key === 'text_capacity')?.value) > 0 && (
                   <div className="flex-center gap-x-0.5">
                     <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
-                      {property.capacity}
+                      {Number(property.features.find((item) => item.key === 'text_capacity')?.value)}
                     </span>
                     <span className={`text-[8px] font-normal ${isViewed && 'text-white'} whitespace-nowrap`}>
                       ظرفیت
                     </span>
                   </div>
                 )}
-                {property.extraPeople > 0 && (
+                {Number(property.features.find((item) => item.key === 'text_extra_people')?.value) > 0 && (
                   <div className="flex-center gap-x-0.5">
                     <span className={`font-extrabold text-xs ${isViewed && 'text-white'} farsi-digits `}>
-                      {property.extraPeople}
+                      {Number(property.features.find((item) => item.key === 'text_extra_people')?.value)}
                     </span>
                     <span className={`text-[8px] font-normal ${isViewed && 'text-white'} whitespace-nowrap`}>
                       نفرات اضافه
@@ -226,7 +236,7 @@ const createIconWithPrice = (
                   </div>
                 )}
               </div>
-            )}
+            )} */}
           </div>
         </div>
         <div
@@ -702,19 +712,19 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
   if (!isModalOpen) return null
   // console.log(housing, 'property--property')
   const province = getProvinceFromCoordinates(housing.location.lat, housing.location.lng)
-  const isSelling = housing.price > 0
+  const isSelling = Number(housing.features.find((item) => item.key === 'text_selling_price')?.value) > 0
   return (
     <div className="fixed w-full inset-0 z-[9999] flex items-end mb-[85px] justify-center" onClick={onClose}>
       <div className="bg-white rounded-lg p-4 shadow-lg max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col">
-          <Link href={`/housing/${housing.adCode}`} className="flex gap-2">
-            {housing.images.length > 0 && (
+          <Link href={`/housing/${housing.id}`} className="flex gap-2">
+            {housing.medias.length > 0 && (
               <div className=" bg-gray-200 rounded-[10px] mb-4">
                 <Image
                   width={104}
                   height={100}
                   className="rounded-[10px] h-[104px] object-cover"
-                  src={housing.images[1]}
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/${housing.medias[0].media_url}`}
                   alt={housing.title}
                 />
               </div>
@@ -730,74 +740,81 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
               </div>
               <div className="mt-2">
                 {/* نمایش قیمت فروش یا رهن و اجاره */}
-                {housing.price > 0 ? (
+                {Number(housing.features.find((item) => item.key === 'text_selling_price')?.value) > 0 ? (
                   <div className="text-sm farsi-digits text-[#5A5A5A] font-normal flex gap-1">
-                    <div className="font-normal "> {formatPriceLoc(housing.price)}</div>
+                    <div className="font-normal ">
+                      {' '}
+                      {formatPriceLoc(
+                        Number(housing.features.find((item) => item.key === 'text_selling_price')?.value)
+                      )}
+                    </div>
                   </div>
-                ) : housing.deposit > 0 || housing.rent > 0 ? (
+                ) : Number(housing.features.find((item) => item.key === 'text_mortgage_deposit')?.value) > 0 ||
+                  Number(housing.features.find((item) => item.key === 'text_monthly_rent')?.value) > 0 ? (
                   <div className="text-[16px] farsi-digits text-[#5A5A5A] font-normal space-y-2">
-                    {housing.deposit > 0 && (
+                    {Number(housing.features.find((item) => item.key === 'text_mortgage_deposit')?.value) > 0 && (
                       <div className="flex gap-1 text-xs">
                         {' '}
-                        رهن: <div className="font-normal">{formatPriceLoc(housing.deposit)}</div>{' '}
+                        رهن:{' '}
+                        <div className="font-normal">
+                          {formatPriceLoc(
+                            Number(housing.features.find((item) => item.key === 'text_mortgage_deposit')?.value)
+                          )}
+                        </div>{' '}
                       </div>
                     )}{' '}
-                    {housing.rent > 0 && (
+                    {Number(housing.features.find((item) => item.key === 'text_monthly_rent')?.value) > 0 && (
                       <div className="flex gap-1 text-xs">
-                        اجاره: <div className="font-normal">{formatPriceLoc(housing.rent)} </div>
+                        اجاره:{' '}
+                        <div className="font-normal">
+                          {formatPriceLoc(
+                            Number(housing.features.find((item) => item.key === 'text_monthly_rent')?.value)
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
                 ) : null}
 
                 {/* نمایش درصد سود مالک و سازنده */}
-                {(housing.ownerProfitPercentage > 0 || housing.producerProfitPercentage > 0) && (
+                {(Number(housing.features.find((item) => item.key === 'text_owner_profit_percentage')?.value) > 0 ||
+                  Number(housing.features.find((item) => item.key === 'text_producer_profit_percentage')?.value) >
+                    0) && (
                   <div className="text-[13px] space-y-1">
-                    {housing.ownerProfitPercentage > 0 && (
-                      <p className="text-[#5A5A5A]">سود مالک: {housing.ownerProfitPercentage}%</p>
+                    {Number(housing.features.find((item) => item.key === 'text_owner_profit_percentage')?.value) >
+                      0 && (
+                      <p className="text-[#5A5A5A]">
+                        سود مالک:{' '}
+                        {Number(housing.features.find((item) => item.key === 'text_owner_profit_percentage')?.value)}%
+                      </p>
                     )}
-                    {housing.producerProfitPercentage > 0 && (
-                      <p className="text-[#5A5A5A]">سود سازنده: {housing.producerProfitPercentage}%</p>
+                    {Number(housing.features.find((item) => item.key === 'text_producer_profit_percentage')?.value) >
+                      0 && (
+                      <p className="text-[#5A5A5A]">
+                        سود سازنده:{' '}
+                        {Number(housing.features.find((item) => item.key === 'text_producer_profit_percentage')?.value)}
+                        %
+                      </p>
                     )}
                   </div>
                 )}
 
                 {/* نمایش ظرفیت و نفرات اضافه */}
-                {(housing.capacity > 0 ||
-                  housing.extraPeople > 0 ||
-                  (housing.rentalTerm && housing.rentalTerm.name)) && (
-                  <div className=" text-[13px] text-[#7A7A7A]">
-                    {housing.capacity > 0 && <p className="text-[#5A5A5A]">ظرفیت: {housing.capacity} نفر</p>}
-                    {/* {housing.extraPeople > 0 && <p>نفرات اضافه: {housing.extraPeople} نفر</p>} */}
-                    {housing.rentalTerm?.name && (
-                      <p className="text-[#5A5A5A]">نوع قرارداد: {housing.rentalTerm.name}</p>
-                    )}
-                  </div>
-                )}
+                {/* //... */}
               </div>
             </div>
           </Link>
 
           {/* Property Details */}
           <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-            {/* <div className="flex-center gap-1.5 text-xs font-medium farsi-digits">
-              <BedIcon width="21px" height="19px" /> {housing.bedrooms}{' '}
-              <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>
-            </div>
-            <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
-              <Grid2Icon width="16px" height="16px" /> {housing.cubicMeters}{' '}
-              <span className="font-medium text-[#7A7A7A] text-xs">متر مربع</span>
-            </div>
-            <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
-              <BulidingIcon width="16px" height="17px" /> طبقه {housing.onFloor} از {housing.floors}
-            </div> */}
-            {housing.highlightFeatures &&
-              housing.highlightFeatures.map((feature) => {
+            {housing.features &&
+              housing.features.map((feature) => {
                 return (
                   <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
                     {' '}
-                    <img className="w-[16px]" src={feature.image} alt="" /> {feature.value}{' '}
-                    <span className="font-medium text-[#7A7A7A] text-xs">{feature.title}</span>
+                    <img className="w-[16px]" src={`${process.env.NEXT_PUBLIC_API_URL}/${feature.image}`} alt="" />{' '}
+                    {feature.value as string}
+                    <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
                   </div>
                 )
               })}
@@ -1315,10 +1332,10 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
             key={property.id}
             position={[property.location.lat, property.location.lng]}
             icon={createIconWithPrice(
-              formatPrice(property.price),
-              formatPrice(property.rent),
-              formatPrice(property.deposit),
-              property.created,
+              formatPrice(Number(property.features.find((item) => item.key === 'text_selling_price')?.value)),
+              formatPrice(Number(property.features.find((item) => item.key === 'text_monthly_rent')?.value)),
+              formatPrice(Number(property.features.find((item) => item.key === 'text_mortgage_deposit')?.value)),
+              property.created_at,
               zoom,
               property.id,
               viewedProperties.includes(property.id),

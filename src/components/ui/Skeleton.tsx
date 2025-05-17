@@ -59,9 +59,9 @@ export const Item: React.FC<ItemProps> = (props) => {
       key={key}
       className={` ${height} ${width} ${
         animated === 'background'
-          ? 'animate-pulse bg-[#dda2c4]'
+          ? 'animate-pulse bg-[#dda2a2]'
           : animated === 'border'
-            ? 'animate-pulse border-2 border-[#e67bb9]'
+            ? 'animate-pulse border-2 border-[#dda2a2]'
             : 'bg-white'
       } rounded-md  ${className}`}
     >

@@ -12,16 +12,25 @@ interface Props {
   title?: string
   isProfile?: boolean
   isAdConfirmExit?: boolean
+  canFilter?: boolean
   children: React.ReactNode
   handleRemoveFilters?: () => void
 }
 
-const ClientLayout: React.FC<Props> = ({ children, title, isProfile, isAdConfirmExit, handleRemoveFilters }) => {
+const ClientLayout: React.FC<Props> = ({
+  children,
+  title,
+  isProfile,
+  isAdConfirmExit,
+  handleRemoveFilters,
+  canFilter,
+}) => {
   // const [showModal, setShowModal] = useState<boolean>(false)
   const [isShow, modalHandlers] = useDisclosure()
   const [isShowMemberUserGuid, memberUserGuidModalHandlers] = useDisclosure()
   const { isShowLogin, isMemberUserLogin } = useAppSelector((state) => state.isShowLogin)
   const { user } = useAppSelector((state) => state.auth)
+  const map = useAppSelector((state) => state.map)
   const dispatch = useAppDispatch()
   useEffect(() => {
     let hasSeenModal = localStorage.getItem('hasSeenModal')
@@ -66,10 +75,25 @@ const ClientLayout: React.FC<Props> = ({ children, title, isProfile, isAdConfirm
   // console.log(user, 'user---user')
   return (
     <>
-      {title && !isProfile ? (
-        <FilterControlsHeader title={title} isAdConfirmExit={isAdConfirmExit} handleRemoveFilters={handleRemoveFilters} />
+      {title && canFilter &&  (
+        <div>
+          {!map.mode && <FilterControlsHeader
+          title={title}
+          isAdConfirmExit={isAdConfirmExit}
+          handleRemoveFilters={handleRemoveFilters}
+        />}
+          
+          <Header isEstateHeader/>
+        </div>
+      )}
+      {title && !canFilter && !isProfile ? (
+        <FilterControlsHeader
+          title={title}
+          isAdConfirmExit={isAdConfirmExit}
+          handleRemoveFilters={handleRemoveFilters}
+        />
       ) : (
-        !isProfile && <Header />
+        !isProfile && !canFilter && <Header />
       )}
       <main className="h-full bg-[#F6F7FB]">
         {isShowLogin && <FirstLoginModal isShow={isShow} onClose={handleModalClose} />}

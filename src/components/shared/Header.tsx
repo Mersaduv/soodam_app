@@ -8,13 +8,13 @@ import { useAppDispatch, useAppSelector } from '@/hooks'
 import { roles } from '@/utils'
 import { useRouter } from 'next/router'
 
-const Header = () => {
+const Header = ({ isEstateHeader }: { isEstateHeader?: boolean }) => {
   const { replace, query, push } = useRouter()
   const [isVisible, setIsVisible] = useState(false)
 
   const dispatch = useAppDispatch()
   const { zoomModal } = useAppSelector((state) => state.statesData)
-
+  const map = useAppSelector((state) => state.map)
   const handleInVisible = () => {
     setIsVisible(false)
   }
@@ -41,13 +41,17 @@ const Header = () => {
   }
 
   return (
-    <header className="bg-white shadow-filter-control fixed z-[9999] w-full">
+    <header
+      className={`${isEstateHeader && !map.mode ? '' : 'bg-white'} ${
+        isEstateHeader && !map.mode ? '' : 'shadow-filter-control'
+      } fixed z-[9999] w-full ${isEstateHeader && !map.mode && 'top-[70px]'}`}
+    >
       <div className="flex gap-2.5 pt-4 w-full px-4">
         <Sidebar />
         <SearchModal />
         <MapMode />
       </div>
-      <FilterControlNavBar />
+      <FilterControlNavBar isEstateHeader/>
       {zoomModal && (
         <div className="bg-[#222222]  relative pl-4">
           <div

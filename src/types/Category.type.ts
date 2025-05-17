@@ -4,9 +4,11 @@ export interface Category {
   description?: string
   status?: boolean
   key?: string
+  main_category?: string
+  sub_category?: string
   review?: number
   total_adv?: number
   image?: string
   sub_categories?: Category[]
-  parentCategory?: Category
+  sub_sub_category?: Category[]
 }

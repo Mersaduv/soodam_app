@@ -1,3 +1,5 @@
+import { Housing } from "./Housing.type";
+
 export interface Estate {
   id: string
   name: string
@@ -5,7 +7,7 @@ export interface Estate {
   location: { lat: number; lng: number }
   address: string
   image: string
-  housing: any
+  housing: Housing[]
   userInfo: {
     fullName: string
     fatherName: string
@@ -43,4 +45,6 @@ export interface Estate {
     address: string
     activityChart: any
   }[]
+  created: string
+  updated: string
 }
