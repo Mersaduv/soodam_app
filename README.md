@@ -244,4 +244,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-- Project Maintainer: [Your Name](mersadkarimi001@gmail.com)
+- Project Maintainer: [Mersad Karimi](mersadkarimi001@gmail.com)
