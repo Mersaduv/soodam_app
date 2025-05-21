@@ -232,16 +232,6 @@ We welcome contributions to Soodam! Please follow these steps:
 4. Push to the branch: `git push origin feature/your-feature-name`
 5. Open a Pull Request
 
-### Coding Standards
-
-- Follow the existing code style
-- Write tests for new features
-- Update documentation for changes
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## Contact
 
 - Project Maintainer: [Mersad Karimi](mersadkarimi001@gmail.com)
