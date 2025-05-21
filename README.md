@@ -27,7 +27,6 @@ Soodam is a modern web application built with Next.js and React. This frontend a
 - [Internationalization](#internationalization)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
-- [License](#license)
 - [Contact](#contact)
 
 ## Features
