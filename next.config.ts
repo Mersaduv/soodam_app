@@ -1,13 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig: import('next').NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://194.5.193.119:8000/api/:path*',
-      },
-    ]
-  },
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,

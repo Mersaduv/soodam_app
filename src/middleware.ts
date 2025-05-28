@@ -5,40 +5,57 @@ export async function middleware(request: NextRequest) {
 
   // Only intercept API requests
   if (pathname.startsWith('/api/')) {
-    // Create a URL for the API server with query parameters
-    const apiUrl = new URL(`${pathname}${search}`, 'http://194.5.193.119:8000');
-    
-    // Clone the request to forward
-    const apiRequest = new Request(apiUrl, {
-      headers: request.headers,
-      method: request.method,
-      body: request.body,
-      redirect: 'follow',
-    });
+    // Handle OPTIONS requests (CORS preflight)
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Max-Age': '86400',
+        },
+      });
+    }
 
     try {
+      // Create URL for the API server with query parameters
+      const apiUrl = new URL(`${pathname.replace(/^\/api/, '')}${search}`, 'http://194.5.193.119:8000/api');
+      console.log('Proxying request to:', apiUrl.toString());
+      
+      // Clone headers to a mutable object
+      const headers = new Headers(request.headers);
+      
       // Forward the request to the API server
-      const response = await fetch(apiRequest);
+      const response = await fetch(apiUrl, {
+        method: request.method,
+        headers: headers,
+        body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
+        redirect: 'follow',
+      });
       
       // Get response data
-      const data = await response.blob();
+      const data = await response.arrayBuffer();
       
       // Create headers for the response
-      const responseHeaders = new Headers(response.headers);
+      const responseHeaders = new Headers();
       
-      // Add CORS headers to allow the frontend to access the response
-      responseHeaders.set('Access-Control-Allow-Origin', 'https://soodam-app.vercel.app');
+      // Copy original response headers
+      response.headers.forEach((value, key) => {
+        responseHeaders.set(key, value);
+      });
+      
+      // Add CORS headers
+      responseHeaders.set('Access-Control-Allow-Origin', '*');
       responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       
       // Create a NextResponse from the API response
-      const apiResponse = new NextResponse(data, {
+      return new NextResponse(data, {
         status: response.status,
         statusText: response.statusText,
         headers: responseHeaders,
       });
-      
-      return apiResponse;
     } catch (error) {
       console.error('API proxy error:', error);
       return new NextResponse(
@@ -47,7 +64,7 @@ export async function middleware(request: NextRequest) {
           status: 500, 
           headers: { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': 'https://soodam-app.vercel.app',
+            'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization'
           } 
@@ -59,7 +76,10 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Only run the middleware on API routes
+// Run the middleware on all routes to make sure it catches API requests
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    '/api/:path*',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 };
