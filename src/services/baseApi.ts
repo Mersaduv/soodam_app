@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NODE_ENV === 'production' ? 'https://dev-soodam.vercel.app' : process.env.NEXT_PUBLIC_API_URL_LOCAL,
+    baseUrl: process.env.NODE_ENV === 'production' ? process.env.NEXT_PUBLIC_API_URL : process.env.NEXT_PUBLIC_API_URL_LOCAL,
     timeout: 60000,
   }),
 
