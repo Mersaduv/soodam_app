@@ -16,6 +16,12 @@ const nextConfig: import('next').NextConfig = {
   },
   images: {
     domains: ['localhost', '194.5.193.119'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '194.5.193.119',
+      },
+    ],
   },
   experimental: {
     turbo: {
