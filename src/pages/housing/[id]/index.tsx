@@ -22,7 +22,7 @@ import {
   SaveSmIcon,
   WarningSmIcon,
 } from '@/icons'
-import { useAppDispatch, useAppSelector } from '@/hooks'
+import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
 import { toggleSaveHouse } from '@/store'
 import { formatPrice, formatPriceWithSuffix, timeAgo } from '@/utils'
 import { getCityFromCoordinates } from '@/services/mapService'
@@ -32,10 +32,11 @@ import L from 'leaflet'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { HiOutlineLocationMarker } from 'react-icons/hi'
 import dynamic from 'next/dynamic'
-import { Button } from '@/components/ui'
+import { Button, Modal } from '@/components/ui'
 import { BiShare } from 'react-icons/bi'
 import { IoShareSocialOutline } from 'react-icons/io5'
 import { useGetAdvByIdQuery } from '@/services/productionBaseApi'
+
 interface Props {
   //   housing: Housing
   //   similarHousing: {
@@ -57,7 +58,8 @@ const SingleHousing: NextPage = () => {
   // const [city, setCity] = useState<string>('')
   const [contactShown, setContactShown] = useState(false)
   const [showCopiedTooltip, setShowCopiedTooltip] = useState(false)
-  const [showAddress, setShowAddress] = useState(false)
+  const [isShow, modalHandlers] = useDisclosure()
+  const [selectedPhoneNumber, setSelectedPhoneNumber] = useState('')
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null
   // ? Queries
   const { refetch, data: housingData, isLoading } = useGetAdvByIdQuery(idQuery as string)
@@ -75,31 +77,30 @@ const SingleHousing: NextPage = () => {
   //   }
   // }, [housingData?.location])
 
-  const handleAddressClick = () => {
-    if (hasValidSubscription) {
-      setShowAddress(true)
-    } else {
-      push('/housing/unauthorize')
+  const handleContactOwner = () => {
+    const role = localStorage.getItem('role')
+    if (!role || role === 'user') {
+      push('/authentication/login?role=memberUser')
+      return
     }
+    
+    // باز کردن مودال و ذخیره شماره تلفن
+    setSelectedPhoneNumber(housingData.user?.phone_number || '')
+    modalHandlers.open()
   }
-  const handleContactOwner = async () => {
-    alert('درحال حاضر از دیتابیس دریافت نمی‌شود')
-    // if (!hasValidSubscription) {
-    //   push('/housing/unauthorize')
-    //   return
-    // }
 
-    // try {
-    //   await navigator.clipboard.writeText(housingData.contactOwner)
-    //   setContactShown(true)
-    //   setShowCopiedTooltip(true)
+  const handleModalClose = () => {
+    modalHandlers.close()
+  }
 
-    //   setTimeout(() => {
-    //     setShowCopiedTooltip(false)
-    //   }, 2000)
-    // } catch (err) {
-    //   console.error('خطا در کپی شماره تماس:', err)
-    // }
+  const handleCall = () => {
+    window.location.href = `tel:${selectedPhoneNumber}`
+    modalHandlers.close()
+  }
+
+  const handleMessage = () => {
+    window.location.href = `sms:${selectedPhoneNumber}`
+    modalHandlers.close()
   }
 
   const handleShare = async () => {
@@ -415,13 +416,7 @@ const SingleHousing: NextPage = () => {
                   </div>
                   <div className="flex gap-2">
                     <div className="text-xs text-[#7A7A7A] font-medium whitespace-nowrap">آدرس دقیق:</div>
-                    {hasValidSubscription ? (
-                      <div className="text-[#1A1E25] text-xs">{housingData.full_address.address}</div>
-                    ) : (
-                      <div className="text-[#D52133] text-xs cursor-pointer underline" onClick={handleAddressClick}>
-                        مشاهده کردن
-                      </div>
-                    )}
+                    <div className="text-[#1A1E25] text-xs">{housingData.full_address.address}</div>
                   </div>
                 </div>
               </div>
@@ -440,6 +435,32 @@ const SingleHousing: NextPage = () => {
           </div>
         </main>
       </ClientLayout>
+      <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
+        <Modal.Content
+          onClose={handleModalClose}
+          className="flex h-full flex-col gap-y-5 bg-white p-4 pb-8 rounded-2xl rounded-b-none"
+        >
+          <Modal.Header right onClose={handleModalClose}>
+            اطلاعات تماس
+          </Modal.Header>
+          <Modal.Body>
+            <div className="space-y-4">
+              <button
+                onClick={handleCall}
+                className="w-full py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg farsi-digits"
+              >
+                تماس با {selectedPhoneNumber}
+              </button>
+              <button
+                onClick={handleMessage}
+                className="w-full py-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg farsi-digits"
+              >
+                پیامک به {selectedPhoneNumber}
+              </button>
+            </div>
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
     </>
   )
 }
