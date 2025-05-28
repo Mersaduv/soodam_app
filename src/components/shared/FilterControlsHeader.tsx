@@ -29,8 +29,8 @@ const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmEx
 
   return (
     <header
-      className={`${isProfile ? 'bg-[#D8DFF4] py-4' : `${isAdmin ? 'bg-none' : 'bg-white shadow-filter-control'} `} ${
-        isAdmin ? 'bg-none' : ''
+      className={`${isProfile ? 'bg-[#D8DFF4] py-4' : `${isAdmin ? 'bg-[#F6F7FB]' : 'bg-white shadow-filter-control'} `} ${
+        isAdmin ? 'bg-[#F6F7FB]' : ''
       } py-2 px-4 fixed z-[9999] w-full flex justify-between items-center`}
     >
       <div className="flex items-center gap-3 w-full text-lg font-medium">
