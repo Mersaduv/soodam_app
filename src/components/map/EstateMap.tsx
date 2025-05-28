@@ -84,8 +84,8 @@ interface ModalSelectEstate {
 }
 
 const getCenterOfData = (data: Housing[]): LatLngTuple => {
-  const latitudes = data.map((item) => item.location.lat)
-  const longitudes = data.map((item) => item.location.lng)
+  const latitudes = data.map((item) => item.full_address.latitude)
+  const longitudes = data.map((item) => item.full_address.longitude) 
   const centerLat = latitudes.reduce((sum, lat) => sum + lat, 0) / latitudes.length
   const centerLng = longitudes.reduce((sum, lng) => sum + lng, 0) / longitudes.length
   return [centerLat, centerLng] as LatLngTuple

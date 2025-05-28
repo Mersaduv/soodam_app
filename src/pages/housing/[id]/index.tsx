@@ -129,7 +129,9 @@ const SingleHousing: NextPage = () => {
     <>
       <ClientLayout title="جزییات ملک">
         <main className="pt-[70px] relative">
-          <div><HousingSliders data={housingData} /></div>
+          <div>
+            <HousingSliders data={housingData} />
+          </div>
           <div className="absolute w-full top-[290px] z-10 pb-[100px]">
             <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7]">
               <div className="flex justify-between items-center p-4">
@@ -151,16 +153,34 @@ const SingleHousing: NextPage = () => {
                 </div>
               </div>
               <div className="grid grid-cols-2 p-4 pt-0 gap-3.5 gap-x-20">
-                {housingData.highlight_features &&
-                  housingData.highlight_features.map((feature) => {
+                <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                  {' '}
+                  <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                  <div className="font-bold text-[#7A7A7A] text-xs">بزودی قابل نمایش میشود</div>
+                </div>
+                <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                  {' '}
+                  <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                  <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
+                </div>
+                <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                  {' '}
+                  <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                  <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
+                </div>
+                {/* {housingData.attributes &&
+                  housingData.attributes.filter((item) => item.type === 'text').map((feature) => {
                     return (
-                      <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                      <div key={feature.id} className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
                         {' '}
-                        <img className="w-[16px]" src={feature.image} alt="" /> {feature.value as string}{' '}
+                        <img className="w-[16px]" src={feature.icon} alt="" /> 
+                        {typeof feature.value === 'object' && feature.value !== null ? String(feature.value.value) : 
+                         typeof feature.value === 'boolean' ? (feature.value ? 'دارد' : 'ندارد') : 
+                         String(feature.value)}{' '}
                         <div className="font-bold text-[#7A7A7A] text-xs">{feature.name}</div>
                       </div>
                     )
-                  })}
+                  })} */}
               </div>
             </div>
 
@@ -171,10 +191,11 @@ const SingleHousing: NextPage = () => {
                     <div className="bg-[#FFF0F2] rounded-[10px] p-1">
                       <MoneyMdIcon width="24px" height="24px" />
                     </div>
-                    {housingData.features.find((item) => item.key === 'text_selling_price') ? (
-                      <div className="text-[15px] font-medium">قیمت‌ها و تخفیف‌ها</div>
+                    {housingData.price && housingData.price.amount > 0 ? (
+                      <div className="text-[15px] font-medium">قیمت فروش</div>
                     ) : (
-                      housingData.features.find((item) => item.key === 'text_mortgage_deposit') && (
+                      housingData.price &&
+                      (housingData.price.deposit > 0 || housingData.price.rent > 0) && (
                         <div className="text-[15px] font-medium">ودیعه و اجاره</div>
                       )
                     )}
@@ -182,13 +203,77 @@ const SingleHousing: NextPage = () => {
                   <hr className="mt-2 mb-4" />
                   <div className="px-4 space-y-3.5">
                     <div id="map_features" className="space-y-3.5">
-                      {housingData.features
+                      {housingData.price && (
+                        <>
+                          {housingData.price.amount > 0 && (
+                            <div className="flex justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
+                                <div className="text-[#7A7A7A] text-sm font-normal">قیمت فروش</div>
+                              </div>
+                              <div className="farsi-digits text-[#7A7A7A] text-sm font-medium">
+                                {formatPriceWithSuffix(housingData.price.amount)}
+                                {housingData.price.is_negotiable && <span className="mr-1">قابل مذاکره</span>}
+                              </div>
+                            </div>
+                          )}
+
+                          {housingData.price.deposit > 0 && (
+                            <div className="flex justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
+                                <div className="text-[#7A7A7A] text-sm font-normal">قیمت ودیعه</div>
+                              </div>
+                              <div className="farsi-digits text-[#7A7A7A] text-sm font-medium">
+                                {formatPriceWithSuffix(housingData.price.deposit)}
+                              </div>
+                            </div>
+                          )}
+
+                          {housingData.price.rent > 0 && (
+                            <div className="flex justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
+                                <div className="text-[#7A7A7A] text-sm font-normal">قیمت اجاره</div>
+                              </div>
+                              <div className="farsi-digits text-[#7A7A7A] text-sm font-medium">
+                                {formatPriceWithSuffix(housingData.price.rent)}
+                              </div>
+                            </div>
+                          )}
+
+                          {housingData.price.discount_amount > 0 && (
+                            <div className="flex justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
+                                <div className="text-[#7A7A7A] text-sm font-normal">قیمت تخفیف</div>
+                              </div>
+                              <div className="farsi-digits text-[#7A7A7A] text-sm font-medium">
+                                {formatPriceWithSuffix(housingData.price.discount_amount)}
+                              </div>
+                            </div>
+                          )}
+
+                          {housingData.price.price_per_unit > 0 && (
+                            <div className="flex justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
+                                <div className="text-[#7A7A7A] text-sm font-normal">
+                                  قیمت هر {housingData.price.unit}
+                                </div>
+                              </div>
+                              <div className="farsi-digits text-[#7A7A7A] text-sm font-medium">
+                                {formatPriceWithSuffix(housingData.price.price_per_unit)}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Still show profit percentages from attributes if they exist */}
+                      {housingData.attributes
                         .filter(
                           (item) =>
-                            item.key === 'text_monthly_rent' ||
-                            item.key === 'text_mortgage_deposit' ||
-                            item.key === 'text_selling_price' ||
-                            item.key === 'text_discount' ||
                             item.key === 'text_owner_profit_percentage' ||
                             item.key === 'text_producer_profit_percentage'
                         )
@@ -197,15 +282,7 @@ const SingleHousing: NextPage = () => {
                             <div className="flex items-center gap-2.5">
                               <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
                               <div className="text-[#7A7A7A] text-sm font-normal">
-                                {item.key === 'text_selling_price'
-                                  ? 'قیمت فروش'
-                                  : item.key === 'text_mortgage_deposit'
-                                  ? 'قیمت ودیعه'
-                                  : item.key === 'text_monthly_rent'
-                                  ? 'قیمت اجاره'
-                                  : item.key === 'text_discount'
-                                  ? 'قیمت تخفیف'
-                                  : item.key === 'text_owner_profit_percentage'
+                                {item.key === 'text_owner_profit_percentage'
                                   ? 'سود مالک'
                                   : item.key === 'text_producer_profit_percentage'
                                   ? 'سود سازنده'
@@ -223,7 +300,14 @@ const SingleHousing: NextPage = () => {
                       <div className="flex items-center gap-2.5">
                         <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
                         <div className="text-[#7A7A7A] text-[13px] font-normal">
-                          {timeAgo(housingData.created_at)}،{housingData.address.city}
+                          {timeAgo(housingData.created_at, true)}،
+                          {typeof housingData.full_address.city === 'object' &&
+                          housingData.full_address.city !== null &&
+                          'name' in housingData.full_address.city
+                            ? (housingData.full_address.city as { name: string }).name
+                            : typeof housingData.full_address.city === 'string'
+                            ? housingData.full_address.city
+                            : ''}
                         </div>
                       </div>
                     </div>
@@ -233,14 +317,13 @@ const SingleHousing: NextPage = () => {
                         <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
                         <div className="text-[#7A7A7A] text-[13px] font-normal flex items-center">
                           شناسه آگهی :{' '}
-                          <div className="text-[#7A7A7A] text-[13px] farsi-digits">{housingData.adCode ?? 'ندارد'}</div>
+                          <div className="text-[#7A7A7A] text-[13px] farsi-digits">{housingData.id ?? 'ندارد'}</div>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex pb-4">
                       <div className="flex items-center gap-1.5 -mr-1">
-                        <div className="w-[10.67px] h-[10.67px] bg-[#1A1E25] rounded-full" />
                         <WarningSmIcon width="17px" height="17px" />
                         <div className="text-[#7A7A7A] text-[13px] font-normal flex items-center">گزارش تخلف آگهی</div>
                       </div>
@@ -261,23 +344,28 @@ const SingleHousing: NextPage = () => {
                 </div>
                 <hr className="mt-2 mb-4" />
                 <div className="grid grid-cols-2 px-4 gap-y-5 gap-x-4 xxs:gap-x-10">
-                  {housingData.features
+                  {housingData.attributes
                     .filter(
                       (item) =>
-                        item.key !== 'text_monthly_rent' &&
-                        item.key !== 'text_mortgage_deposit' &&
-                        item.key !== 'text_selling_price' &&
-                        item.key !== 'text_discount' &&
-                        item.key !== 'text_owner_profit_percentage' &&
-                        item.key !== 'text_producer_profit_percentage'
+                        !['text_monthly_rent', 'text_mortgage_deposit', 'text_selling_price', 'text_discount'].includes(
+                          item.key
+                        )
                     )
                     .map((feature) => {
                       return (
                         <div className="flex gap-x-1.5" key={feature.id}>
-                          <img className="w-[16px] h-[16px]" src={feature.image} alt="" />
+                          <img className="w-[16px] h-[16px]" src={`/static/grid-222.png`} alt="" />
                           <div className="flex text-[#7A7A7A] text-xs">
                             {feature.name}:{' '}
-                            <div className="text-[#1A1E25] text-xs mr-0.5">{Object(feature.value).value}</div>
+                            <div className="text-[#1A1E25] text-xs mr-0.5">
+                              {feature.type === 'bool'
+                                ? feature.value
+                                  ? 'دارد'
+                                  : 'ندارد'
+                                : typeof feature.value === 'object' && feature.value !== null
+                                ? String(feature.value.value)
+                                : String(feature.value)}
+                            </div>
                           </div>
                         </div>
                       )
@@ -296,7 +384,7 @@ const SingleHousing: NextPage = () => {
                     <ClockSmIcon width="17px" height="16px" />
                     <div className="text-[#7A7A7A] text-xs">زمان ثبت آگهی</div>
                   </div>
-                  <div className="text-xs text-center">{timeAgo(housingData.created_at)}</div>
+                  <div className="text-xs text-center">{timeAgo(housingData.created_at, true)}</div>
                 </div>
 
                 <div className="bg-[#FCFCFC] rounded-lg h-[68px] w-[105px] space-y-3.5 py-2 pt-2.5">
@@ -304,7 +392,7 @@ const SingleHousing: NextPage = () => {
                     <EyeSmIcon width="17px" height="17px" />
                     <div className="text-[#7A7A7A] text-xs">تعداد مشاهده</div>
                   </div>
-                  <div className="text-xs text-center farsi-digits">{housingData.views}</div>
+                  <div className="text-xs text-center farsi-digits">{housingData.statistics?.views || 0}</div>
                 </div>
 
                 <div className="bg-[#FCFCFC] rounded-lg h-[68px] w-[105px] space-y-3.5 py-2 pt-2.5">
@@ -312,13 +400,13 @@ const SingleHousing: NextPage = () => {
                     <HeartMdIcon width="16px" height="17px" />
                     <div className="text-[#7A7A7A] text-xs"> علاقه مندی ها</div>
                   </div>
-                  <div className="text-xs text-center farsi-digits">{housingData.save}</div>
+                  <div className="text-xs text-center farsi-digits">{housingData.statistics?.favorites || 0}</div>
                 </div>
               </div>
 
               <div className="my-4 px-4">
                 <h1 className="font-medium">موقعیت</h1>
-                {/* <LocationMap housingData={housingData} /> */}
+                <LocationMap housingData={housingData} />
               </div>
               <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7] mt-3 pb-4">
                 <div className="flex items-center gap-2 p-4 pb-0">
@@ -328,7 +416,7 @@ const SingleHousing: NextPage = () => {
                   <div className="flex gap-2">
                     <div className="text-xs text-[#7A7A7A] font-medium whitespace-nowrap">آدرس دقیق:</div>
                     {hasValidSubscription ? (
-                      <div className="text-[#1A1E25] text-xs">{housingData.address.address}</div>
+                      <div className="text-[#1A1E25] text-xs">{housingData.full_address.address}</div>
                     ) : (
                       <div className="text-[#D52133] text-xs cursor-pointer underline" onClick={handleAddressClick}>
                         مشاهده کردن
@@ -345,7 +433,7 @@ const SingleHousing: NextPage = () => {
                   </div>
                 )}
                 <Button className="w-full rounded-[10px] farsi-digits" onClick={handleContactOwner}>
-                  {contactShown ? housingData.contactOwner : 'تماس با مالک'}
+                  {contactShown ? housingData.user?.username || 'تماس با مالک' : 'تماس با مالک'}
                 </Button>
               </div>
             </div>

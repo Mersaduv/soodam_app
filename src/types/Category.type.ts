@@ -9,6 +9,7 @@ export interface Category {
   review?: number
   total_adv?: number
   image?: string
+  icon?: string
   sub_categories?: Category[]
   sub_sub_category?: Category[]
 }

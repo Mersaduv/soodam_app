@@ -39,7 +39,7 @@ const MyAds: NextPage = () => {
   }
 
   const role = localStorage.getItem('role') ? localStorage.getItem('role')! : null
-  
+
   return (
     <>
       <ClientLayout title="آگهی های من">
@@ -48,7 +48,7 @@ const MyAds: NextPage = () => {
             <div className="flex justify-center items-center ">
               <HousingSkeleton />
             </div>
-          ) : housingData && housingData.length == 0 ? (
+          ) : housingData && housingData.items.length == 0 ? (
             <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7] ">
               <div className="flex justify-center mt-8">
                 <img className="w-[180px] h-[180px]" src="/static/Document_empty.png" alt="" />
@@ -76,194 +76,157 @@ const MyAds: NextPage = () => {
               </div>
               <div className="space-y-4">
                 {housingData &&
-                  housingData.map((housing) => {
-                    // let province = ''
-                    // if (housing.location && housing.location.lat && housing.location.lng) {
-                    //   province = getProvinceFromCoordinates(housing.location.lat, housing.location.lng)
-                    // }
-                    console.log(housing)
-                    return (
-                      <div
-                        key={housing.id}
-                        className="bg-white rounded-lg p-4 shadow w-full"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex flex-col">
-                          <Link href={`/housing/${housing.id}`} className="flex gap-2">
-                            {housing.medias && housing.medias.length > 0 ? (
-                              <div className=" bg-gray-200 rounded-[10px] mb-4">
-                                <Image
-                                  width={104}
-                                  height={100}
-                                  className="rounded-[10px] h-[104px] object-cover"
-                                  src={`${process.env.NEXT_PUBLIC_API_URL}/${housing.medias[0].media_url}`}
-                                  alt={housing.title}
-                                />
-                              </div>
-                            ) : (
-                              <div className=" bg-gray-200 rounded-[10px] mb-4">
-                                <img
-                                  width={104}
-                                  height={100}
-                                  className="rounded-[10px] h-[104px] object-cover"
-                                  src="/static/R.png"
-                                  alt={housing.title}
-                                />
-                              </div>
-                            )}
-                            <div className="flex-1 flex flex-col">
-                              <div className="flex items-center gap-1.5">
-                                <LocationSmIcon width="16px" height="16px" />
-                                <div className="text-xs font-normal">{housing.address.province.name}</div>
-                              </div>
-
-                              <div className="line-clamp-1 overflow-hidden text-ellipsis text-base font-normal mt-1">
-                                {housing.title}
-                              </div>
-                              <div className="mt-2">
-                                {/* نمایش قیمت فروش یا رهن و اجاره */}
-                                {housing.features
-                                  .filter(
-                                    (item) => item.key === 'text_mortgage_deposit' || item.key === 'text_monthly_rent'
-                                  )
-                                  .map((item) => {
-                                    return (
-                                      <div className="text-[16px] farsi-digits text-[#5A5A5A] font-normal space-y-2">
-                                        {item.key === 'text_mortgage_deposit' && (
-                                          <div className="flex gap-1 text-xs">
-                                            {' '}
-                                            رهن: <div className="font-normal">
-                                              {formatPriceLoc(Number(item.value))}
-                                            </div>{' '}
-                                          </div>
-                                        )}{' '}
-                                        {item.key === 'text_monthly_rent' && (
-                                          <div className="flex gap-1 text-xs">
-                                            اجاره:{' '}
-                                            <div className="font-normal">{formatPriceLoc(Number(item.value))} </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                                {housing.features
-                                  .filter((item) => item.key === 'text_selling_price' || item.key === 'text_discount')
-                                  .map((item) => {
-                                    return (
-                                      <div className="text-[16px] farsi-digits text-[#5A5A5A] font-normal space-y-2">
-                                        {item.key === 'text_selling_price' && (
-                                          <div className="flex gap-1 text-xs">
-                                            {' '}
-                                            قیمت فروش:{' '}
-                                            <div className="font-normal">{formatPriceLoc(Number(item.value))}</div>{' '}
-                                          </div>
-                                        )}{' '}
-                                        {item.key === 'text_discount' && (
-                                          <div className="flex gap-1 text-xs">
-                                            تخفیف:{' '}
-                                            <div className="font-normal">{formatPriceLoc(Number(item.value))} </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                                {/* {housing.price > 0 ? (
-                                  <div className="text-sm farsi-digits text-[#5A5A5A] font-normal flex gap-1">
-                                    <div className="font-normal "> {formatPriceLoc(housing.price)}</div>
+                  housingData?.items.length > 0 &&
+                  [...housingData?.items]
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .map((housing) => {
+                      return (
+                        <div
+                          key={housing.id}
+                          className="bg-white rounded-lg p-4 shadow w-full"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex flex-col">
+                            <Link href={`/housing/${housing.id}`} className="flex gap-2">
+                              {housing.primary_image ? (
+                                <div className=" bg-gray-200 rounded-[10px] mb-4">
+                                  <Image
+                                    width={104}
+                                    height={100}
+                                    className="rounded-[10px] h-[104px] object-cover"
+                                    src={`${process.env.NEXT_PUBLIC_API_URL}${
+                                      housing.primary_image.startsWith('/')
+                                        ? housing.primary_image
+                                        : `/${housing.primary_image}`
+                                    }`}
+                                    alt={housing.title}
+                                  />
+                                </div>
+                              ) : (
+                                <div className=" bg-gray-200 rounded-[10px] mb-4">
+                                  <img
+                                    width={104}
+                                    height={100}
+                                    className="rounded-[10px] h-[104px] object-cover"
+                                    src="/static/R.png"
+                                    alt={housing.title}
+                                  />
+                                </div>
+                              )}
+                              <div className="flex-1 flex flex-col">
+                                <div className="flex items-center gap-1.5">
+                                  <LocationSmIcon width="16px" height="16px" />
+                                  <div className="text-xs font-normal">
+                                    {housing.full_address && housing.full_address.province
+                                      ? typeof housing.full_address.province === 'object' &&
+                                        housing.full_address.province !== null
+                                        ? (housing.full_address.province as { name: string }).name
+                                        : String(housing.full_address.province)
+                                      : 'نامشخص'}
                                   </div>
-                                ) : 
-                                housing.deposit > 0 || housing.rent > 0 ? (
-                                  <div className="text-[16px] farsi-digits text-[#5A5A5A] font-normal space-y-2">
-                                    {housing.deposit > 0 && (
-                                      <div className="flex gap-1 text-xs">
-                                        {' '}
-                                        رهن: <div className="font-normal">{formatPriceLoc(housing.deposit)}</div>{' '}
-                                      </div>
-                                    )}{' '}
-                                    {housing.rent > 0 && (
-                                      <div className="flex gap-1 text-xs">
-                                        اجاره: <div className="font-normal">{formatPriceLoc(housing.rent)} </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : null} */}
+                                </div>
 
-                                {/* نمایش درصد سود مالک و سازنده */}
-                                {housing.features
-                                  .filter(
-                                    (item) =>
-                                      item.key === 'text_owner_profit_percentage' ||
-                                      item.key === 'text_producer_profit_percentage'
-                                  )
-                                  .map((item) => {
-                                    return (
-                                      <div className="text-[13px] space-y-1">
-                                        {item.key === 'text_owner_profit_percentage' && (
-                                          <p className="text-[#5A5A5A]">سود مالک: {item.value as string}%</p>
-                                        )}
-                                        {item.key === 'text_producer_profit_percentage' && (
-                                          <p className="text-[#5A5A5A]">سود سازنده: {item.value as string}%</p>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                                {/* {(housing.ownerProfitPercentage > 0 || housing.producerProfitPercentage > 0) && (
-                                  <div className="text-[13px] space-y-1">
-                                    {housing.ownerProfitPercentage > 0 && (
-                                      <p className="text-[#5A5A5A]">سود مالک: {housing.ownerProfitPercentage}%</p>
-                                    )}
-                                    {housing.producerProfitPercentage > 0 && (
-                                      <p className="text-[#5A5A5A]">سود سازنده: {housing.producerProfitPercentage}%</p>
-                                    )}
-                                  </div>
-                                )} */}
+                                <div className="line-clamp-1 overflow-hidden text-ellipsis text-base font-normal mt-1">
+                                  {housing.title}
+                                </div>
+                                <div className="mt-2 space-y-2">
+                                  {/* نمایش قیمت */}
+                                  {housing.price && (
+                                    <>
+                                      {housing.price.deposit > 0 && (
+                                        <div className="text-xs flex gap-1 text-[#5A5A5A] font-normal">
+                                          رهن:{' '}
+                                          <div className="font-normal">
+                                            {formatPriceLoc(Number(housing.price.deposit))}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {housing.price.rent > 0 && (
+                                        <div className="text-xs flex gap-1 text-[#5A5A5A] font-normal">
+                                          اجاره:{' '}
+                                          <div className="font-normal">
+                                            {formatPriceLoc(Number(housing.price.rent))}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {housing.price.amount > 0 && (
+                                        <div className="text-xs flex gap-1 text-[#5A5A5A] font-normal">
+                                          قیمت فروش:{' '}
+                                          <div className="font-normal">
+                                            {formatPriceLoc(Number(housing.price.amount))}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {housing.price.discount_amount > 0 && (
+                                        <div className="text-xs flex gap-1 text-[#5A5A5A] font-normal">
+                                          تخفیف:{' '}
+                                          <div className="font-normal">
+                                            {formatPriceLoc(Number(housing.price.discount_amount))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
 
-                                {/* نمایش ظرفیت و نفرات اضافه */}
-                                {/* {(housing.capacity > 0 ||
-                                  housing.extraPeople > 0 ||
-                                  (housing.rentalTerm && housing.rentalTerm.name)) && (
-                                  <div className=" text-[13px] text-[#7A7A7A]">
-                                    {housing.capacity > 0 && (
-                                      <p className="text-[#5A5A5A]">ظرفیت: {housing.capacity} نفر</p>
-                                    )}
-                                    {/* {housing.extraPeople > 0 && <p>نفرات اضافه: {housing.extraPeople} نفر</p>} */}
-                                {/* {housing.rentalTerm?.name && (
-                                      <p className="text-[#5A5A5A]">نوع قرارداد: {housing.rentalTerm.name}</p>
-                                    )}
-                                  </div>
-                                )} */}
+                                  {/* نمایش درصد سود مالک و سازنده */}
+                                  {housing.attributes &&
+                                    housing.attributes
+                                      .filter(
+                                        (item) =>
+                                          item.key === 'text_owner_profit_percentage' ||
+                                          item.key === 'text_producer_profit_percentage'
+                                      )
+                                      .map((item) => {
+                                        return (
+                                          <div key={item.key} className="text-[13px] space-y-1">
+                                            {item.key === 'text_owner_profit_percentage' && (
+                                              <p className="text-[#5A5A5A]">سود مالک: {item.value as string}%</p>
+                                            )}
+                                            {item.key === 'text_producer_profit_percentage' && (
+                                              <p className="text-[#5A5A5A]">سود سازنده: {item.value as string}%</p>
+                                            )}
+                                          </div>
+                                        )
+                                      })}
+                                </div>
                               </div>
-                            </div>
-                          </Link>
+                            </Link>
 
-                          {/* Property Details */}
-                          <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-                            {/* <div className="flex-center gap-1.5 text-xs font-medium farsi-digits">
-                    <BedIcon width="21px" height="19px" /> {housing.bedrooms}{' '}
-                    <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>
-                  </div>
-                  <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
-                    <Grid2Icon width="16px" height="16px" /> {housing.cubicMeters}{' '}
-                    <span className="font-medium text-[#7A7A7A] text-xs">متر مربع</span>
-                  </div>
-                  <div className="flex-center gap-1.5 font-medium text-xs farsi-digits">
-                    <BulidingIcon width="16px" height="17px" /> طبقه {housing.onFloor} از {housing.floors}
-                  </div> */}
-                            {housing.highlight_features &&
+                            {/* Property Details */}
+                            <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-start gap-6">
+                              {/* {housing.highlight_features &&
                               housing.highlight_features.map((feature) => {
                                 return (
-                                  <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                                  <div key={feature.id} className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
                                     {' '}
                                     <img className="w-[16px]" src={feature.image} alt="" /> {feature.value as string}{' '}
                                     <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
                                   </div>
                                 )
-                              })}
+                              })} */}
+                              {/* org  */}
+                              <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                                {' '}
+                                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                                <div className="font-bold text-[#7A7A7A] text-xs text-ellipsis overflow-hidden whitespace-nowrap">
+                                  بزودی قابل نمایش میشود
+                                </div>
+                              </div>
+                              <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                                {' '}
+                                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                                <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
+                              </div>
+                              <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                                {' '}
+                                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                                <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
               </div>
             </div>
           )}

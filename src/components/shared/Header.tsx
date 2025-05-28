@@ -7,32 +7,32 @@ import { Close } from '@/icons'
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { roles } from '@/utils'
 import { useRouter } from 'next/router'
+import { setIsVisible } from '@/store'
 
 const Header = ({ isEstateHeader }: { isEstateHeader?: boolean }) => {
   const { replace, query, push } = useRouter()
-  const [isVisible, setIsVisible] = useState(false)
 
   const dispatch = useAppDispatch()
-  const { zoomModal } = useAppSelector((state) => state.statesData)
+  const { zoomModal , isVisible } = useAppSelector((state) => state.statesData)
   const map = useAppSelector((state) => state.map)
   const handleInVisible = () => {
-    setIsVisible(false)
+    dispatch(setIsVisible(false))
   }
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
     const role = localStorage.getItem('role')
     if (role === 'user' || !role) {
-      setIsVisible(true)
+      dispatch(setIsVisible(true))
     }
     if (user && user.role === 'memberUser' && user.subscription == undefined) {
-      setIsVisible(true)
+      dispatch(setIsVisible(true))
     }
     if (user && user.subscription && user.subscription.status !== 'ACTIVE') {
-      setIsVisible(true)
+      dispatch(setIsVisible(true))
     }
     if (user && user.role === 'marketer' && user.subscription == undefined) {
-      setIsVisible(true)
+      dispatch(setIsVisible(true))
     }
   }, [])
 

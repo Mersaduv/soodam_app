@@ -1,108 +1,150 @@
 import dynamic from 'next/dynamic'
 import Head from 'next/head'
-import Image from 'next/image'
 
-import { DashboardLayout } from '@/components/layouts'
 import { NextPage } from 'next'
-import Link from 'next/link'
 import {
-  ChartAdmin,
-  ClipBoardAdminIcon,
-  NoteAdminIcon,
-  PeopleIconAdmin,
-  TaskSqAdminIcon,
-  UserTickAdminIcon,
+  BlueUsersIcon,
+  BlueWalletIcon,
+  CircleGreenIcon,
+  DocsPurpleIcon,
+  FilterAdminIcon,
+  GuardUserOrgIcon,
+  MegaPhoneIcon,
+  OrangeLocationIcon,
+  RedUserIcon,
+  UserBlueTickIcon,
 } from '@/icons'
+import AdminHeader from '@/components/shared/AdminHeader'
+import { AdminVisitStatistics } from '@/components/user'
+import DashboardLayout from '@/components/layouts/DashboardLayout'
+import Link from 'next/link'
 const AdminPage: NextPage = () => {
   return (
-    <div className="">
-      <Head>
-        <title>پیشخوان </title>
-      </Head>
-      <DashboardLayout>
-        <section className="py-[90px] pt-1 px-4 w-full">
-          <div className="bg-[#009E8E] w-full h-[145px] rounded-2xl flex items-center justify-between px-4">
+    <DashboardLayout>
+      <div className="">
+        <Head>
+          <title>پیشخوان </title>
+        </Head>
+        <section className="">
+          <div className="bg-[#F6F7FB] rounded-t-[40px] h-screen mt-3 pb-[80px]">
+            <div className="px-5 pt-6 py-4 flex items-center justify-between">
+              <div className="font-medium text-[#353535]">آمار کلی</div>
+              <div className="cursor-pointer">
+                <FilterAdminIcon width="20px" height="20px" />
+              </div>
+            </div>
+
             <div>
-              <h1 className="text-base font-bold text-white">اپلیکیشن سودم</h1>
-              <div className="flex items-center gap-1 mb-8 pt-1.5">
-                <div className="text-sm font-medium text-white farsi-digits">128</div>
-                <div className="text-white">بازاریاب فعال</div>
-              </div>
-              <Link href={'/admin'} className="text-xs font-medium text-[#8C7E89] bg-white rounded-lg p-1 px-3">
-                مشاهده کاربران پرسود
-              </Link>
-            </div>
-            <div>
-              <img className="w-[134px] h-[109px]" src="/static/security-vault.png" alt="" />
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4 gap-y-6 mt-6">
-            <div className="flex flex-col items-center justify-center gap-2.5">
-              <div className="bg-dashed">
-                <div className="bg-[#D52133] w-[74px] h-[74px] rounded-full flex items-center justify-center">
-                  <ChartAdmin width="42px" height="42px" />
-                </div>
-              </div>
-              <div className="text-[#5A5A5A] text-sm font-normal">آمار کاربران</div>
+              <AdminVisitStatistics />
             </div>
 
-            <div className="flex flex-col items-center justify-center gap-2.5">
-              <div className="bg-dashed flex justify-center">
-                <div className="bg-[#D52133] w-[74px] h-[74px] rounded-full flex items-center justify-center">
-                  <PeopleIconAdmin width="42px" height="42px" />
+            <div className="px-4">
+              <div className="grid grid-cols-3 gap-[12px] justify-center w-full">
+                <div className="flex justify-center items-center">
+                  <div
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <UserBlueTickIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">ثبت نام ها</div>
+                  </div>
                 </div>
-              </div>
-              <div className="text-[#5A5A5A] text-sm font-normal">تایید بازاریاب ها</div>
-            </div>
 
-            <Link href={`/admin/adv`} className="flex flex-col items-center justify-center gap-2.5">
-              <div className="bg-dashed flex justify-end">
-                <div className="bg-[#D52133] w-[74px] h-[74px] rounded-full flex items-center justify-center">
-                  <ClipBoardAdminIcon width="42px" height="42px" />
+                <div className="flex justify-center items-center">
+                  <Link
+                    href="/admin/advertisements"
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <MegaPhoneIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">آگهی ها</div>
+                  </Link>
                 </div>
-              </div>
-              <div className="text-[#5A5A5A] text-sm font-normal">تایید آگهی ها</div>
-            </Link>
 
-            <div className="flex flex-col items-center justify-center gap-2.5">
-              <div className="bg-dashed flex justify-start items-end">
-                <div className="bg-[#D52133] w-[74px] h-[74px] rounded-full flex items-center justify-center">
-                  <TaskSqAdminIcon width="42px" height="42px" />
+                <div className="flex justify-center items-center">
+                  <div
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <GuardUserOrgIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">سازمان ها</div>
+                  </div>
                 </div>
-              </div>
-              <div className="text-[#5A5A5A] text-sm font-normal">تایید درخواست ها</div>
-            </div>
 
-            <div className="flex flex-col items-center justify-center gap-2.5">
-              <div className="bg-dashed flex justify-center items-end">
-                <div className="bg-[#D52133] w-[74px] h-[74px] rounded-full flex items-center justify-center">
-                  <NoteAdminIcon width="42px" height="42px" />
+                <div className="flex justify-center items-center">
+                  <div
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <DocsPurpleIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">مدارک</div>
+                  </div>
                 </div>
-              </div>
-              <div className="text-[#5A5A5A] text-sm font-normal">تایید خبر ها</div>
-            </div>
 
-            <div className="flex flex-col items-center justify-center gap-2.5">
-              <div className="bg-dashed flex justify-end items-end">
-                <div className="bg-[#D52133] w-[74px] h-[74px] rounded-full flex items-center justify-center">
-                  <UserTickAdminIcon width="42px" height="42px" />
+                <div className="flex justify-center items-center">
+                  <div
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <CircleGreenIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">تایید شده</div>
+                  </div>
                 </div>
-              </div>
-              <div className="text-[#5A5A5A] text-sm font-normal">افزودن ادمین</div>
-            </div>
 
-            <div className="flex flex-col items-center justify-center gap-2.5">
-              <div className="bg-dashed flex justify-end items-end">
-                <div className="bg-[#D52133] w-[74px] h-[74px] rounded-full flex items-center justify-center">
-                  <UserTickAdminIcon width="42px" height="42px" />
+                <div className="flex justify-center items-center">
+                  <div
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <OrangeLocationIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">موقعیت ها</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-center items-center">
+                  <div
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <RedUserIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">کاربران</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-center items-center">
+                  <div
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <BlueUsersIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">گروه ها</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-center items-center">
+                  <div
+                    className={
+                      'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
+                    }
+                  >
+                    <BlueWalletIcon width="40px" height="40px" />
+                    <div className="text-[#2C3E50] text-sm font-medium">کیف پول</div>
+                  </div>
                 </div>
               </div>
-              <div className="text-[#5A5A5A] text-sm font-normal">ادمین شهر</div>
             </div>
           </div>
         </section>
-      </DashboardLayout>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }
 

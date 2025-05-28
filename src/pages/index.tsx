@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks'
 import { ArchiveTickIcon } from '@/icons'
 import { useGetHousingQuery } from '@/services'
 import { useGetAdvByGeolocationQuery } from '@/services/productionBaseApi'
-import { setRefetchMap } from '@/store'
+import { setIsVisible, setRefetchMap } from '@/store'
 import { Housing, ServiceResponse } from '@/types'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
@@ -19,14 +19,13 @@ export default function Home() {
   const { query, events, replace, asPath } = router
   const [housingState, setHousingState] = useState<Housing[]>()
   const [bounds, setBounds] = useState(null)
-
   const type = query?.type?.toString() ?? ''
   const role = query?.role?.toString() ?? ''
   const map = useAppSelector((state) => state.map)
   const dispatch = useAppDispatch()
   const zoom = useAppSelector((state) => state.statesData.zoom)
   const shouldFetch = bounds && zoom >= 11
-  const { housingMap, refetchMap } = useAppSelector((state) => state.statesData)
+  const { housingMap, refetchMap, isVisible } = useAppSelector((state) => state.statesData)
   // dispatch(setRefetchMap(false))
   const leafletMapRef = useRef<any>(null)
 
@@ -36,13 +35,12 @@ export default function Home() {
     ...housingQueryProps
   } = useGetAdvByGeolocationQuery(
     {
-      province: 8,
-      city: 300,
-      street: '',
-      address: '',
-      zip_code: '',
       longitude: bounds ? bounds.getCenter().lng : undefined,
       latitude: bounds ? bounds.getCenter().lat : undefined,
+      radius: 100.0,
+      page: 1,
+      limit: 10,
+      // category_id: Number(query?.category_id) || undefined,
     },
     { skip: !shouldFetch }
   )
@@ -53,7 +51,6 @@ export default function Home() {
       if (typeof window !== 'undefined') {
         const L = require('leaflet')
         const center = L.latLng(parsedCenter.centerLat, parsedCenter.centerLng)
-        // برای ایجاد یک bounds فرضی با ابعاد کوچک اطراف مرکز (مثلاً یک دایره کوچک 0.01 درجه‌ای)
         const offset = 0.01
         const newBounds = L.latLngBounds(
           [center.lat - offset, center.lng - offset],
@@ -98,7 +95,23 @@ export default function Home() {
     }
   }
 
-  const housingList = housingData || []
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    const role = localStorage.getItem('role')
+    if (role === 'user' || !role) {
+      dispatch(setIsVisible(true))
+    }
+    if (user && user.role === 'memberUser' && user.subscription == undefined) {
+      dispatch(setIsVisible(true))
+    }
+    if (user && user.subscription && user.subscription.status !== 'ACTIVE') {
+      dispatch(setIsVisible(true))
+    }
+    if (user && user.role === 'marketer' && user.subscription == undefined) {
+      dispatch(setIsVisible(true))
+    }
+  }, [])
+  const housingList = housingData?.items || []
 
   return (
     <ClientLayout>
@@ -113,7 +126,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length > 0 && 'hidden'}`}>
+        <div className={` ${isVisible ? "pt-[187px]": "pt-[147px]"} pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length > 0 && 'hidden'}`}>
           <div className="flex items-center mb-6">
             <ArchiveTickIcon />
             <div className="border-r-[1.5px] text-[#1A1E25] border-[#7A7A7A] mr-1 pr-1.5 font-normal text-sm">
@@ -123,13 +136,13 @@ export default function Home() {
           <DataStateDisplay
             {...housingQueryProps}
             isFetching={isFetching}
-            dataLength={housingData?.length ? housingData.length : 0}
+            dataLength={housingData?.items?.length ? housingData.items.length : 0}
             loadingComponent={<HousingSkeleton />}
             emptyComponent={<EmptyCustomList />}
           >
-            {housingData && housingData.length > 0 && (
+            {housingData?.items && housingData.items.length > 0 && (
               <section className="flex flex-wrap justify-center gap-3">
-                {housingData.map((item) => (
+                {housingData.items.map((item) => (
                   <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
                 ))}
               </section>

@@ -19,6 +19,7 @@ interface State {
   isSuccess: boolean
   userCityLocation: number[]
   estateMap: Estate[]
+  isVisible: boolean
 }
 
 const initialState: State = {
@@ -39,6 +40,7 @@ const initialState: State = {
   isSuccess: false,
   userCityLocation: [35.745929, 51.402726],
   estateMap: [],
+  isVisible: false
 }
 
 const updateSlice = createSlice({
@@ -95,6 +97,9 @@ const updateSlice = createSlice({
     },
     setUserCityLocation: (state, action) => {
       state.userCityLocation = action.payload
+    },
+    setIsVisible: (state, action) => {
+      state.isVisible = action.payload
     }
   },
 })
@@ -116,6 +121,7 @@ export const {
   resetDrawing,
   setIsSatelliteView,
   setIsSuccess,
-  setUserCityLocation
+  setUserCityLocation,
+  setIsVisible
 } = updateSlice.actions
 export default updateSlice.reducer

@@ -11,6 +11,10 @@ import { Alert, LoadingScreen } from '@/components/ui'
 import { Provider } from 'react-redux'
 import { store } from '@/store'
 import { ToastContainer } from 'react-toastify'
+import { AdminProtectedLayout } from '@/components/layouts'
+import { useRouter } from 'next/router'
+import { Toaster } from 'react-hot-toast'
+
 async function enableMocking() {
   const { worker } = await import('../mocks/browser')
   if (process.env.NODE_ENV !== 'development') {
@@ -24,8 +28,10 @@ async function enableMocking() {
   // once the Service Worker is up and ready to intercept requests.
   return worker.start()
 }
+
 export default function App({ Component, pageProps }: AppProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const router = useRouter()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -45,9 +51,22 @@ export default function App({ Component, pageProps }: AppProps) {
     return <LoadingScreen />
   }
 
+  // Check if the current route is an admin route but not authentication
+  const isAdminRoute = router.pathname.startsWith('/admin')
+  const isAuthRoute = router.pathname.startsWith('/admin/authentication')
+  
+  // Wrap with AdminProtectedLayout if it's an admin route but not auth
+  const WrappedComponent = isAdminRoute && !isAuthRoute ? (
+    <AdminProtectedLayout>
+      <Component {...pageProps} />
+    </AdminProtectedLayout>
+  ) : (
+    <Component {...pageProps} />
+  )
+
   return (
     <Provider store={store}>
-      <Component {...pageProps} />
+      {WrappedComponent}
       {/* {!asPath.includes('/') ? <PageTransitionLoading /> : null} */}
       {/* <Alert /> */}
       <ToastContainer />

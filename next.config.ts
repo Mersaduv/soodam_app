@@ -4,7 +4,7 @@ const nextConfig: import('next').NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://194.5.193.119:4000/api/:path*',
+        destination: 'http://194.5.193.119:8000/api/:path*',
       },
     ]
   },

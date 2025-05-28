@@ -15,6 +15,7 @@ interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   isDarker?: boolean
   borderDark?: boolean
   value?: any // Allow any value type to support complex objects
+  adminHeight?: boolean
 }
 
 const TextField: React.FC<Props> = (props) => {
@@ -34,6 +35,7 @@ const TextField: React.FC<Props> = (props) => {
     type = 'text',
     control,
     value: propValue,
+    adminHeight,
     ...restProps
   } = props
 
@@ -82,11 +84,11 @@ const TextField: React.FC<Props> = (props) => {
       <input
         className={`block ${borderDark && 'border-[#E3E3E7]'} ${
           isDarker && 'bg-[#FCFCFCCC]'
-        } farsi-digits w-full border ${
+        } farsi-digits w-full ${!adminHeight ? '' : 'h-[48px] placeholder:text-[14px] px-3 rounded-[10px]'} border ${
           adForm
-            ? 'h-[40px] placeholder:text-xs font-normal px-2 border-[#E3E3E7] rounded-[8px]'
+            ? `h-[40px] placeholder:text-xs font-normal px-2 border-[#E3E3E7] ${!adminHeight ? 'rounded-[8px]' : 'rounded-[10px]'}`
             : 'h-[48px] px-4 border-[#767372] rounded-[10px]'
-        }  outline-none transition-colors placeholder:text-start focus:border-blue-600 text-sm`}
+        } text-right outline-none transition-colors placeholder:text-start focus:border-blue-600 text-sm`}
         // style={{ direction }}
         id={name}
         type={type}

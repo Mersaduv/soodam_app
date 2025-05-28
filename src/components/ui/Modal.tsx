@@ -3,6 +3,7 @@ import { Close } from '@/icons'
 
 interface ModalProps {
   isShow: boolean
+  isAdmin?: boolean
   onClose: () => void
   effect: 'bottom-to-top' | 'ease-out' | 'buttom-to-fit'
   children: React.ReactNode
@@ -10,7 +11,7 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = (props) => {
-  const { isShow, onClose, effect, children, isSearchModal } = props
+  const { isShow, onClose, effect, children, isSearchModal, isAdmin } = props
 
   useEffect(() => {
     document.body.style.overflow = isShow ? 'hidden' : 'unset'
@@ -41,7 +42,7 @@ const Modal: React.FC<ModalProps> = (props) => {
       `
       : effect === 'ease-out'
       ? `
-      fixed left-0 right-0 mx-auto max-w-3xl top-16
+      fixed left-0 right-0 mx-auto max-w-3xl ${isAdmin ? 'top-[35%] ' : 'top-16'}
       transform transition-all duration-700
       ${isShow ? 'scale-100' : 'scale-50'}
       `
@@ -66,7 +67,7 @@ const Modal: React.FC<ModalProps> = (props) => {
     >
       <div className="fixed inset-0 bg-[#1A1E2580]" onClick={onClose} />
       <div
-        className={`${effectClasses} ${isSearchModal ? 'h-full' : 'max-h-[90vh]'}  overflow-y-auto`}
+        className={`${effectClasses} ${isSearchModal ? 'h-full' : 'max-h-[90vh]'}  ${isAdmin ? "px-4" : ""}  overflow-y-auto`}
         style={{
           WebkitOverflowScrolling: 'touch',
         }}

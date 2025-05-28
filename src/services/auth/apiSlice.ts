@@ -1,6 +1,13 @@
 import baseApi from '@/services/baseApi'
 
-import type { LoginQuery, LoginResult, MsgResult, VerifyLoginQuery, VerifyLoginResult } from './types'
+import type {
+  LoginQuery,
+  LoginResult,
+  MsgResult,
+  UpdateUserInfoQuery,
+  VerifyLoginQuery,
+  VerifyLoginResult,
+} from './types'
 import { clearCredentials, setCredentials } from '@/store'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import productionApiSlice from '../productionBaseApi'
@@ -102,30 +109,33 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
             const userInfoData = await dispatch(authApiSlice.endpoints.getUserInfo.initiate()).unwrap()
             console.log(userInfoData, 'userInfoData----------')
 
-            const birthdate = `${userInfoData[0].birthday._date__year}/${userInfoData[0].birthday._date__month}/${userInfoData[0].birthday._date__day}`
+            // const birthdate = `${userInfoData[0].birthday._date__year}/${userInfoData[0].birthday._date__month}/${userInfoData[0].birthday._date__day}`// 1402/01/01
+            const birthdate = userInfoData.birthday || ""
 
-            const address = userInfoData[0].address
-            const latitude = address.latitude
-            const longitude = address.longitude
+            const address = userInfoData.address || null
+            const latitude = address?.latitude || null
+            const longitude = address?.longitude || null
             const cityName = getProvinceFromCoordinates(latitude, longitude)
 
             const user: User = {
-              id: userInfoData[0].id,
-              first_name: userInfoData[0].first_name,
-              last_name: userInfoData[0].last_name,
-              father_name: userInfoData[0].father_name,
-              security_number: userInfoData[0].security_number,
-              email: userInfoData[0].email,
-              phone_number: userInfoData[0].phone_number,
+              id: userInfoData.id,
+              first_name: userInfoData.first_name,
+              last_name: userInfoData.last_name,
+              father_name: userInfoData.father_name,
+              security_number: userInfoData.security_number,
+              email: userInfoData.email,
+              phone_number: userInfoData.phone_number,
+              is_verified: userInfoData.is_verified,
+              is_active: userInfoData.is_active,
+              user_type: userInfoData.user_type,
+              user_group: userInfoData.user_group,
               role: args.role as UserRoleType,
               birthday: birthdate,
-              province: userInfoData[0].province,
-              city: userInfoData[0].city,
-              user_wallet: userInfoData[0].user_wallet,
-              address: userInfoData[0].address,
-              avatar: userInfoData[0].avatar,
-              // userType: userInfoData[0].phone_number == '09014689030' ? 'ادمین اصلی' : 'کاربر',
-
+              province: userInfoData.province,
+              city: userInfoData.city,
+              user_wallet: userInfoData.user_wallet,
+              address: userInfoData.address,
+              avatar: userInfoData.avatar,
               subscription: undefined,
             }
 
@@ -148,9 +158,9 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
       },
     }),
 
-    getUserInfo: builder.query<User[], void>({
+    getUserInfo: builder.query<User, void>({
       query: () => ({
-        url: `/api/user/get_user_info`,
+        url: `/api/user/profile`,
         method: 'GET',
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -159,10 +169,10 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              {
                 type: 'User' as const,
-                id: id,
-              })),
+                id: result.id,
+              },
               'User',
             ]
           : ['User'],
@@ -190,7 +200,23 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
         }
       },
     }),
+
+    updateUserInfo: builder.mutation<MsgResult, UpdateUserInfoQuery>({
+      query: (user) => ({
+        url: '/api/user/edit_user_info',
+        method: 'POST',
+        body: user,
+      }),
+      invalidatesTags: ['User'],
+    }),
   }),
 })
 
-export const { useLoginMutation, useVerifyLoginMutation, useLogoutMutation, useGetVerifyCodeMutation } = authApiSlice
+export const {
+  useLoginMutation,
+  useVerifyLoginMutation,
+  useLogoutMutation,
+  useGetVerifyCodeMutation,
+  useUpdateUserInfoMutation,
+  useGetUserInfoQuery,
+} = authApiSlice

@@ -23,6 +23,7 @@ import Select from 'react-select'
 const iranCity = require('iran-city')
 import jalaali from 'jalaali-js'
 import axios from 'axios'
+import { useGetUserInfoQuery, useUpdateUserInfoMutation } from '@/services/auth/apiSlice'
 const toJalaali = (date: Date) => {
   const jalaaliDate = jalaali.toJalaali(date)
   return {
@@ -40,6 +41,8 @@ const years = Array.from({ length: 100 }, (_, i) => String(currentYearJalaali - 
 const Account: NextPage = () => {
   const [selectedFile, setSelectedFiles] = useState<any[]>([])
   // const [provinceOptions, setProvinceOptions] = useState([])
+  const [updateUserInfo, { isLoading }] = useUpdateUserInfoMutation()
+  const { data: userInfo } = useGetUserInfoQuery()
   const [provinces, setProvinces] = useState([])
   const [cities, setCities] = useState([])
   const { back } = useRouter()
@@ -57,7 +60,15 @@ const Account: NextPage = () => {
   } = useForm<UserInfoForm>({
     resolver: yupResolver(userInfoFormValidationSchema) as unknown as Resolver<UserInfoForm>,
     mode: 'onChange',
-    defaultValues: {},
+    defaultValues: {
+      fullName: userInfo?.[0].first_name + ' ' + userInfo?.[0].last_name,
+      fatherName: userInfo?.[0].father_name,
+      notionalCode: userInfo?.[0].security_number,
+      email: userInfo?.[0].email,
+      mobileNumber: userInfo?.[0].phone_number,
+      province: provinces.find((province) => province.id === userInfo[0].address?.province_id),
+      city: cities.find((city) => city.id === userInfo[0].address?.city_id),
+    },
   })
   const selectedProvince = watch('province') // ? Assets
 
@@ -104,8 +115,9 @@ const Account: NextPage = () => {
   // }
   const onSubmit = (data: UserInfoForm) => {
     console.log('Form submitted:', data)
-    
+
     const createUser = {
+      id: userInfo?.[0].id,
       first_name: data.fullName,
       last_name: data.fatherName,
       father_name: data.fatherName,
@@ -115,13 +127,14 @@ const Account: NextPage = () => {
       birthday: data.birthDate,
       gender: data.gender,
       full_address: {
-        id: 0,
+        id: userInfo?.[0].address?.id,
         province_id: data.province.id,
         city_id: data.city.id,
-        longitude: 0,
-        latitude: 0,
+        longitude: userInfo?.[0].address?.longitude,
+        latitude: userInfo?.[0].address?.latitude,
       },
     }
+    updateUserInfo(createUser)
   }
   const handleDateChange = (field: 'day' | 'month' | 'year', value: string) => {
     const birthDate = watch('birthDate') || ''
@@ -159,7 +172,7 @@ const Account: NextPage = () => {
       .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`, // ← تابع را اجرا کن
+          Authorization: `Bearer ${getToken()}`, 
         },
       })
       .then((res) => {

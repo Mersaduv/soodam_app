@@ -18,43 +18,24 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
   const { push } = useRouter()
 
   const handleClick = (pathname: string, query: { role: string }) => {
-    localStorage.removeItem('role')
-    localStorage.removeItem('user')
-    if (user && user.role !== 'marketer') {
-      push('/marketer')
-      return
-    }
-    dispatch(clearCredentials())
-    localStorage.setItem('role', 'user')
+    push({
+      pathname,
+      query
+    })
     onClose()
   }
-
-  const handleClickNewAdAsMarketerNav = () => {
-    const user = JSON.parse(localStorage.getItem('user'))
-    const role = localStorage.getItem('role')
-
-    if (role === 'user' || !role) {
-      push(`/authentication/login?role=${roles.Marketer}`)
-      return
-    }
-    if (user && user.role !== roles.Marketer) {
-      push('/marketer')
-    } else {
-      push('/soodam')
-    }
-    onClose()
-  }
+  
 
   const handleClickEstateConsultant = () => {
     const user = JSON.parse(localStorage.getItem('user'))
     const role = localStorage.getItem('role')
 
     if (role === 'user' || !role) {
-      push(`/authentication/login?role=${roles.EstateConsultant}`)
+      push(`/authentication/register?role=${roles.EstateConsultant}`)
       return
     }
     if (user && user.role !== roles.EstateConsultant) {
-      push(`/authentication/login?role=${roles.EstateConsultant}`)
+      push(`/authentication/register?role=${roles.EstateConsultant}`)
     } else {
       push('/estate-consultant')
     }
@@ -67,53 +48,38 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
         <Modal.Header onClose={onClose}>نقش خود را انتخاب کنید</Modal.Header>
         <Modal.Body>
           <div className="space-y-4">
-            <Link
-              href={{
-                pathname: '/authentication/login',
-                query: { role: roles.MemberUser },
-              }}
-              onClick={() => handleClick('/authentication/login', { role: roles.MemberUser })}
+            <div
+              onClick={() => handleClick('/admin/authentication/register', { role: roles.CityAdmin })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
                 <p className="text-sm">ثبت نام ادمین شهر</p>
               </div>
               <Image src="/static/listening-to-feedback.png" alt="عضو" layout="intrinsic" width={95} height={95} />
-            </Link>
+            </div>
 
-            <Link
-              href={{
-                pathname: '/',
-              }}
-              onClick={() => handleClick('', { role: 'user' })}
+            <div
+              onClick={() => handleClick('/admin/authentication/register', { role: roles.AdvAdmin })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
                 <p className="text-sm">ثبت نام ادمین آگهی</p>
               </div>
               <Image src="/static/smart-home-contol.png" alt="کاربر معمولی" layout="intrinsic" width={95} height={95} />
-            </Link>
+            </div>
 
             <div
-              // href={{
-              //   pathname: '/authentication/login',
-              //   query: { role: roles.Marketer },
-              // }}
-              onClick={handleClickNewAdAsMarketerNav}
+              onClick={() => handleClick('/admin/authentication/register', { role: roles.BlogAdmin })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
                 <p className="text-sm">ثبت نام ادمین خبر</p>
               </div>
-              <Image src="/static/becoming-rich.png" alt="بازاریاب" layout="intrinsic" width={95} height={95} />
+              <Image src="/static/becoming-rich.png" alt="خبرنگار" layout="intrinsic" width={95} height={95} />
             </div>
 
             <div
-              // href={{
-              //   pathname: '/authentication/login',
-              //   query: { role: roles.EstateConsultant },
-              // }}
-              onClick={handleClickEstateConsultant}
+              onClick={() => handleClick('/admin/authentication/register', { role: roles.Marketer })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">

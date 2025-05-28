@@ -22,6 +22,8 @@ export default {
       'xs': '450px', 
       'xs2': '600px', 
       'xxs': '395px',
+      'xxss':'376px',
+      'xxsss': '373px',
     },
     extend: {
       fontFamily: {

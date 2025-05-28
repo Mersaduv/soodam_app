@@ -27,7 +27,7 @@ import { Disclosure } from '@headlessui/react'
 import { useGetCategoriesQuery, useGetFeaturesQuery, useGetMetaDataQuery } from '@/services'
 import { useRouter } from 'next/router'
 import { AdFormValues, Category, CreateAds, Feature } from '@/types'
-import { validationSchema } from '@/utils'
+import { getToken, validationSchema } from '@/utils'
 import { IoMdClose } from 'react-icons/io'
 import { setIsSuccess } from '@/store'
 import { Control, FieldError } from 'react-hook-form'
@@ -38,6 +38,7 @@ import {
   useUploadMediaMutation,
 } from '@/services/productionBaseApi'
 import { title } from 'process'
+import axios from 'axios'
 const toJalaali = (date: Date) => {
   const jalaaliDate = jalaali.toJalaali(date)
   return {
@@ -78,6 +79,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   // ? Assets
   const { query } = useRouter()
   // ? States
+  const [provinces, setProvinces] = useState([])
+  const [cities, setCities] = useState([])
+  const [selectedProvince, setSelectedProvince] = useState(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [isShow, modalHandlers] = useDisclosure()
   const [isShowRentalTerms, modalRentalTermsHandlers] = useDisclosure()
@@ -100,6 +104,10 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   const [drawnPoints, setDrawnPoints] = useState([])
   const [selectedNames, setSelectedNames] = useState({})
   const [selectedParentCategory, setSelectedParentCategory] = useState<Category | null>(null)
+  const [addressSuggestions, setAddressSuggestions] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const addressInputRef = useRef(null)
+
   const dispatch = useAppDispatch()
   const formRef = useRef<HTMLDivElement | null>(null)
   const previousDealType = useRef<string | null>(null)
@@ -144,6 +152,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     trigger,
     setValue,
     getValues,
+    watch,
     resetField,
     formState: { errors, isValid },
   } = useForm<AdFormValues>({
@@ -168,6 +177,43 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     },
   })
 
+  useEffect(() => {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+      })
+      .then((res) => {
+        setProvinces(res.data)
+      })
+      .catch((err) => {
+        console.error('Error fetching provinces:', err)
+      })
+  }, [])
+
+  useEffect(() => {
+    if (selectedProvince) {
+      axios
+        .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+        })
+        .then((res) => {
+          setCities(res.data)
+        })
+        .catch((err) => {
+          console.error('Error fetching cities:', err)
+          setCities([])
+        })
+    } else {
+      setCities([])
+    }
+  }, [selectedProvince])
+
   const { fields, append, remove } = useFieldArray<AdFormValues>({
     control,
     name: 'mediaImages',
@@ -183,19 +229,200 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
   const handleAddUploadedImage = ({ url }: { url: string }) => append({ url })
 
-  // ? Re-Renders
+  // Function to format address and remove redundant parts
+  const formatAddress = (address: string): string => {
+    if (!address) return ''
+
+    // Remove postal codes (patterns like #####-#####)
+    address = address.replace(/\d{5}-\d{5}/g, '')
+
+    // Remove common parts that are not necessary
+    const unnecessaryParts = [
+      'ایران',
+      'جمهوری اسلامی ایران',
+      'Islamic Republic of Iran',
+      'Iran',
+      'استان',
+      'شهرستان',
+      'بخش مرکزی',
+      'منطقه',
+    ]
+
+    // Split the address by commas
+    let parts = address.split(',').map((part) => part.trim())
+
+    // Filter out unnecessary parts
+    parts = parts.filter((part) => {
+      // Check if this part contains any of the unnecessary parts
+      return !unnecessaryParts.some((unwanted) => part.includes(unwanted))
+    })
+
+    // Remove duplicates and empty strings
+    const uniqueParts = [...new Set(parts)].filter((part) => part && part.length > 0)
+
+    // Keep only the most relevant parts (maximum 4 parts for readability)
+    let relevantParts = uniqueParts.slice(0, Math.min(4, uniqueParts.length))
+
+    // Check for cities and provinces - make sure they're not repeated
+    const majorcities = ['تهران', 'مشهد', 'اصفهان', 'شیراز', 'تبریز', 'اهواز', 'کرج', 'قم', 'کرمانشاه', 'رشت', 'ارومیه']
+
+    // For each city, ensure it appears only once
+    majorcities.forEach((city) => {
+      const cityParts = relevantParts.filter((part) => part.includes(city))
+      if (cityParts.length > 1) {
+        // Keep only the shortest mention of the city (usually just the city name)
+        const shortestPart = cityParts.reduce(
+          (shortest, current) => (current.length < shortest.length ? current : shortest),
+          cityParts[0]
+        )
+
+        relevantParts = relevantParts.filter((part) => !part.includes(city) || part === shortestPart)
+      }
+    })
+
+    // Join the parts back together with Persian comma
+    return relevantParts.join('، ')
+  }
+
+  // Function to convert coordinates to address
+  const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+    try {
+      const response = await axios.get(`https://nominatim.openstreetmap.org/reverse`, {
+        params: {
+          format: 'json',
+          lat,
+          lon: lng,
+          zoom: 18,
+          addressdetails: 1,
+          'accept-language': 'fa',
+        },
+        headers: {
+          'User-Agent': 'Soodam-App',
+        },
+      })
+
+      if (response.data && response.data.display_name) {
+        // Return formatted address
+        return formatAddress(response.data.display_name)
+      }
+      return ''
+    } catch (error) {
+      console.error('Error in reverse geocoding:', error)
+      return ''
+    }
+  }
+
+  // Search for address suggestions
+  const searchAddressSuggestions = async (query: string) => {
+    if (!query || query.length < 3) {
+      setAddressSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    try {
+      const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
+        params: {
+          q: query,
+          format: 'json',
+          limit: 5,
+          'accept-language': 'fa',
+        },
+        headers: {
+          'User-Agent': 'Soodam-App',
+        },
+      })
+
+      if (response.data && response.data.length > 0) {
+        // Format the display_name field for each suggestion
+        const formattedSuggestions = response.data.map((suggestion) => ({
+          ...suggestion,
+          display_name: formatAddress(suggestion.display_name),
+          original_name: suggestion.display_name,
+        }))
+
+        setAddressSuggestions(formattedSuggestions)
+        setShowSuggestions(true)
+      } else {
+        setAddressSuggestions([])
+        setShowSuggestions(false)
+      }
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error)
+      setAddressSuggestions([])
+      setShowSuggestions(false)
+    }
+  }
+
+  // Debounce function to delay address search
+  const debounce = (func, wait) => {
+    let timeout
+
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout)
+        func(...args)
+      }
+
+      clearTimeout(timeout)
+      timeout = setTimeout(later, wait)
+    }
+  }
+
+  // Debounced version of search function
+  const debouncedSearchAddress = debounce(searchAddressSuggestions, 500)
+
+  // Handle address suggestion selection
+  const handleSelectSuggestion = (suggestion: any) => {
+    setValue('address', suggestion.display_name)
+    setShowSuggestions(false)
+
+    // Set map location based on selected suggestion
+    if (suggestion.lat && suggestion.lon) {
+      const newLocation: [number, number] = [parseFloat(suggestion.lat), parseFloat(suggestion.lon)]
+      setSelectedLocation(newLocation)
+      setValue('location.lat', newLocation[0])
+      setValue('location.lng', newLocation[1])
+    }
+  }
+
+  //? Re-Renders
   useEffect(() => {
     if (selectedLocation) {
       setValue('location.lat', selectedLocation[0])
       setValue('location.lng', selectedLocation[1])
+
+      // Get address from coordinates
+      const getAddress = async () => {
+        const address = await reverseGeocode(selectedLocation[0], selectedLocation[1])
+        if (address) {
+          setValue('address', address)
+        }
+      }
+
+      getAddress()
     }
   }, [selectedLocation, setValue])
 
+  // Close suggestions when clicking outside
   useEffect(() => {
-    if (drawnPoints) {
-      // setValue('drawnPoints', drawnPoints)
+    const handleClickOutside = (event) => {
+      if (addressInputRef.current && !addressInputRef.current.contains(event.target)) {
+        setShowSuggestions(false)
+      }
     }
-  }, [drawnPoints, setValue])
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (selectedLocation) {
+      console.log(selectedLocation, 'selectedLocation')
+    }
+  }, [selectedLocation, setValue])
 
   // useEffect(() => {
   //   if (selectedCategory) {
@@ -247,7 +474,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
   useEffect(() => {
     if (features) {
-      setFeatureData(features)
+      setFeatureData(features.features)
     }
   }, [features])
 
@@ -256,6 +483,76 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
       setValue('convertible', isConvertible)
     }
   }, [isConvertible, setValue])
+
+  // Function to find province and city based on coordinates
+  // const findProvinceAndCity = async (lat: number, lng: number) => {
+  //     // Fetch provinces if not already loaded
+  //       const provincesResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           Authorization: `Bearer ${getToken()}`,
+  //         },
+  //       })
+
+  //     // Fetch cities for the selected province
+  //     const citiesResponse = await axios.get(
+  //       `${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`,
+  //       {
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           Authorization: `Bearer ${getToken()}`,
+  //         },
+  //       }
+  //     )
+
+  // }
+  const getProvinceAndCityFromCoordinates = async (lat: number, lng: number) => {
+    // مرحله ۱: گرفتن نام استان و شهر از روی lat/lng با استفاده از reverse geocoding
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=fa`
+    const nominatimResponse = await axios.get(nominatimUrl)
+    const address = nominatimResponse.data.address
+    console.log(address, 'address')
+
+    const cityName = address.city || address.town || address.village || ''
+    const provinceName = address.province || ''
+
+    const provincesResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getToken()}`,
+      },
+    })
+
+    const matchedProvince = provincesResponse.data.find(
+      (p: any) => p.name === provinceName || `استان ${p.name}` === provinceName
+    )
+
+    if (!matchedProvince) {
+      throw new Error(`استان '${provinceName}' در لیست یافت نشد`)
+    }
+
+    // مرحله ۳: گرفتن لیست شهرهای استان یافت‌شده
+    const citiesResponse = await axios.get(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${matchedProvince.id}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }
+    )
+
+    const matchedCity = citiesResponse.data.find((c: any) => c.name === cityName)
+
+    if (!matchedCity) {
+      throw new Error(`شهر '${cityName}' در استان '${provinceName}' یافت نشد`)
+    }
+
+    return {
+      province_id: matchedProvince.id,
+      city_id: matchedCity.id,
+    }
+  }
 
   //? submit final step
   const onSubmit = async (data: AdFormValues) => {
@@ -290,10 +587,50 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
           name: featureInfo.name,
           key: featureInfo.key, // یا هرچی که بجاش داری
           type: featureInfo.type,
-          value,
+          value: featureInfo.key === 'text_discount' ? value ?? '0' : featureInfo.key === 'text_mortgage_deposit' ? value ?? '0' : featureInfo.key === 'text_monthly_rent' ? value ?? '0' : value,
         }
       })
       .filter(Boolean) // حذف null ها در صورت نبودن feature
+
+    // Get province and city based on coordinates
+    const locationInfo = await getProvinceAndCityFromCoordinates(data.location.lat, data.location.lng)
+
+    // Extract price and discount information from features
+    let priceAmount = 0
+    let discountAmount = 0
+    let depositAmount = 0
+    let rentAmount = 0
+
+    // Find price and discount features
+    const priceFeature = formattedFeatures.find((f) => f.key === 'text_selling_price')
+    const discountFeature = formattedFeatures.find((f) => f.key === 'text_discount')
+    const depositFeature = formattedFeatures.find((f) => f.key === 'text_mortgage_deposit')
+    const rentFeature = formattedFeatures.find((f) => f.key === 'text_monthly_rent')
+
+    if (priceFeature && priceFeature.value) {
+      // Convert formatted price string to number
+      const priceStr = String(priceFeature.value)
+      // Remove non-numeric characters and convert to number
+      priceAmount = parseInt(priceStr.replace(/[^\d]/g, '')) || 0
+    }
+
+    if (discountFeature && discountFeature.value) {
+      // Convert formatted discount string to number
+      const discountStr = String(discountFeature.value)
+      // Remove non-numeric characters and convert to number
+      discountAmount = parseInt(discountStr.replace(/[^\d]/g, '')) || 0
+    }
+
+    if (depositFeature && depositFeature.value) {
+      const depositStr = String(depositFeature.value)
+      depositAmount = parseInt(depositStr.replace(/[^\d]/g, '')) || 0
+    }
+
+    if (rentFeature && rentFeature.value) {
+      const rentStr = String(rentFeature.value)
+      rentAmount = parseInt(rentStr.replace(/[^\d]/g, '')) || 0
+    }
+
     const finalData = {
       ...data,
       features: formattedFeatures,
@@ -307,31 +644,72 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
       security_code_owner_building: data.nationalCode || '',
       phone_number_owner_building: data.phoneNumber,
       description: data.description,
-      sub_category_id: data.category,
-      sub_sub_category_id: 0,
+      category_id: data.category,
+      category_id_lvl_2: 0,
       full_address: {
-        province_id: 27,
-        city_id: 968,
+        province_id: locationInfo.province_id,
+        city_id: locationInfo.city_id,
         address: data.address,
+        street: '',
         zip_code: data.postalCode,
         longitude: data.location.lng,
         latitude: data.location.lat,
       },
-      features: formattedFeatures,
-      medias: data.mediaImages.map((item) => ({
-        media: item.url,
-        type: getFileExtension(item.url),
+      price:
+        depositFeature || rentFeature
+          ? {
+              deposit: depositAmount,
+              rent: rentAmount,
+              amount: priceAmount,
+              currency: 'IRR',
+              is_negotiable: true,
+              discount_amount: discountAmount,
+              original_amount: priceAmount,
+              price_per_unit: 0,
+              unit: '',
+            }
+          : {
+              deposit: 0,
+              rent: 0,
+              amount: priceAmount,
+              currency: 'IRR',
+              is_negotiable: true,
+              discount_amount: discountAmount,
+              original_amount: priceAmount,
+              price_per_unit: 0,
+              unit: '',
+            },
+      attributes: formattedFeatures,
+      images: data.mediaImages.map((item, index) => ({
+        url: item.url,
+        is_primary: index === 0, // First image is primary
+        order: index,
+        width: 1200, // Default width, can be updated if actual dimensions are available
+        height: 800, // Default height, can be updated if actual dimensions are available
+        alt_text: data.title || 'Property image', // Use title as alt text
       })),
+      videos: data.mediaVideos.map((item, index) => ({
+        url: item.url,
+        thumbnail_url: '', // We don't have thumbnail URLs generated
+        is_primary: index === 0, // First video is primary
+        order: index,
+        duration: 0, // Cannot determine duration easily
+        title: data.title || 'Property video',
+        description: data.description || 'Property video',
+      })),
+      expiry_date: '2023-12-31T23:59:59Z',
     }
     console.log(createAds, 'data-submit')
 
     addHousing(createAds)
   }
+
   useEffect(() => {
     if (isSuccessCreate) {
       dispatch(setIsSuccess(true))
     }
   }, [isSuccessCreate, dispatch])
+
   const validateCurrentStep = async () => {
     let fieldsToValidate: string[] = []
 
@@ -452,11 +830,21 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
   useEffect(() => {
     if (isSuccessUpload && dataUpload) {
-      dataUpload.media_url.forEach((item) => {
-        append({ url: item.media })
+      // Check if it's a video or image based on file extension
+      const videoExtensions = ['.mp4', '.mov', '.avi', '.wmv', '.mkv']
+
+      dataUpload.forEach((item) => {
+        const ext = getFileExtension(item.url).toLowerCase()
+        if (videoExtensions.some((videoExt) => ext.includes(videoExt))) {
+          // It's a video
+          appendVideo({ url: item.url })
+        } else {
+          // It's an image
+          append({ url: item.url })
+        }
       })
     }
-  }, [isSuccessUpload])
+  }, [isSuccessUpload, dataUpload, append, appendVideo])
 
   useEffect(() => {
     if (isSuccess) {
@@ -465,11 +853,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   }, [isSuccess])
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (selectedVideos.length === maxVideos) return
-    if (files) {
-      setSelectedVideos([...selectedVideos, ...Array.from(files)])
-    }
+    const fileList = e.target.files
+    if (!fileList) return
+    if (selectedVideos.length + fileList.length > maxVideos) return
+
+    // Upload the videos through the API
+    createUrl(Array.from(fileList))
   }
 
   const handleDelete = (index: number, type = 'pic') => {
@@ -495,6 +884,15 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     //   )
     // }
   }
+  useEffect(() => {
+    const getLocationInfo = async () => {
+      if (selectedLocation) {
+        const locationInfo = await getProvinceAndCityFromCoordinates(selectedLocation[0], selectedLocation[1])
+        console.log(locationInfo, 'locationInfo')
+      }
+    }
+    getLocationInfo()
+  }, [selectedLocation])
 
   const mapCategoryName = (name: string) => {
     if (name.includes('خرید')) {
@@ -767,7 +1165,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 ads
               />
 
-              <div className="space-y-31">
+              <div className="space-y-31 relative">
                 <label
                   className="block text-sm font-normal mb-2 text-gray-700 md:min-w-max lg:text-sm"
                   htmlFor="address"
@@ -775,11 +1173,29 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                   آدرس نوشتاری دقیق ملک را مشخص کنید
                 </label>
                 <textarea
+                  ref={addressInputRef}
                   placeholder="آدرس کامل را وارد کنید"
                   className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs pr-2"
                   id="address"
                   {...register('address')}
+                  onChange={(e) => {
+                    register('address').onChange(e)
+                    debouncedSearchAddress(e.target.value)
+                  }}
                 />
+                {showSuggestions && addressSuggestions.length > 0 && (
+                  <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto">
+                    {addressSuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-right text-sm"
+                        onClick={() => handleSelectSuggestion(suggestion)}
+                      >
+                        {suggestion.display_name}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="w-fit" dir={'ltr'}>
                   {' '}
                   <DisplayError adForm errors={errors.address} />
@@ -818,7 +1234,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
             (dealType === 'sale' ? (
               <div className="space-y-4">
                 {features &&
-                  features.map((field) => {
+                  features.features.map((field) => {
                     switch (field.key) {
                       case 'text_selling_price':
                       case 'text_discount':
@@ -861,7 +1277,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
             ) : dealType === 'rent' ? (
               <div className="space-y-4">
                 {features &&
-                  features.map((field) => {
+                  features.features.map((field) => {
                     switch (field.key) {
                       case 'text_mortgage_deposit':
                       case 'text_monthly_rent':
@@ -1093,7 +1509,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 /> */}
 
                 {features &&
-                  features.map((field) => {
+                  features.features.map((field) => {
                     switch (field.key) {
                       case 'text_owner_profit_percentage':
                       case 'text_producer_profit_percentage':
@@ -1139,7 +1555,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
               <div className="relative w-full">
                 <div className="space-y-3 mb-3">
                   {features &&
-                    features
+                    features.features
                       .filter(
                         (item) =>
                           item.type === 'text' &&
@@ -1210,7 +1626,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 </div>
                 <div className="space-y-4 mb-4">
                   {features &&
-                    features
+                    features.features
                       .filter((item) => item.key === 'bool_renovated' || item.key === 'bool_document')
                       .map((field) => (
                         <div
@@ -1256,7 +1672,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 </div>
 
                 {features &&
-                  features
+                  features.features
                     .filter((item) => item.type === 'choice')
                     .map((item) => (
                       <div key={item.id} className="w-full mb-3">
@@ -1279,45 +1695,67 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                         {openDropdowns[item.id] && (
                           <div className="w-full mt-1.5 bg-[#FCFCFC] border border-[#E3E3E7] rounded-lg p-1">
                             {Array.isArray(item.value) &&
-                              item.value.map((value) => (
-                                <label
-                                  key={value.id}
-                                  className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
-                                >
-                                  <div className="flex items-center cursor-pointer relative">
-                                    <input
-                                      type="radio"
-                                      name={`radio-${item.id}`}
-                                      checked={selectedValues[item.id] === value.id}
-                                      onChange={() => {
-                                        setSelectedValues((prev) => ({ ...prev, [item.id]: value.id }))
-                                        setSelectedNames((prev) => ({ ...prev, [item.id]: value.value }))
-                                        setValue(`features.${item.id}`, { id: value.id, value: value.value }) // 👈 ذخیره به شکل صحیح
-                                        setOpenDropdowns((prev) => ({ ...prev, [item.id]: false }))
-                                      }}
-                                      className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
-                                      id={value.id}
-                                    />
-                                    <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-3.5 w-3.5"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                        stroke="currentColor"
-                                        strokeWidth="1"
-                                      >
-                                        <path
-                                          fillRule="evenodd"
-                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                          clipRule="evenodd"
-                                        ></path>
-                                      </svg>
-                                    </span>
-                                  </div>
-                                  <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.value}</span>
-                                </label>
-                              ))}
+                              // Sort values numerically if they are numbers
+                              [...item.value]
+                                .sort((a, b) => {
+                                  // Extract number from start of string (handles cases like "6 اتاق یا بیشتر")
+                                  const aMatch = a.value.match(/^(\d+)/);
+                                  const bMatch = b.value.match(/^(\d+)/);
+                                  
+                                  // If both start with numbers, sort numerically
+                                  if (aMatch && bMatch) {
+                                    return parseInt(aMatch[1]) - parseInt(bMatch[1]);
+                                  }
+                                  // If only a starts with number, a comes first
+                                  else if (aMatch) {
+                                    return -1;
+                                  }
+                                  // If only b starts with number, b comes first
+                                  else if (bMatch) {
+                                    return 1;
+                                  }
+                                  // Otherwise keep original order
+                                  return 0;
+                                })
+                                .map((value) => (
+                                  <label
+                                    key={value.id}
+                                    className="inline-flex items-center p-3 hover:bg-[#F5F5F8] cursor-pointer w-full"
+                                  >
+                                    <div className="flex items-center cursor-pointer relative">
+                                      <input
+                                        type="radio"
+                                        name={`radio-${item.id}`}
+                                        checked={selectedValues[item.id] === value.id}
+                                        onChange={() => {
+                                          setSelectedValues((prev) => ({ ...prev, [item.id]: value.id }))
+                                          setSelectedNames((prev) => ({ ...prev, [item.id]: value.value }))
+                                          setValue(`features.${item.id}`, { id: value.id, value: value.value }) // 👈 ذخیره به شکل صحیح
+                                          setOpenDropdowns((prev) => ({ ...prev, [item.id]: false }))
+                                        }}
+                                        className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#D52133] checked:bg-[#D52133] checked:border-[#D52133]"
+                                        id={value.id}
+                                      />
+                                      <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          className="h-3.5 w-3.5"
+                                          viewBox="0 0 20 20"
+                                          fill="currentColor"
+                                          stroke="currentColor"
+                                          strokeWidth="1"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          ></path>
+                                        </svg>
+                                      </span>
+                                    </div>
+                                    <span className="mr-3 font-normal text-[13px] text-[#5A5A5A]">{value.value}</span>
+                                  </label>
+                                ))}
                           </div>
                         )}
                         <div className="w-fit" dir={'ltr'}>
@@ -1328,7 +1766,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
                 <div className="space-y-4 mt-5">
                   {features &&
-                    features
+                    features.features
                       .filter(
                         (item) =>
                           item.type === 'bool' &&
@@ -1451,7 +1889,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     {fields.map((file, index) => (
                       <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
                         <img
-                          src={`${process.env.NEXT_PUBLIC_API_URL}/${file.url}`}
+                          src={`${process.env.NEXT_PUBLIC_API_URL}${file.url}`}
                           alt={`file-${index}`}
                           className="h-[58px] w-full object-cover rounded-[4px]"
                         />
@@ -1507,26 +1945,13 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     </div>
                   </label>
                   <div className="grid grid-cols-3 gap-3 mt-3">
-                    {selectedVideos.map((file, index) => (
+                    {videoFields.map((file, index) => (
                       <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
                         <div className="relative">
                           <video
-                            src={URL.createObjectURL(file)}
+                            src={`${process.env.NEXT_PUBLIC_API_URL}${file.url}`}
                             className="h-[58px] w-full object-cover rounded-[4px]"
                             id={`video-${index}`}
-                            onPlay={() => {
-                              const playButton = document.getElementById(`play-button-${index}`)
-                              playButton.innerHTML = `
-                                <div class="w-1 h-3 bg-white mx-0.5"></div>
-                                <div class="w-1 h-3 bg-white mx-0.5"></div>
-                              `
-                            }}
-                            onPause={() => {
-                              const playButton = document.getElementById(`play-button-${index}`)
-                              playButton.innerHTML = `
-                                <div class="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
-                              `
-                            }}
                           />
                           <div
                             className="absolute inset-0 flex items-center justify-center cursor-pointer"
@@ -1552,15 +1977,16 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           onClick={(e) => {
                             e.stopPropagation()
                             e.preventDefault()
-                            handleDelete(index, 'vid')
+                            removeVideo(index)
                           }}
                         >
                           <IoMdClose className="text-base" />
                         </button>
                       </div>
                     ))}
+                    {/* Empty video slots */}
                     {Array.from({
-                      length: maxVideos - selectedVideos.length,
+                      length: maxVideos - videoFields.length,
                     }).map((_, index) => (
                       <div
                         key={`empty-${index}`}

@@ -1,30 +1,33 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { UploadResult } from './allHousing/types'
-import { getToken } from '@/utils'
-import { AdFormValues, CreateAds, Feature, Housing, ServiceResponse } from '@/types'
+import { generateQueryParams, getToken } from '@/utils'
+import { AdFormValues, CreateAds, Feature, Housing, NearbyAdsResponse, QueryParams, ServiceResponse } from '@/types'
 import { QueryFeatureByCategory } from './feature/type'
 
 const productionApiSlice = createApi({
   reducerPath: 'productionApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://194.5.193.119:4000',
+    baseUrl: 'http://194.5.193.119:8000',
     timeout: 60000,
   }),
 
   tagTypes: ['MetaData', 'Feature', 'Housing', 'User'],
   endpoints: (builder) => ({
-    uploadMedia: builder.mutation<UploadResult, File[]>({
+    uploadMedia: builder.mutation<UploadResult[], File[]>({
       query: (files) => {
         const formData = new FormData()
-        files.forEach((file) => {
-          formData.append('files', file)
-        })
+        if (files.length > 0) {
+          files.forEach((file) => {
+            formData.append('files', file)
+          })
+        }
 
         return {
-          url: '/api/adv/create_adv/upload_media',
+          url: '/api/advertisements/upload_media',
           method: 'POST',
           headers: {
             Authorization: `Bearer ${getToken()}`,
+            // Do NOT set Content-Type here; let the browser set it with the correct boundary
           },
           body: formData,
         }
@@ -33,7 +36,7 @@ const productionApiSlice = createApi({
 
     addHousing: builder.mutation<any, any>({
       query: (data) => ({
-        url: '/api/adv/create_adv',
+        url: '/api/advertisements',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -64,9 +67,9 @@ const productionApiSlice = createApi({
           : ['Feature'],
     }),
 
-    getFeaturesByCategory: builder.query<Feature[], QueryFeatureByCategory>({
+    getFeaturesByCategory: builder.query<{ features: Feature[] }, QueryFeatureByCategory>({
       query: ({ sub_category_id, sub_category_level_two_id }) => ({
-        url: `/api/adv/get_features_by_category`,
+        url: `/api/advertisements/features`,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +79,7 @@ const productionApiSlice = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              ...result.features.map(({ id }) => ({
                 type: 'Feature' as const,
                 id: id,
               })),
@@ -85,42 +88,33 @@ const productionApiSlice = createApi({
           : ['Feature'],
     }),
 
-    getAdvByGeolocation: builder.query<
-      Housing[],
-      {
-        province?: number
-        city?: number
-        street?: string
-        address?: string
-        zip_code?: string
-        latitude?: number
-        longitude?: number
-      }
-    >({
-      query: ({ province, city, street, address, zip_code, latitude, longitude }) => ({
-        url: `/api/adv/get_adv_by_geolocation`,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ province, city, street, address, zip_code, latitude, longitude }),
-      }),
+    getAdvByGeolocation: builder.query<NearbyAdsResponse, QueryParams>({
+      query: ({ ...params }) => {
+        const queryParams = generateQueryParams(params)
+        return {
+          url: `/api/advertisements/nearby?${queryParams}`,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      },
       providesTags: (result) =>
-        result
+        result?.items
           ? [
-              ...result.map(({ id }) => ({
+              ...result.items.map(({ id }) => ({
                 type: 'Housing' as const,
-                id: id,
+                id,
               })),
               'Housing',
             ]
           : ['Housing'],
     }),
 
-    getMyAdv: builder.query<Housing[], void>({
+    getMyAdv: builder.query<{ items: Housing[]; total: number }, void>({
       query: () => ({
-        url: `/api/adv/get_my_adv`,
-        method: 'GET',
+        url: `/api/advertisements/my_adv`,
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${getToken()}`,
         },
@@ -129,7 +123,7 @@ const productionApiSlice = createApi({
 
     getAdvById: builder.query<Housing, string>({
       query: (id) => ({
-        url: `/api/adv/get_adv_by_id/${id}`,
+        url: `/api/advertisements/${id}`,
         method: 'GET',
         headers: {
           Authorization: `Bearer ${getToken()}`,

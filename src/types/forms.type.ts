@@ -206,3 +206,23 @@ export interface EstateConsultantForm {
     lng: number
   }
 }
+
+export interface AdminRegisterForm {
+  full_name?: string
+  phone_number?: string
+  email?: string
+  password?: string
+  confirm_password?: string
+  province?: {
+    id?: number
+    name: string
+    slug?: string
+  }
+  city?: {
+    id?: number
+    name: string
+    slug?: string
+    province_id?: number
+  }
+  security_number?: string
+}

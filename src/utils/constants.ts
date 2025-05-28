@@ -2,10 +2,13 @@ export const roles = {
   MemberUser: 'memberUser',
   Marketer: 'marketer',
   Subscriber: 'subscriber',
-  EstateConsultant : 'estateConsultant'
+  EstateConsultant : 'estateConsultant',
+  CityAdmin: 'cityAdmin',
+  AdvAdmin: 'advAdmin',
+  BlogAdmin: 'blogAdmin',
 }
 
-export type UserRoleType =  'subscriber' | 'marketer' | 'memberUser' | 'estateConsultant'
+export type UserRoleType =  'subscriber' | 'marketer' | 'memberUser' | 'estateConsultant' | 'cityAdmin' | 'advAdmin' | 'blogAdmin'
 
 export const tokens = {
 }

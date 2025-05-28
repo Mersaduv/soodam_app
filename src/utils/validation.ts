@@ -41,7 +41,7 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
       .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
     nationalCode: Yup.string()
       .optional(),
-    postalCode: Yup.string().required('کد پستی الزامی است').min(5, 'کد پستی معتبر نیست'),
+    postalCode: Yup.string().required('کد پستی الزامی است').min(10, 'کد پستی معتبر نیست'),
     address: Yup.string().required('آدرس الزامی است'),
     category: Yup.string().required('دسته‌بندی الزامی است'),
     location: Yup.object().shape({
@@ -113,13 +113,14 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
     //     otherwise: (schema) => schema.nullable(),
     //   }),
 
-    title: Yup.string().required('عنوان الزامی است'),
+    title: Yup.string().required('عنوان الزامی است').min(3, 'عنوان باید حداقل ۳ کاراکتر باشد'),
+    description: Yup.string().required('توضیحات الزامی است').min(10, 'توضیحات باید حداقل ۱۰ کاراکتر باشد'),
 
     // مرحله 3: فیلدهای داینامیک
     features: Yup.object().shape(
       contextData &&
         contextData.features
-          .filter((item) => item.type === 'text')
+          .filter((item) => item.type === 'text' && item.key !== 'text_discount' && item.key !== 'text_mortgage_deposit' && item.key !== 'text_monthly_rent')
           .reduce((schema, field) => {
             schema[field.id] = Yup.string()
               .required(`${field.name} الزامی است`)
@@ -345,3 +346,22 @@ export const estateConsultantRegisterFormValidationSchema = Yup.object().shape({
   fatherName: Yup.string().required('نام پدر الزامی است'),
   notionalCode: Yup.string().required('کد ملی الزامی است'),
 })
+
+export const adminFormValidationSchema = Yup.object().shape({
+  full_name: Yup.string().required('نام و نام خانوادگی الزامی است'),
+  phone_number: Yup
+    .string()
+    .required('شماره موبایل الزامی است')
+    .matches(/^(09[0-9]{9})$/, 'شماره موبایل معتبر نیست'),
+  email:  Yup.string().required('ایمیل الزامی است').email('ایمیل معتبر نیست'),
+  password: Yup.string().required('رمز عبور الزامی است').min(8, 'رمز عبور باید حداقل 8 کاراکتر باشد'),
+  confirm_password: Yup
+    .string()
+    .oneOf([Yup.ref('password')], 'رمز عبور مطابقت ندارد')
+    .required('تکرار رمز عبور الزامی است'),
+  city: Yup.object().shape({
+    id: Yup.number().required('شهر الزامی است'),
+  }),
+  security_number: Yup.string().required('کد امنیتی الزامی است'),
+})
+

@@ -3,7 +3,7 @@ import { FrameIcon, HearthIcon, BedIcon, Grid2Icon, BulidingIcon, LocationRedSmI
 import { toggleSaveHouse } from '@/store'
 import { Housing } from '@/types'
 import { formatPriceLoc, getProvinceFromCoordinates } from '@/utils'
-import { feature } from '@turf/turf'
+import jalaali from 'jalaali-js'
 import Image from 'next/image'
 
 interface Props {
@@ -17,10 +17,16 @@ const HousingCard: React.FC<Props> = (props) => {
   const dispatch = useAppDispatch()
 
   const isNew = (() => {
-    const createdDate = new Date(housing.created_at)
+    const shamsiStr = housing.created_at.split(' ')[0]
+    const [jy, jm, jd] = shamsiStr.split('-').map(Number)
+
+    const { gy, gm, gd } = jalaali.toGregorian(jy, jm, jd)
+    const createdDate = new Date(gy, gm - 1, gd)
+
     const today = new Date()
     const diffInDays = (today.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
-    return diffInDays <= 2
+
+    return diffInDays <= 7
   })()
 
   const handleSaveClick = (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
@@ -37,13 +43,13 @@ const HousingCard: React.FC<Props> = (props) => {
           <article className="flex flex-col items-center justify-start rounded-2xl border-[1.5px] border-[#E3E3E7] h-full p-4 relative">
             <div className="flex gap-3 w-full">
               <>
-                {housing.medias && housing.medias.length > 0 ? (
+                {housing.primary_image ? (
                   <div className=" bg-gray-200 rounded-[10px] mb-4">
                     <Image
                       width={321}
                       height={100}
                       className="rounded-2xl h-[104px] min-w-[104px] max-w-[104px] object-cover"
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/${housing.medias[0].media_url}`}
+                      src={`${process.env.NEXT_PUBLIC_API_URL}${housing.primary_image}`}
                       alt={housing.title}
                     />
                   </div>
@@ -62,7 +68,11 @@ const HousingCard: React.FC<Props> = (props) => {
               <div className="w-full">
                 <div className="flex items-center gap-1.5 text-[#D52133]">
                   <LocationRedSmIcon width="16px" height="16px" />
-                  <div className="text-xs font-normal">{housing.address.province.name}</div>
+                  <div className="text-xs font-normal">
+                    {typeof housing.full_address.province === 'string'
+                      ? housing.full_address.province
+                      : housing.full_address.province.name}
+                  </div>
                 </div>
                 <div className="w-full flex justify-between mt-1.5">
                   <div className="flex-center gap-2">
@@ -73,7 +83,7 @@ const HousingCard: React.FC<Props> = (props) => {
                 </div>
                 <div className="w-full text-right">
                   {/* نمایش قیمت فروش یا رهن و اجاره */}
-                  {housing.features
+                  {housing.attributes
                     .filter((item) => item.key === 'text_selling_price')
                     .map((item) => {
                       return (
@@ -85,7 +95,7 @@ const HousingCard: React.FC<Props> = (props) => {
                       )
                     })}
 
-                  {housing.features
+                  {housing.attributes
                     .filter((item) => item.key === 'text_monthly_rent' || item.key === 'text_mortgage_deposit')
                     .map((item) => {
                       return (
@@ -96,7 +106,7 @@ const HousingCard: React.FC<Props> = (props) => {
                     })}
 
                   {/* نمایش درصد سود مالک و سازنده */}
-                  {housing.features
+                  {housing.attributes
                     .filter(
                       (item) =>
                         item.key === 'text_owner_profit_percentage' || item.key === 'text_producer_profit_percentage'
@@ -136,7 +146,7 @@ const HousingCard: React.FC<Props> = (props) => {
             <hr className="border-[1px] border-[#E3E3E7] my-4 w-full" />
             <div className="flex w-full gap-4">
               <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-                {housing.highlight_features &&
+                {housing.highlight_features && 
                   housing.highlight_features.map((feature) => {
                     return (
                       <div
@@ -160,13 +170,25 @@ const HousingCard: React.FC<Props> = (props) => {
         <div className="block w-[353px] bg-white rounded-2xl cursor-pointer" onClick={() => onCardClick(housing)}>
           <article className="flex flex-col flex-1 items-center justify-start rounded-2xl border-[1.5px] border-[#E3E3E7] h-full p-4 relative">
             <>
-              <Image
-                width={321}
-                height={100}
-                className="rounded-2xl h-[183px] object-cover"
-                src={`${process.env.NEXT_PUBLIC_API_URL}/${housing.medias[0].media_url}`}
-                alt={housing.title}
-              />
+              {housing.primary_image ? (
+                <Image
+                  width={321}
+                  height={100}
+                  className="rounded-2xl h-[183px] object-cover"
+                  src={`${process.env.NEXT_PUBLIC_API_URL}${housing.primary_image}`}
+                  alt={housing.title}
+                />
+              ) : (
+                <div className=" bg-gray-200 rounded-[10px] mb-4">
+                  <img
+                    width={321}
+                    height={100}
+                    className="rounded-2xl h-[183px] object-cover"
+                    src="/static/R.png"
+                    alt={housing.title}
+                  />
+                </div>
+              )}
             </>
             {isNew && (
               <div className="top-[180px] -right-[8.4px] absolute">
@@ -197,64 +219,66 @@ const HousingCard: React.FC<Props> = (props) => {
               </div>
             </div>
             <div className="w-full mt-3 text-right">
-              {/* نمایش قیمت فروش یا رهن و اجاره */}
-              {housing.features
-                .filter((item) => item.key === 'text_selling_price')
-                .map((item) => {
-                  return (
-                    <div className="text-sm mt-1.5 farsi-digits text-[#5A5A5A] flex gap-1">
-                      <div className=""> {formatPriceLoc(Number(item.value))}</div> تومان
-                    </div>
-                  )
-                })}
-
-              {housing.features
-                .filter((item) => item.key === 'text_monthly_rent' || item.key === 'text_mortgage_deposit')
-                .map((item) => {
-                  return (
+              {housing.price && (
+                <div className=" w-full text-right">
+                  {/* {housing.price.deposit > 0 || housing.price.rent > 0 ? (
                     <div className="text-[16px] farsi-digits text-[#1A1E25] font-extrabold flex gap-1">
-                      {item.key === 'text_mortgage_deposit' && (
+                      {housing.price.deposit > 0 && (
                         <div className="flex gap-1">
-                          رهن: <div className="font-semibold">{formatPriceLoc(Number(item.value))}</div> تومان
+                          رهن:{' '}
+                          <div className="font-semibold">
+                            {housing.price.deposit > 0 ? formatPriceLoc(Number(housing.price.deposit)) : 'رایگان'}
+                          </div>{' '}
+                          {housing.price.deposit > 0 && 'تومان'}
                         </div>
                       )}
-                      {item.key === 'text_monthly_rent' && (
+                      {housing.price.rent > 0 && (
                         <div className="flex gap-1">
-                          اجاره: <div className="font-semibold"> {formatPriceLoc(Number(item.value))}</div> تومان
+                          اجاره:{' '}
+                          <div className="font-semibold">
+                            {housing.price.rent > 0 ? formatPriceLoc(Number(housing.price.rent)) : 'رایگان'}
+                          </div>{' '}
+                          {housing.price.rent > 0 && 'تومان'}
                         </div>
                       )}
                     </div>
-                  )
-                })}
+                  ) : null} */}
 
-              {/* {housing.price > 0 ? (
-                <div className="text-[16px] farsi-digits text-[#1A1E25] font-extrabold flex gap-1">
-                  <div className="font-semibold"> {housing.price.toLocaleString('de-DE')}</div> تومان
-                </div>
-              ) : housing.deposit > 0 || housing.rent > 0 ? (
-                <div className="text-[16px] farsi-digits text-[#1A1E25] font-extrabold">
-                  {housing.deposit > 0 && (
-                    <div className="flex gap-1">
-                      {' '}
-                      رهن: <div className="font-semibold">{housing.deposit.toLocaleString('de-DE')}</div> تومان{' '}
+                  {housing.price.amount > 0 ? (
+                    <div className="text-[16px] farsi-digits text-[#1A1E25] font-extrabold flex gap-1">
+                      <div className="font-semibold"> {housing.price.amount.toLocaleString('de-DE')}</div> تومان
                     </div>
-                  )}{' '}
-                  {housing.rent > 0 && (
-                    <div className="flex gap-1">
-                      اجاره: <div className="font-semibold">{housing.rent.toLocaleString('de-DE')} </div>تومان
+                  ) : housing.price.deposit > 0 || housing.price.rent > 0 ? (
+                    <div className="text-[16px] farsi-digits text-[#1A1E25] font-extrabold">
+                      {housing.price.deposit > 0 && (
+                        <div className="flex gap-1">
+                          {' '}
+                          رهن: <div className="font-semibold">{housing.price.deposit.toLocaleString('de-DE')}</div>{' '}
+                          تومان{' '}
+                        </div>
+                      )}{' '}
+                      {housing.price.rent > 0 && (
+                        <div className="flex gap-1">
+                          اجاره: <div className="font-semibold">{housing.price.rent.toLocaleString('de-DE')} </div>تومان
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : null} */}
+                  ) : null}
 
-              {/* نمایش درصد سود مالک و سازنده */}
-              {housing.features
+                  {/* نمایش درصد سود مالک و سازنده */}
+                  {/* {housing.attributes
                 .filter(
                   (item) =>
                     item.key === 'text_owner_profit_percentage' || item.key === 'text_producer_profit_percentage'
                 )
-                .map((item) => {
-                  return (
+                .filter((item) => item.key === 'text_owner_profit_percentage' || item.key === 'text_producer_profit_percentage').length > 0 &&
+                housing.attributes
+                  .filter(
+                    (item) =>
+                      item.key === 'text_owner_profit_percentage' || item.key === 'text_producer_profit_percentage'
+                  )
+                  .map((item) => {
+                    return (
                     <div className="text-[16px] farsi-digits text-[#1A1E25] font-extrabold flex gap-1">
                       {item.key === 'text_owner_profit_percentage' && (
                         <div className="flex gap-1">
@@ -269,28 +293,29 @@ const HousingCard: React.FC<Props> = (props) => {
                       )}
                     </div>
                   )
-                })}
+                })} */}
 
-              {/* {(housing.ownerProfitPercentage > 0 || housing.producerProfitPercentage > 0) && (
+                  {/* {(housing.ownerProfitPercentage > 0 || housing.producerProfitPercentage > 0) && (
                 <div className="mt-2 text-sm text-[#7A7A7A]">
                   {housing.ownerProfitPercentage > 0 && <p>سود مالک: {housing.ownerProfitPercentage}%</p>}
                   {housing.producerProfitPercentage > 0 && <p>سود سازنده: {housing.producerProfitPercentage}%</p>}
                 </div>
               )} */}
 
-              {/* نمایش ظرفیت و نفرات اضافه */}
-              {/* {(housing.capacity > 0 || housing.extraPeople > 0 || (housing.rentalTerm && housing.rentalTerm.name)) && (
+                  {/* نمایش ظرفیت و نفرات اضافه */}
+                  {/* {(housing.capacity > 0 || housing.extraPeople > 0 || (housing.rentalTerm && housing.rentalTerm.name)) && (
                 <div className="mt-2 text-sm text-[#7A7A7A]">
                   {housing.capacity > 0 && <p>ظرفیت: {housing.capacity} نفر</p>}
                   {housing.extraPeople > 0 && <p>نفرات اضافه: {housing.extraPeople} نفر</p>}
                   {housing.rentalTerm?.name && <p>نوع قرارداد: {housing.rentalTerm.name}</p>}
                 </div>
               )} */}
-
+                </div>
+              )}
               <hr className="border-[1px] border-[#E3E3E7] my-4" />
             </div>
             <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-              {housing.highlight_features &&
+              {/* {housing.highlight_features &&
                 housing.highlight_features.map((feature) => {
                   return (
                     <div
@@ -302,7 +327,22 @@ const HousingCard: React.FC<Props> = (props) => {
                       <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
                     </div>
                   )
-                })}
+                })} */}
+              <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                {' '}
+                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />{' '}
+                <span className="font-medium text-[#7A7A7A] text-xs">بزودی نمایش داده میشود</span>
+              </div>
+              <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                {' '}
+                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />{' '}
+                <span className="font-medium text-[#7A7A7A] text-xs">بزودی</span>
+              </div>
+              <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                {' '}
+                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />{' '}
+                <span className="font-medium text-[#7A7A7A] text-xs">بزودی </span>
+              </div>
               {/* <div className="flex-center gap-1.5 text-xs font-medium farsi-digits">
             <BedIcon width="21px" height="19px" /> {housing.bedrooms}{' '}
             <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>

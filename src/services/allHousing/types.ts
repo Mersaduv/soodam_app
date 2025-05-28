@@ -5,6 +5,5 @@ export interface IdQuery {
 }
 export type GetHousingResult = ServiceResponse<Housing[]>
 export interface UploadResult {
-  media_url: { media: string; type: string }[]
-  detail: string
+  url: string
 }

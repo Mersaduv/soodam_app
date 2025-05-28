@@ -10,7 +10,7 @@ interface LocationMap {
 }
 const LocationMap: React.FC<LocationMap> = (props) => {
   const { housingData } = props
-  const position: any = [housingData.location.lat, housingData.location.lng]
+  const position: any = [housingData.full_address.latitude, housingData.full_address.longitude]
   const customIcon = L.divIcon({
     html: renderToStaticMarkup(
       <div className="bg-red-500 rounded-full">

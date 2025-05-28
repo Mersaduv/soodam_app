@@ -11,7 +11,7 @@ export const metaDataApiSlice = productionApiSlice.injectEndpoints({
       query: ({ ...params }) => {
         const queryParams = generateQueryParams(params)
         return {
-          url: `/api/adv/get_meta_data?${queryParams}`,
+          url: `/api/advertisements/meta?${queryParams}`,
           method: 'GET',
           headers: {
             Authorization: `Bearer ${getToken()}`,

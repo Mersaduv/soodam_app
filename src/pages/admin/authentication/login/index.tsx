@@ -20,6 +20,7 @@ import { ArrowLeftIcon } from '@/icons'
 import { AdminFirstLoginModal } from '@/components/modals'
 import { FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { SerializedError } from '@reduxjs/toolkit'
+import AdminHeader from '@/components/shared/AdminHeader'
 
 function LoginPage() {
   // ? States
@@ -166,16 +167,10 @@ function LoginPage() {
         </Head>
         <div className="bg-[#2C3E50] h-screen">
           {isShowLogin && <AdminFirstLoginModal isShow={isShow} onClose={handleModalClose} />}
-          <header>
-            <div className="flex items-center py-6  gap-2.5 px-4">
-              <button onClick={handleBack} className={`text-white rounded-full w-fit -rotate-90 font-bold`}>
-                <ArrowLeftIcon width="24px" height="24px" />
-              </button>
-              <h1 className="text-white font-medium">ورود</h1>
-            </div>
-          </header>
+          <AdminHeader title="ورود" />
+
           <div className="bg-[#F6F7FB] rounded-t-[40px] h-full">
-            {step !== 1 ? (
+            {step === 1 ? (
               <LoginForm isLoading={isLoading} onSubmit={submitHandler} handleModalOpen={handleModalOpen} />
             ) : (
               <VerificationCode
@@ -216,9 +211,7 @@ const LoginForm: React.FC<Props> = (props) => {
     resolver: yupResolver(adminPhoneSchema),
   })
   // ? Focus On Mount
-  useEffect(() => {
-    setFocus('phoneNumber')
-  }, [])
+
 
   return (
     <form className="" onSubmit={handlePhoneSubmit(onSubmit)}>

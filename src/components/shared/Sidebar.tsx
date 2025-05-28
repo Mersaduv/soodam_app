@@ -19,7 +19,7 @@ import {
 import { useRouter } from 'next/router'
 import { setIsShowLogin } from '@/store'
 import { roles } from '@/utils'
-
+import { CiGrid41 } from "react-icons/ci";
 export default function Sidebar() {
   const [isSidebar, sidebarHandlers] = useDisclosure()
   const { query, push } = useRouter()
@@ -97,106 +97,114 @@ export default function Sidebar() {
           <hr className="mt-7 mb-4" />
 
           <div className="flex flex-col gap-y-3.5">
-            {menuItems.map((item, index) => {
-              if (item.subItems.length === 0) {
-                if(item.title ==='مشاورین املاک')
-                {
-                  return (
-                    <div
-                      key={index}
-                      onClick={handleClickEstateConsultant}
-                      className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
-                    >
-                      <div className="flex gap-x-2.5 items-end">
-                        {item.icon}
-                        <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
-                          {item.title}
-                        </span>
-                      </div>
-                      <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
-                    </div>
-                  )
+            {menuItems
+              .filter((item) => {
+                if (item.title === "پیشخوان") {
+                  const user = JSON.parse(localStorage.getItem('user') || '{}');
+                  return user && user.user_group === 1;
                 }
-                if (item.title === 'ثبت نام به عنوان بازاریاب') {
-                  return (
-                    <div
-                      key={index}
-                      onClick={handleClickNewAdAsMarketerNav}
-                      className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
-                    >
-                      <div className="flex gap-x-2.5 items-end">
-                        {item.icon}
-                        <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
-                          {item.title}
-                        </span>
-                      </div>
-                      <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
-                    </div>
-                  )
-                } else if (item.title === 'ثبت آگهی') {
-                  return (
-                    <div
-                      key={index}
-                      onClick={handleClickNewAdNav}
-                      className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
-                    >
-                      <div className="flex gap-x-2.5 items-end">
-                        {item.icon}
-                        <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
-                          {item.title}
-                        </span>
-                      </div>
-                      <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
-                    </div>
-                  )
-                } else {
-                  return (
-                    <Link key={index} href={item.path} className="!mt-0 flex w-full items-center justify-between py-2">
-                      <div className="flex gap-x-2.5 items-end">
-                        {item.icon}
-                        <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
-                          {item.title}
-                        </span>
-                      </div>
-                      <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
-                    </Link>
-                  )
-                }
-              }
-              return (
-                <Disclosure key={index}>
-                  {({ open }) => (
-                    <>
-                      <Disclosure.Button className="!mt-0 flex w-full items-center justify-between py-2">
+                return true;
+              })
+              .map((item, index) => {
+                if (item.subItems.length === 0) {
+                  if(item.title ==='مشاورین املاک')
+                  {
+                    return (
+                      <div
+                        key={index}
+                        onClick={handleClickEstateConsultant}
+                        className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
+                      >
                         <div className="flex gap-x-2.5 items-end">
                           {item.icon}
                           <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
                             {item.title}
                           </span>
                         </div>
-                        <ArrowLeftIcon
-                          width="24px"
-                          height="24px"
-                          className={`${open ? 'text-red-400' : 'text-gray-700 rotate-90'} transition-all`}
-                        />
-                      </Disclosure.Button>
-                      <Disclosure.Panel className="">
-                        {item.subItems.map((subItem, subIndex) => (
-                          <Link
-                            key={subIndex}
-                            href={subItem.path}
-                            className="mb-6 flex w-full items-center justify-between pr-[34px]"
-                          >
-                            {subItem.icon}
-                            <span className="font-light text-sm text-[#1A1E25]">{subItem.title}</span>
-                          </Link>
-                        ))}
-                      </Disclosure.Panel>
-                    </>
-                  )}
-                </Disclosure>
-              )
-            })}
+                        <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
+                      </div>
+                    )
+                  }
+                  if (item.title === 'ثبت نام به عنوان بازاریاب') {
+                    return (
+                      <div
+                        key={index}
+                        onClick={handleClickNewAdAsMarketerNav}
+                        className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
+                      >
+                        <div className="flex gap-x-2.5 items-end">
+                          {item.icon}
+                          <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
+                            {item.title}
+                          </span>
+                        </div>
+                        <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
+                      </div>
+                    )
+                  } else if (item.title === 'ثبت آگهی') {
+                    return (
+                      <div
+                        key={index}
+                        onClick={handleClickNewAdNav}
+                        className="!mt-0 flex w-full items-center justify-between py-2 cursor-pointer"
+                      >
+                        <div className="flex gap-x-2.5 items-end">
+                          {item.icon}
+                          <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
+                            {item.title}
+                          </span>
+                        </div>
+                        <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
+                      </div>
+                    )
+                  } else {
+                    return (
+                      <Link key={index} href={item.path} className="!mt-0 flex w-full items-center justify-between py-2">
+                        <div className="flex gap-x-2.5 items-end">
+                          {item.icon}
+                          <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
+                            {item.title}
+                          </span>
+                        </div>
+                        <ArrowLeftIcon width="24px" height="24px" className="text-gray-700 rotate-90 transition-all" />
+                      </Link>
+                    )
+                  }
+                }
+                return (
+                  <Disclosure key={index}>
+                    {({ open }) => (
+                      <>
+                        <Disclosure.Button className="!mt-0 flex w-full items-center justify-between py-2">
+                          <div className="flex gap-x-2.5 items-end">
+                            {item.icon}
+                            <span className="pl-3 whitespace-nowrap font-medium text-sm tracking-wide text-[#1A1E25]">
+                              {item.title}
+                            </span>
+                          </div>
+                          <ArrowLeftIcon
+                            width="24px"
+                            height="24px"
+                            className={`${open ? 'text-red-400' : 'text-gray-700 rotate-90'} transition-all`}
+                          />
+                        </Disclosure.Button>
+                        <Disclosure.Panel className="">
+                          {item.subItems.map((subItem, subIndex) => (
+                            <Link
+                              key={subIndex}
+                              href={subItem.path}
+                              className="mb-6 flex w-full items-center justify-between pr-[34px]"
+                            >
+                              {subItem.icon}
+                              <span className="font-light text-sm text-[#1A1E25]">{subItem.title}</span>
+                            </Link>
+                          ))}
+                        </Disclosure.Panel>
+                      </>
+                    )}
+                  </Disclosure>
+                )
+              })}
           </div>
         </div>
       </div>
@@ -204,6 +212,12 @@ export default function Sidebar() {
   )
 }
 const menuItems = [
+  {
+    title: "پیشخوان",
+    icon: <CiGrid41 className='text-2xl' />,
+    path: '/admin',
+    subItems: [],
+  },
   {
     title: 'مدیریت حساب من',
     icon: <CardTrickIcon width="24px" height="24px" />,

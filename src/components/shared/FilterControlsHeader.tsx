@@ -8,8 +8,9 @@ interface Props {
   isProfile?: boolean
   isAdConfirmExit?: boolean
   handleRemoveFilters?: () => void
+  isAdmin?: boolean
 }
-const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmExit, handleRemoveFilters }) => {
+const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmExit, handleRemoveFilters, isAdmin }) => {
   const { back, push } = useRouter()
   const dispatch = useAppDispatch()
   const { adConfirmExit } = useAppSelector((state) => state.statesData)
@@ -28,8 +29,8 @@ const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmEx
 
   return (
     <header
-      className={`${
-        isProfile ? 'bg-[#D8DFF4] py-4' : 'bg-white shadow-filter-control'
+      className={`${isProfile ? 'bg-[#D8DFF4] py-4' : `${isAdmin ? 'bg-none' : 'bg-white shadow-filter-control'} `} ${
+        isAdmin ? 'bg-none' : ''
       } py-2 px-4 fixed z-[9999] w-full flex justify-between items-center`}
     >
       <div className="flex items-center gap-3 w-full text-lg font-medium">
@@ -54,7 +55,7 @@ const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmEx
         </button>
       ) : (
         <button type="button" className={`${isProfile ? 'bg-white rounded-full w-fit p-1' : 'py-4'}`}>
-          <NotificationIcon width="24px" height="24px" />
+          {!isAdmin && <NotificationIcon width="24px" height="24px" />}
         </button>
       )}
     </header>
