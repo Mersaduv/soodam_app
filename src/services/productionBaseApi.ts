@@ -7,7 +7,7 @@ import { QueryFeatureByCategory } from './feature/type'
 const productionApiSlice = createApi({
   reducerPath: 'productionApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://194.5.193.119:8000',
+    baseUrl: '/api',
     timeout: 60000,
   }),
 
