@@ -179,7 +179,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
   useEffect(() => {
     axios
-      .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+      .get(`/api/geolocation/get_provinces`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${getToken()}`,
@@ -196,7 +196,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   useEffect(() => {
     if (selectedProvince) {
       axios
-        .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+        .get(`/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${getToken()}`,
@@ -516,7 +516,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     const cityName = address.city || address.town || address.village || ''
     const provinceName = address.province || ''
 
-    const provincesResponse = await axios.get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+    const provincesResponse = await axios.get(`/api/geolocation/get_provinces`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${getToken()}`,
@@ -533,7 +533,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
     // مرحله ۳: گرفتن لیست شهرهای استان یافت‌شده
     const citiesResponse = await axios.get(
-      `${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${matchedProvince.id}`,
+      `/api/geolocation/get_cites_by_id/${matchedProvince.id}`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -948,7 +948,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                             {item.image && (
                               <img
                                 className="w-[24px] h-[24px]"
-                                src={`${NEXT_PUBLIC_API_URL}/${item.image}`}
+                                src={`/${item.image}`}
                                 alt={item.name}
                               />
                             )}
@@ -1889,7 +1889,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     {fields.map((file, index) => (
                       <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
                         <img
-                          src={`${NEXT_PUBLIC_API_URL}${file.url}`}
+                          src={`${file.url}`}
                           alt={`file-${index}`}
                           className="h-[58px] w-full object-cover rounded-[4px]"
                         />
@@ -1949,7 +1949,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
                         <div className="relative">
                           <video
-                            src={`${NEXT_PUBLIC_API_URL}${file.url}`}
+                            src={`${file.url}`}
                             className="h-[58px] w-full object-cover rounded-[4px]"
                             id={`video-${index}`}
                           />
