@@ -15,7 +15,7 @@ import { useGetHousingQuery } from '@/services'
 import { useGetMyAdvQuery } from '@/services/productionBaseApi'
 import { setIsSuccess } from '@/store'
 import { Housing } from '@/types'
-import { formatPriceLoc, getProvinceFromCoordinates } from '@/utils'
+import { formatPriceLoc, getProvinceFromCoordinates, NEXT_PUBLIC_API_URL } from '@/utils'
 import { NextPage } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -65,7 +65,7 @@ const Advertisements: NextPage = () => {
     try {
       const token = localStorage.getItem('token')
       await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/advertisement/${selectedAdId}/approve`,
+        `${NEXT_PUBLIC_API_URL}/admin/advertisement/${selectedAdId}/approve`,
         {},
         {
           headers: {
@@ -91,7 +91,7 @@ const Advertisements: NextPage = () => {
     try {
       const token = localStorage.getItem('token')
       await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/advertisement/${selectedAdId}/reject`,
+        `${NEXT_PUBLIC_API_URL}/admin/advertisement/${selectedAdId}/reject`,
         {},
         {
           headers: {
@@ -222,7 +222,7 @@ const Advertisements: NextPage = () => {
                                     width={104}
                                     height={100}
                                     className="rounded-[10px] h-[104px] object-cover"
-                                    src={`${process.env.NEXT_PUBLIC_API_URL}${
+                                    src={`${NEXT_PUBLIC_API_URL}${
                                       housing.primary_image.startsWith('/')
                                         ? housing.primary_image
                                         : `/${housing.primary_image}`

@@ -27,7 +27,7 @@ import { Disclosure } from '@headlessui/react'
 import { useGetCategoriesQuery, useGetFeaturesQuery, useGetMetaDataQuery } from '@/services'
 import { useRouter } from 'next/router'
 import { AdFormValues, Category, CreateAds, Feature } from '@/types'
-import { getToken, validationSchema } from '@/utils'
+import { getToken, NEXT_PUBLIC_API_URL, validationSchema } from '@/utils'
 import { IoMdClose } from 'react-icons/io'
 import { setIsSuccess } from '@/store'
 import { Control, FieldError } from 'react-hook-form'
@@ -179,7 +179,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
   useEffect(() => {
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+      .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${getToken()}`,
@@ -196,7 +196,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   useEffect(() => {
     if (selectedProvince) {
       axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+        .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${getToken()}`,
@@ -516,7 +516,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     const cityName = address.city || address.town || address.village || ''
     const provinceName = address.province || ''
 
-    const provincesResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+    const provincesResponse = await axios.get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${getToken()}`,
@@ -533,7 +533,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
     // مرحله ۳: گرفتن لیست شهرهای استان یافت‌شده
     const citiesResponse = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${matchedProvince.id}`,
+      `${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${matchedProvince.id}`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -948,7 +948,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                             {item.image && (
                               <img
                                 className="w-[24px] h-[24px]"
-                                src={`${process.env.NEXT_PUBLIC_API_URL}/${item.image}`}
+                                src={`${NEXT_PUBLIC_API_URL}/${item.image}`}
                                 alt={item.name}
                               />
                             )}
@@ -1889,7 +1889,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     {fields.map((file, index) => (
                       <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
                         <img
-                          src={`${process.env.NEXT_PUBLIC_API_URL}${file.url}`}
+                          src={`${NEXT_PUBLIC_API_URL}${file.url}`}
                           alt={`file-${index}`}
                           className="h-[58px] w-full object-cover rounded-[4px]"
                         />
@@ -1949,7 +1949,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       <div key={index} className="relative custom-dashed p-[1px] pr-[1.5px]">
                         <div className="relative">
                           <video
-                            src={`${process.env.NEXT_PUBLIC_API_URL}${file.url}`}
+                            src={`${NEXT_PUBLIC_API_URL}${file.url}`}
                             className="h-[58px] w-full object-cover rounded-[4px]"
                             id={`video-${index}`}
                           />

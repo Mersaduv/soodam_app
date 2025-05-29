@@ -53,6 +53,7 @@ import {
   getProvinceFromCoordinates,
   IRAN_PROVINCES,
   iranProvincesByPopulation,
+  NEXT_PUBLIC_API_URL,
 } from '@/utils'
 import Link from 'next/link'
 interface Props {
@@ -770,7 +771,7 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
                   width={104}
                   height={100}
                   className="rounded-[10px] h-[104px] object-cover"
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${housing.primary_image}`}
+                  src={`${NEXT_PUBLIC_API_URL}${housing.primary_image}`}
                   alt={housing.title}
                 />
               </div>

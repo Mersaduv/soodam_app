@@ -12,6 +12,7 @@ import 'swiper/css/pagination'
 import 'swiper/css/thumbs'
 import SwiperCore from 'swiper'
 import { Close } from '@/icons'
+import { NEXT_PUBLIC_API_URL } from '@/utils'
 interface Props {
   data: Housing
 }
@@ -45,7 +46,7 @@ const HousingSliders: React.FC<Props> = (props) => {
       >
         {data.images.map((item, index) => (
           <SwiperSlide key={index}>
-            <Image className="w-full h-[263px] object-cover cursor-pointer" width={1000} height={0} src={`${process.env.NEXT_PUBLIC_API_URL}${item.url}`} alt={`image-${index}`} />
+            <Image className="w-full h-[263px] object-cover cursor-pointer" width={1000} height={0} src={`${NEXT_PUBLIC_API_URL}${item.url}`} alt={`image-${index}`} />
           </SwiperSlide>
         ))}
       </Swiper>
@@ -67,7 +68,7 @@ const HousingSliders: React.FC<Props> = (props) => {
                   className="w-full h-auto max-h-[60vh] object-contain"
                   width={1000}
                   height={0}
-                  src={`${process.env.NEXT_PUBLIC_API_URL}${item.url}`}
+                  src={`${NEXT_PUBLIC_API_URL}${item.url}`}
                   alt={`fullscreen-${index}`}
                 />
               </SwiperSlide>

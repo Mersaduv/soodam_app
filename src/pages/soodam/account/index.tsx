@@ -16,7 +16,7 @@ import {
 import { Button, Combobox, DisplayError, SelectBox, TextField } from '@/components/ui'
 import { Controller, Resolver, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { getToken, userInfoFormValidationSchema } from '@/utils'
+import { getToken, NEXT_PUBLIC_API_URL, userInfoFormValidationSchema } from '@/utils'
 import { UserInfoForm } from '@/types'
 import { useEffect, useState } from 'react'
 import Select from 'react-select'
@@ -169,7 +169,7 @@ const Account: NextPage = () => {
 
   useEffect(() => {
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+      .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${getToken()}`, 
@@ -186,7 +186,7 @@ const Account: NextPage = () => {
   useEffect(() => {
     if (selectedProvince?.id) {
       axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+        .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${getToken()}`, // ← اینجا هم تابع را اجرا کن

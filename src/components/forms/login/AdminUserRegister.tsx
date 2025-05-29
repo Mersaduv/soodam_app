@@ -6,7 +6,7 @@ import { Button, DisplayError, Combobox, TextField } from '@/components/ui'
 import { ArrowLeftIcon } from '@/icons'
 import { AdminRegisterForm } from '@/types'
 import { adminFormValidationSchema } from '@/utils/validation'
-import { getToken } from '@/utils'
+import { getToken, NEXT_PUBLIC_API_URL } from '@/utils'
 import axios from 'axios'
 import Link from 'next/link'
 
@@ -29,7 +29,7 @@ const AdminUserRegister: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+      .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${getToken()}`,
@@ -46,7 +46,7 @@ const AdminUserRegister: React.FC = () => {
   useEffect(() => {
     if (selectedProvince?.id) {
       axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+        .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${getToken()}`,
