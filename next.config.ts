@@ -28,7 +28,11 @@ const nextConfig: import('next').NextConfig = {
       {
         source: '/api/:path*',
         destination: 'http://194.5.193.119:8000/api/:path*'
-      }
+      },
+      {
+        source: '/media/:path*',
+        destination: 'http://194.5.193.119:8000/media/:path*'
+      } 
     ];
   },
   experimental: {
