@@ -65,7 +65,7 @@ const Advertisements: NextPage = () => {
     try {
       const token = localStorage.getItem('token')
       await axios.post(
-        `${NEXT_PUBLIC_API_URL}/admin/advertisement/${selectedAdId}/approve`,
+        `/admin/advertisement/${selectedAdId}/approve`,
         {},
         {
           headers: {
@@ -91,7 +91,7 @@ const Advertisements: NextPage = () => {
     try {
       const token = localStorage.getItem('token')
       await axios.post(
-        `${NEXT_PUBLIC_API_URL}/admin/advertisement/${selectedAdId}/reject`,
+        `/admin/advertisement/${selectedAdId}/reject`,
         {},
         {
           headers: {
@@ -222,7 +222,7 @@ const Advertisements: NextPage = () => {
                                     width={104}
                                     height={100}
                                     className="rounded-[10px] h-[104px] object-cover"
-                                    src={`${NEXT_PUBLIC_API_URL}${
+                                    src={`${
                                       housing.primary_image.startsWith('/')
                                         ? housing.primary_image
                                         : `/${housing.primary_image}`
