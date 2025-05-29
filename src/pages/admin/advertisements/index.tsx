@@ -65,7 +65,7 @@ const Advertisements: NextPage = () => {
     try {
       const token = localStorage.getItem('token')
       await axios.post(
-        `/admin/advertisement/${selectedAdId}/approve`,
+        `/api/admin/advertisement/${selectedAdId}/approve`,
         {},
         {
           headers: {
@@ -91,7 +91,7 @@ const Advertisements: NextPage = () => {
     try {
       const token = localStorage.getItem('token')
       await axios.post(
-        `/admin/advertisement/${selectedAdId}/reject`,
+        `/api/admin/advertisement/${selectedAdId}/reject`,
         {},
         {
           headers: {
