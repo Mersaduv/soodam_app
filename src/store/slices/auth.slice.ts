@@ -75,6 +75,9 @@ const authSlice = createSlice({
         localStorage.removeItem('loggedIn')
         localStorage.removeItem('hasSeenModal')
         localStorage.removeItem('user')
+        localStorage.removeItem('userCity')
+        localStorage.removeItem('subscription')
+        sessionStorage.clear()
       }
     },
     updateUser: (state, action: PayloadAction<User>) => {

@@ -12,9 +12,9 @@ import {
   TrashGrayIcon,
 } from '@/icons'
 import { useGetHousingQuery } from '@/services'
-import { useGetMyAdvQuery } from '@/services/productionBaseApi'
+import { useGetMyAdvQuery, useGetAdvByAdminQuery } from '@/services/productionBaseApi'
 import { setIsSuccess } from '@/store'
-import { Housing } from '@/types'
+import { AdminAdvertisementResponse, PaginationMetadata } from '@/types'
 import { formatPriceLoc, getProvinceFromCoordinates, NEXT_PUBLIC_API_URL } from '@/utils'
 import { NextPage } from 'next'
 import Image from 'next/image'
@@ -24,6 +24,7 @@ import { useEffect, useState } from 'react'
 import { IoIosArrowBack } from 'react-icons/io'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { IoSearchOutline } from 'react-icons/io5'
 
 const Advertisements: NextPage = () => {
   // ? Assets
@@ -31,16 +32,37 @@ const Advertisements: NextPage = () => {
   const [isShow, modalHandlers] = useDisclosure()
   const { isSuccess } = useAppSelector((state) => state.statesData)
   const dispatch = useAppDispatch()
-  const { data: housingData, isLoading, refetch } = useGetMyAdvQuery()
+
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [filterStatus, setFilterStatus] = useState<number | null>(null) // null: all, 1: approved, 0: not approved
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [pageSize, setPageSize] = useState<number>(1)
+  const [paginationMeta, setPaginationMeta] = useState<PaginationMetadata | null>(null)
+  const [isPaginationLoading, setIsPaginationLoading] = useState(false)
+
+  // Query params for the API
+  const queryParams = {
+    page: currentPage,
+    limit: pageSize,
+    ...(searchQuery && { search: searchQuery }),
+    ...(filterStatus !== null && { status: filterStatus }),
+  }
+
+  const { data: housingData, isLoading, refetch } = useGetAdvByAdminQuery(queryParams)
   const [modalType, setModalType] = useState<'approve' | 'reject'>('approve')
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  // const [housingAdd, setHousingAdd] = useState<Housing[]>([])
 
-  // useEffect(() => {
-  //   const storedHousingAdd = localStorage.getItem('addAdv')
-  //   setHousingAdd(storedHousingAdd ? JSON.parse(storedHousingAdd) : [])
-  // }, [])
+  // Update pagination metadata when data changes
+  useEffect(() => {
+    if (housingData?.metadata) {
+      setPaginationMeta(housingData.metadata)
+      setIsPaginationLoading(false)
+    }
+  }, [housingData])
 
   useEffect(() => {
     if (isSuccess) {
@@ -50,7 +72,6 @@ const Advertisements: NextPage = () => {
 
   const handleClearAds = () => {
     localStorage.removeItem('addAdv')
-    // setHousingAdd([])
   }
 
   const handleModalClose = (): void => {
@@ -124,6 +145,33 @@ const Advertisements: NextPage = () => {
 
   const role = localStorage.getItem('role') ? localStorage.getItem('role')! : null
 
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setIsPaginationLoading(true)
+    setCurrentPage(page)
+  }
+
+  // Handle page size change
+  const handlePageSizeChange = (size: number) => {
+    setIsPaginationLoading(true)
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }
+
+  // Handle search input
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsPaginationLoading(true)
+    setSearchQuery(e.target.value)
+    setCurrentPage(1) // Reset to first page when searching
+  }
+
+  // Handle filter click
+  const handleFilterClick = (status: number | null) => {
+    setIsPaginationLoading(true)
+    setFilterStatus(status)
+    setCurrentPage(1) // Reset to first page when changing filters
+  }
+
   return (
     <>
       <Modal isShow={isShow} onClose={handleModalClose} effect="ease-out" isAdmin>
@@ -182,7 +230,48 @@ const Advertisements: NextPage = () => {
       </Modal>
       <DashboardLayout showDetail title="آگهی ها">
         <main className="py-[87px] relative">
-          {isLoading ? (
+          <div className="px-4 mb-5 space-y-3">
+            {/* Search Bar */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="برای جستجو تایپ کنید..."
+                value={searchQuery}
+                onChange={handleSearch}
+                className="w-full appearance-none focus:border-none focus:outline-1 focus:outline-[#3c6893] p-4 h-[48px] bg-white rounded-[10px] border border-gray-200"
+              />
+            </div>
+
+            {/* Filter Buttons */}
+            <div className="flex overflow-x-auto gap-2 pb-2">
+              <button
+                onClick={() => handleFilterClick(null)}
+                className={`whitespace-nowrap h-[40px] items-center flex px-5 py-3 rounded-full ${
+                  filterStatus === null ? 'bg-[#2C3E50] text-white' : 'bg-white text-[#7A7A7A] border border-gray-200'
+                }`}
+              >
+                فیلتر ها
+              </button>
+              <button
+                onClick={() => handleFilterClick(1)}
+                className={`whitespace-nowrap h-[40px] items-center flex px-5 py-3 rounded-full ${
+                  filterStatus === 1 ? 'bg-[#2C3E50] text-white' : 'bg-white text-[#7A7A7A] border border-gray-200'
+                }`}
+              >
+                تایید شده ها
+              </button>
+              <button
+                onClick={() => handleFilterClick(0)}
+                className={`whitespace-nowrap h-[40px] items-center flex px-5 py-3 rounded-full ${
+                  filterStatus === 0 ? 'bg-[#2C3E50] text-white' : 'bg-white text-[#7A7A7A] border border-gray-200'
+                }`}
+              >
+                تایید نشده ها
+              </button>
+            </div>
+          </div>
+
+          {isLoading || isPaginationLoading ? (
             <div className="flex justify-center items-center ">
               <HousingSkeleton />
             </div>
@@ -192,16 +281,16 @@ const Advertisements: NextPage = () => {
                 <img className="w-[180px] h-[180px]" src="/static/Document_empty.png" alt="" />
               </div>
               <div className="mt-8 flex flex-col justify-center items-center gap-2">
-                <h1 className="font-medium text-sm">شما تاکنون آگهی ثبت نکرده اید.</h1>
+                <h1 className="font-medium text-sm">تا اکنون آگهی به ثبت نرسیده.</h1>
               </div>
               <div className="mx-4 mt-8 mb-7 flex gap-3">
-                <Button onClick={() => push('/housing/ad')} className="w-full rounded-[10px] font-bold text-sm">
+                <Button onClick={() => push('/housing/ad')} className="w-full bg-[#2C3E50] rounded-[10px] font-bold text-sm">
                   ثبت آگهی
                 </Button>
               </div>
             </div>
           ) : (
-            <div className=" px-4">
+            <div className="px-4">
               <div className="space-y-4">
                 {housingData &&
                   housingData?.items.length > 0 &&
@@ -339,13 +428,13 @@ const Advertisements: NextPage = () => {
                               })} */}
                               {/* org  */}
                               <button
-                                onClick={() => openApproveModal(housing.id)}
+                                onClick={() => openApproveModal(String(housing.id))}
                                 className="bg-[#2C3E50] hover:bg-[#22303e] w-full text-white h-[40px] rounded-lg text-[12.5px]"
                               >
                                 تایید آگهی
                               </button>
                               <button
-                                onClick={() => openRejectModal(housing.id)}
+                                onClick={() => openRejectModal(String(housing.id))}
                                 className="border border-[#D52133] text-[#D52133] hover:bg-[#FFF0F2] w-full h-[40px] rounded-lg text-[12.5px]"
                               >
                                 رد آگهی
@@ -356,6 +445,53 @@ const Advertisements: NextPage = () => {
                       )
                     })}
               </div>
+
+              {/* Add pagination controls */}
+              {paginationMeta && paginationMeta.total_pages > 1 && (
+                <div className="mt-6 flex justify-center">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={!paginationMeta.has_prev}
+                      className={`px-3 py-1 rounded-md ${
+                        !paginationMeta.has_prev
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'bg-[#2C3E50] text-white hover:bg-[#22303e]'
+                      }`}
+                    >
+                      قبلی
+                    </button>
+
+                    <div className="flex gap-2">
+                      {Array.from({ length: paginationMeta.total_pages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === page
+                              ? 'bg-[#2C3E50] text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={!paginationMeta.has_next}
+                      className={`px-3 py-1 rounded-md ${
+                        !paginationMeta.has_next
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'bg-[#2C3E50] text-white hover:bg-[#22303e]'
+                      }`}
+                    >
+                      بعدی
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>

@@ -19,7 +19,7 @@ import {
   Cube3DSmIcon,
   Cube3DIcon,
 } from '@/icons'
-import { Button, CustomCheckbox, DisplayError, Modal, TextField, TextFiledPrice } from '@/components/ui'
+import { Button, CustomCheckbox, DisplayError, Modal, TextField, TextFiledPrice, Skeleton } from '@/components/ui'
 import * as yup from 'yup'
 import dynamic from 'next/dynamic'
 import { useAppDispatch, useDisclosure } from '@/hooks'
@@ -75,6 +75,10 @@ const MapLocationPicker = dynamic(() => import('@/components/map/MapLocationPick
 interface Props {
   roleUser: string
 }
+
+// Static array for skeleton steps
+const skeletonSteps = ['مشخصات', 'قیمت', 'ویژگی‌ها', 'عکس و ویدئو']
+
 const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   // ? Assets
   const { query } = useRouter()
@@ -107,6 +111,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   const [addressSuggestions, setAddressSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const addressInputRef = useRef(null)
+
+  // Add isLoadingAddressSuggestions state
+  const [isLoadingAddressSuggestions, setIsLoadingAddressSuggestions] = useState(false)
 
   const dispatch = useAppDispatch()
   const formRef = useRef<HTMLDivElement | null>(null)
@@ -258,27 +265,58 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     })
 
     // Remove duplicates and empty strings
-    const uniqueParts = [...new Set(parts)].filter((part) => part && part.length > 0)
+    let uniqueParts = [...new Set(parts)].filter((part) => part && part.length > 0)
 
-    // Keep only the most relevant parts (maximum 4 parts for readability)
-    let relevantParts = uniqueParts.slice(0, Math.min(4, uniqueParts.length))
+    // Define major cities and provinces for identification
+    const majorCities = ['تهران', 'مشهد', 'اصفهان', 'شیراز', 'تبریز', 'اهواز', 'کرج', 'قم', 'کرمانشاه', 'رشت', 'ارومیه']
+    const provinces = [
+      'تهران', 'خراسان رضوی', 'اصفهان', 'فارس', 'آذربایجان شرقی', 'خوزستان', 'البرز', 'قم', 'کرمانشاه', 'گیلان', 'آذربایجان غربی',
+      'مازندران', 'کرمان', 'گلستان', 'همدان', 'سیستان و بلوچستان', 'لرستان', 'یزد', 'هرمزگان', 'اردبیل', 'بوشهر',
+      'زنجان', 'قزوین', 'مرکزی', 'چهارمحال و بختیاری', 'سمنان', 'ایلام', 'کهگیلویه و بویراحمد', 'خراسان شمالی', 'خراسان جنوبی'
+    ]
 
-    // Check for cities and provinces - make sure they're not repeated
-    const majorcities = ['تهران', 'مشهد', 'اصفهان', 'شیراز', 'تبریز', 'اهواز', 'کرج', 'قم', 'کرمانشاه', 'رشت', 'ارومیه']
-
-    // For each city, ensure it appears only once
-    majorcities.forEach((city) => {
-      const cityParts = relevantParts.filter((part) => part.includes(city))
-      if (cityParts.length > 1) {
-        // Keep only the shortest mention of the city (usually just the city name)
-        const shortestPart = cityParts.reduce(
-          (shortest, current) => (current.length < shortest.length ? current : shortest),
-          cityParts[0]
-        )
-
-        relevantParts = relevantParts.filter((part) => !part.includes(city) || part === shortestPart)
+    // Identify city and province parts
+    const cityProvinceParts = []
+    const otherParts = []
+    
+    uniqueParts.forEach(part => {
+      // Check if the part contains a city or province name
+      const isCityOrProvince = [...majorCities, ...provinces].some(name => 
+        part.includes(name) || part === name
+      )
+      
+      if (isCityOrProvince) {
+        cityProvinceParts.push(part)
+      } else {
+        otherParts.push(part)
       }
     })
+    
+    // For each identified city/province, ensure it appears only once (keep shortest)
+    const uniqueCityProvinceParts = []
+    
+    cityProvinceParts.forEach(part => {
+      const shortestNamePart = uniqueCityProvinceParts.find(existingPart => {
+        // Check if they refer to the same city/province
+        return [...majorCities, ...provinces].some(name => 
+          existingPart.includes(name) && part.includes(name)
+        )
+      })
+      
+      if (!shortestNamePart) {
+        uniqueCityProvinceParts.push(part)
+      } else if (part.length < shortestNamePart.length) {
+        // Replace with shorter version
+        const index = uniqueCityProvinceParts.indexOf(shortestNamePart)
+        uniqueCityProvinceParts[index] = part
+      }
+    })
+
+    // Reorder: city/province parts first, then other parts
+    const reorderedParts = [...uniqueCityProvinceParts, ...otherParts]
+    
+    // Keep only maximum 4 parts for readability
+    const relevantParts = reorderedParts.slice(0, Math.min(4, reorderedParts.length))
 
     // Join the parts back together with Persian comma
     return relevantParts.join('، ')
@@ -317,8 +355,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     if (!query || query.length < 3) {
       setAddressSuggestions([])
       setShowSuggestions(false)
+      setIsLoadingAddressSuggestions(false)
       return
     }
+
+    setIsLoadingAddressSuggestions(true)
 
     try {
       const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
@@ -351,6 +392,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
       console.error('Error fetching address suggestions:', error)
       setAddressSuggestions([])
       setShowSuggestions(false)
+    } finally {
+      setIsLoadingAddressSuggestions(false)
     }
   }
 
@@ -532,15 +575,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     }
 
     // مرحله ۳: گرفتن لیست شهرهای استان یافت‌شده
-    const citiesResponse = await axios.get(
-      `/api/geolocation/get_cites_by_id/${matchedProvince.id}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
-      }
-    )
+    const citiesResponse = await axios.get(`/api/geolocation/get_cites_by_id/${matchedProvince.id}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getToken()}`,
+      },
+    })
 
     const matchedCity = citiesResponse.data.find((c: any) => c.name === cityName)
 
@@ -587,7 +627,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
           name: featureInfo.name,
           key: featureInfo.key, // یا هرچی که بجاش داری
           type: featureInfo.type,
-          value: featureInfo.key === 'text_discount' ? value ?? '0' : featureInfo.key === 'text_mortgage_deposit' ? value ?? '0' : featureInfo.key === 'text_monthly_rent' ? value ?? '0' : value,
+          value:
+            featureInfo.key === 'text_discount'
+              ? value ?? '0'
+              : featureInfo.key === 'text_mortgage_deposit'
+              ? value ?? '0'
+              : featureInfo.key === 'text_monthly_rent'
+              ? value ?? '0'
+              : value,
         }
       })
       .filter(Boolean) // حذف null ها در صورت نبودن feature
@@ -729,7 +776,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
         ]
         break
       case 2:
-        fieldsToValidate = ['title', 'features']
+        fieldsToValidate = ['title', 'features', 'description']
         break
       case 3:
         fieldsToValidate = ['media']
@@ -768,10 +815,29 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     modalHandlers.close()
   }
 
+  // Fix the duplicate handleSelectCategory function
   const handleLocationChange = (location: [number, number]) => {
     setSelectedLocation(location)
+    setIsLoadingAddressSuggestions(true)
+    
+    // Get address from coordinates
+    const getAddress = async () => {
+      try {
+        const address = await reverseGeocode(location[0], location[1])
+        if (address) {
+          setValue('address', address)
+        }
+      } catch (err) {
+        console.error('Error getting address:', err)
+      } finally {
+        setIsLoadingAddressSuggestions(false)
+      }
+    }
+    
+    getAddress()
   }
 
+  // Only keep one handleSelectCategory function
   const handleSelectCategory = (category: Category, parent?: Category) => {
     if (parent) setSelectedParentCategory(parent)
     if (selectedCategory && selectedCategory.id === category.id) {
@@ -862,27 +928,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   }
 
   const handleDelete = (index: number, type = 'pic') => {
-    // if (type === 'pic') {
-    //   setSelectedFiles((prevFiles) => {
-    //     const updatedFiles = [...prevFiles]
-    //     updatedFiles.splice(index, 1)
-    //     return updatedFiles
-    //   })
-    //   setValue(
-    //     'media.images',
-    //     ((getValues('media.images') as File[]) || []).filter((_, i) => i !== index)
-    //   )
-    // } else {
-    //   setSelectedVideos((prevFiles) => {
-    //     const updatedFiles = [...prevFiles]
-    //     updatedFiles.splice(index, 1)
-    //     return updatedFiles
-    //   })
-    //   setValue(
-    //     'media.videos',
-    //     ((getValues('media.videos') as File[]) || []).filter((_, i) => i !== index)
-    //   )
-    // }
+    if (type === 'pic') {
+      remove(index); // Remove image from mediaImages field array
+    } else {
+      removeVideo(index); // Remove video from mediaVideos field array
+    }
   }
   useEffect(() => {
     const getLocationInfo = async () => {
@@ -901,24 +951,71 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     return name
   }
 
-  if (isFetching) return <div>loading...</div>
+  // Define step title based on category
+  const getStepTitle = (): string => {
+    if (!selectedCategory) return 'قیمت'
+    
+    if (selectedCategory.name?.includes('مالک') || 
+        selectedCategory.name?.includes('سازنده') || 
+        selectedCategory.name?.includes('پیش فروش')) {
+      return 'سود'
+    } else if (selectedCategory.name?.includes('اجاره کوتاه')) {
+      return 'شرایط اجاره'
+    }
+    return 'قیمت'
+  }
+  
+  // Steps array for the actual form
+  const steps = ['مشخصات', getStepTitle(), 'ویژگی‌ها', 'عکس و ویدئو']
+  
+  if (isFetching) return (
+    <div className="mx-auto py-5 border rounded-[16px] bg-white">
+      {/* Skeleton for Progress Steps */}
+      <div className="flex justify-between items-center mb-6 px-[33px]">
+        <Skeleton count={1}>
+          <Skeleton.Items className="flex justify-between items-center w-full">
+            {skeletonSteps.map((_, index) => (
+              <React.Fragment key={index}>
+                <Skeleton.Item height="h-5" width="w-5" animated="background" className="rounded-full" />
+                {index < skeletonSteps.length - 1 && <Skeleton.Item height="h-2" width="w-full mx-4" animated="background" />}
+              </React.Fragment>
+            ))}
+          </Skeleton.Items>
+        </Skeleton>
+      </div>
+
+      {/* Rest of skeleton component remains the same */}
+      <div className="space-y-4 px-4 pt-6">
+        <Skeleton count={1}>
+          <Skeleton.Items className="space-y-4 w-full">
+            {/* 5 form fields with labels */}
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="w-full">
+                <Skeleton.Item height="h-5" width="w-1/4" animated="background" className="mb-2" />
+                <Skeleton.Item height="h-10" width="w-full" animated="background" />
+              </div>
+            ))}
+
+            {/* Map field */}
+            <div>
+              <Skeleton.Item height="h-5" width="w-1/3" animated="background" className="mb-2" />
+              <Skeleton.Item height="h-52" width="w-full" animated="background" />
+            </div>
+          </Skeleton.Items>
+        </Skeleton>
+
+        {/* Navigation Buttons */}
+        <div className="w-full mt-6 flex justify-between">
+          <Skeleton.Item height="h-12" width="w-32" animated="background" />
+          <Skeleton.Item height="h-12" width="w-32" animated="background" />
+        </div>
+      </div>
+    </div>
+  );
 
   if (features) {
     console.log(features, 'features')
   }
-
-  let stepTitle = 'قیمت'
-  if (
-    selectedCategory?.name?.includes('مالک') ||
-    selectedCategory?.name?.includes('سازنده') ||
-    selectedCategory?.name?.includes('پیش فروش')
-  ) {
-    stepTitle = 'سود'
-  } else if (selectedCategory?.name?.includes('اجاره کوتاه')) {
-    stepTitle = 'شرایط اجاره'
-  }
-
-  const steps = ['مشخصات', stepTitle, 'ویژگی‌ها', 'عکس و ویدئو']
 
   if (errors) {
     console.log(errors, 'errors--errors')
@@ -945,13 +1042,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           className="!mt-0 flex w-full items-center justify-between py-2"
                         >
                           <div className="flex gap-x-1.5 items-center">
-                            {item.image && (
-                              <img
-                                className="w-[24px] h-[24px]"
-                                src={`/${item.image}`}
-                                alt={item.name}
-                              />
-                            )}
+                            {item.image && <img className="w-[24px] h-[24px]" src={`/${item.image}`} alt={item.name} />}
                             <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
                               {item.name}
                             </span>
@@ -1172,17 +1263,29 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 >
                   آدرس نوشتاری دقیق ملک را مشخص کنید
                 </label>
-                <textarea
-                  ref={addressInputRef}
-                  placeholder="آدرس کامل را وارد کنید"
-                  className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs pr-2"
-                  id="address"
-                  {...register('address')}
-                  onChange={(e) => {
-                    register('address').onChange(e)
-                    debouncedSearchAddress(e.target.value)
-                  }}
-                />
+                {isLoadingAddressSuggestions ? (
+                  <div className="h-24 border border-[#E3E3E7] rounded-[8px] bg-white p-2">
+                    <Skeleton count={1}>
+                      <Skeleton.Items className="space-y-2 w-full">
+                        <Skeleton.Item height="h-4" width="w-3/4" animated="background" />
+                        <Skeleton.Item height="h-4" width="w-full" animated="background" />
+                        <Skeleton.Item height="h-4" width="w-1/2" animated="background" />
+                      </Skeleton.Items>
+                    </Skeleton>
+                  </div>
+                ) : (
+                  <textarea
+                    ref={addressInputRef}
+                    placeholder="آدرس کامل را وارد کنید"
+                    className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs pr-2"
+                    id="address"
+                    {...register('address')}
+                    onChange={(e) => {
+                      register('address').onChange(e)
+                      debouncedSearchAddress(e.target.value)
+                    }}
+                  />
+                )}
                 {showSuggestions && addressSuggestions.length > 0 && (
                   <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto">
                     {addressSuggestions.map((suggestion, index) => (
@@ -1699,23 +1802,23 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                               [...item.value]
                                 .sort((a, b) => {
                                   // Extract number from start of string (handles cases like "6 اتاق یا بیشتر")
-                                  const aMatch = a.value.match(/^(\d+)/);
-                                  const bMatch = b.value.match(/^(\d+)/);
-                                  
+                                  const aMatch = a.value.match(/^(\d+)/)
+                                  const bMatch = b.value.match(/^(\d+)/)
+
                                   // If both start with numbers, sort numerically
                                   if (aMatch && bMatch) {
-                                    return parseInt(aMatch[1]) - parseInt(bMatch[1]);
+                                    return parseInt(aMatch[1]) - parseInt(bMatch[1])
                                   }
                                   // If only a starts with number, a comes first
                                   else if (aMatch) {
-                                    return -1;
+                                    return -1
                                   }
                                   // If only b starts with number, b comes first
                                   else if (bMatch) {
-                                    return 1;
+                                    return 1
                                   }
                                   // Otherwise keep original order
-                                  return 0;
+                                  return 0
                                 })
                                 .map((value) => (
                                   <label
@@ -1899,7 +2002,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           onClick={(e) => {
                             e.stopPropagation()
                             e.preventDefault()
-                            handleDelete(index)
+                            handleDelete(index, 'pic')
                           }}
                         >
                           <IoMdClose className="text-base" />
@@ -1977,7 +2080,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                           onClick={(e) => {
                             e.stopPropagation()
                             e.preventDefault()
-                            removeVideo(index)
+                            handleDelete(index, 'video')
                           }}
                         >
                           <IoMdClose className="text-base" />
@@ -2019,7 +2122,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
               </div>
               <div className="flex items-center gap-2">
                 <InfoCircleIcon width="16px" height="16px" />
-                <span className="text-[#5A5A5A] font-normal text-xs">توضیحات مرتبط </span>
+                <span className="text-[#5A5A5A] font-normal text-xs">توضیحات مرتبط</span>
               </div>
             </div>
           )}
@@ -2046,7 +2149,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
             ) : (
               <Button
                 type="submit"
-                className="w-[120px] float-left h-[48px] whitespace-nowrap text-white rounded-lg font-bold text-sm hover:bg-[#f75263]"
+                isLoading={isLoadingCreate}
+                className={` ${isLoadingCreate ? 'w-auto' : 'w-[120px]'} whitespace-nowrap float-left h-[48px] text-white rounded-lg font-bold text-sm hover:bg-[#f75263]`}
               >
                 ثبت نهایی{' '}
               </Button>

@@ -24,6 +24,8 @@ const iranCity = require('iran-city')
 import jalaali from 'jalaali-js'
 import axios from 'axios'
 import { useGetUserInfoQuery, useUpdateUserInfoMutation } from '@/services/auth/apiSlice'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 const toJalaali = (date: Date) => {
   const jalaaliDate = jalaali.toJalaali(date)
   return {
@@ -40,12 +42,13 @@ const years = Array.from({ length: 100 }, (_, i) => String(currentYearJalaali - 
 
 const Account: NextPage = () => {
   const [selectedFile, setSelectedFiles] = useState<any[]>([])
-  // const [provinceOptions, setProvinceOptions] = useState([])
-  const [updateUserInfo, { isLoading }] = useUpdateUserInfoMutation()
+  const [avatarUrl, setAvatarUrl] = useState<any>('')
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [updateUserInfo, { isLoading, isSuccess }] = useUpdateUserInfoMutation()
   const { data: userInfo } = useGetUserInfoQuery()
   const [provinces, setProvinces] = useState([])
   const [cities, setCities] = useState([])
-  const { back } = useRouter()
+  const { back, push } = useRouter()
 
   const {
     handleSubmit,
@@ -61,23 +64,18 @@ const Account: NextPage = () => {
     resolver: yupResolver(userInfoFormValidationSchema) as unknown as Resolver<UserInfoForm>,
     mode: 'onChange',
     defaultValues: {
-      fullName: userInfo?.[0].first_name + ' ' + userInfo?.[0].last_name,
-      fatherName: userInfo?.[0].father_name,
-      notionalCode: userInfo?.[0].security_number,
-      email: userInfo?.[0].email,
-      mobileNumber: userInfo?.[0].phone_number,
-      province: provinces.find((province) => province.id === userInfo[0].address?.province_id),
-      city: cities.find((city) => city.id === userInfo[0].address?.city_id),
+      fullName: userInfo ? `${userInfo.first_name ?? null} ${userInfo.last_name ?? null}`.trim() : '',
+      fatherName: userInfo?.father_name ?? null,
+      notionalCode: userInfo?.security_number ?? null,
+      email: userInfo?.email ?? null,
+      mobileNumber: userInfo?.phone_number ?? null,
+      province: null,
+      city: null,
+      gender: '',
+      birthDate: userInfo?.birthday ?? null,
     },
   })
   const selectedProvince = watch('province') // ? Assets
-
-  // useEffect(() => {
-  //   if (address.province) {
-  //     setCities(iranCity.citiesOfProvince(address.province.id))
-  //   }
-  //   reset(address)
-  // }, [address, reset])
 
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
@@ -89,50 +87,174 @@ const Account: NextPage = () => {
     return () => subscription.unsubscribe()
   }, [watch, setValue])
 
+  useEffect(() => {
+    axios
+      .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+      })
+      .then((res) => {
+        setProvinces(res.data)
+
+        // Set province and load cities after provinces are loaded
+        if (userInfo?.province && typeof userInfo.province === 'object' && 'id' in userInfo.province) {
+          // Use type assertion with unknown first to avoid direct type conversion error
+          const provinceData = userInfo.province as unknown as { id: number; name: string; slug: string }
+          const provinceObj = res.data.find((p: any) => p.id === provinceData.id)
+
+          if (provinceObj) {
+            setValue('province', provinceObj)
+
+            // Load cities for this province
+            axios
+              .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${provinceObj.id}`, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${getToken()}`,
+                },
+              })
+              .then((citiesRes) => {
+                const citiesData = citiesRes.data
+                setCities(citiesData)
+
+                // Set city if it exists and belongs to this province
+                if (userInfo?.city && typeof userInfo.city === 'object' && 'id' in userInfo.city) {
+                  // Use type assertion with unknown first to avoid direct type conversion error
+                  const cityData = userInfo.city as unknown as { id: number; name: string; slug: string }
+
+                  // Only set the city if it belongs to the current province
+                  const cityObj = citiesData.find((c: any) => c.id === cityData.id)
+                  if (cityObj) {
+                    console.log('Setting city:', cityObj)
+                    // Use a timeout to ensure this happens after any potential city reset
+                    setTimeout(() => {
+                      setValue('city', cityObj)
+                    }, 100)
+                  }
+                }
+              })
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching provinces:', err)
+      })
+  }, [userInfo, setValue])
+
+  useEffect(() => {
+    if (userInfo) {
+      reset({
+        fullName: `${userInfo.first_name ?? null} ${userInfo.last_name ?? null}`.trim(),
+        fatherName: userInfo.father_name ?? null,
+        notionalCode: userInfo.security_number ?? null,
+        email: userInfo.email ?? null,
+        mobileNumber: userInfo.phone_number ?? null,
+        gender: userInfo.user_type === 'male' || userInfo.user_type === 'female' ? userInfo.user_type : '',
+        birthDate: userInfo.birthday ?? null,
+      })
+
+      if (userInfo.avatar) {
+        setAvatarUrl(userInfo.avatar)
+      }
+    }
+  }, [userInfo, reset])
+
+  // Handle province change
+  useEffect(() => {
+    if (selectedProvince?.id) {
+      axios
+        .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+        })
+        .then((res) => {
+          setCities(res.data)
+
+          // Don't reset the city if the user is just loading the form
+          // Only reset if the user manually changes the province
+          const currentCity = getValues('city')
+          if (!currentCity || (currentCity.province_id && currentCity.province_id !== selectedProvince.id)) {
+            setValue('city', { name: '', id: 0 })
+          }
+        })
+        .catch((err) => {
+          console.error('Error fetching cities:', err)
+          setCities([])
+        })
+    } else {
+      setCities([])
+      setValue('city', { name: '', id: 0 })
+    }
+  }, [selectedProvince, setValue, getValues])
+
+  // Handle successful profile update
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success('اطلاعات حساب کاربری با موفقیت بروز رسانی شد', {
+        position: 'top-center',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
+
+      // Redirect after toast is shown
+      setTimeout(() => {
+        push('/soodam')
+      }, 2000)
+    }
+  }, [isSuccess, push])
+
   const handleBack = () => {
     back()
   }
-  // const createAds = {
-  //   title: data.title,
-  //   security_code_owner_building: data.nationalCode || '',
-  //   phone_number_owner_building: data.phoneNumber,
-  //   description: data.description,
-  //   sub_category_id: data.category,
-  //   sub_sub_category_id: 0,
-  //   full_address: {
-  //     province_id: 27,
-  //     city_id: 968,
-  //     address: data.address,
-  //     zip_code: data.postalCode,
-  //     longitude: data.location.lng,
-  //     latitude: data.location.lat,
-  //   },
-  //   features: formattedFeatures,
-  //   medias: data.mediaImages.map((item) => ({
-  //     media: item.url,
-  //     type: getFileExtension(item.url),
-  //   })),
-  // }
   const onSubmit = (data: UserInfoForm) => {
     console.log('Form submitted:', data)
 
+    // Helper function to convert empty strings or 0 to null
+    const nullIfEmpty = (value: string | number | undefined | null) => {
+      if (value === '' || value === 0 || value === undefined) return null
+      return value
+    }
+
+    // Prepare full_address data
+    const addressData = {
+      province_id: nullIfEmpty(data.province?.id || 0),
+      city_id: nullIfEmpty(data.city?.id || 0),
+      street: nullIfEmpty('') || '',
+      address: nullIfEmpty('') || '',
+      zip_code: nullIfEmpty(userInfo?.addresses?.[0]?.zip_code) || null,
+      longitude: nullIfEmpty(userInfo?.addresses?.[0]?.longitude || 0),
+      latitude: nullIfEmpty(userInfo?.addresses?.[0]?.latitude || 0),
+    }
+
+    // Check if all address fields are null
+    const isAddressEmpty = Object.values(addressData).every((value) => value === null || value === '')
+
     const createUser = {
-      id: userInfo?.[0].id,
-      first_name: data.fullName,
-      last_name: data.fatherName,
-      father_name: data.fatherName,
-      security_number: data.notionalCode,
-      email: data.email,
-      // mobile_number: data.mobileNumber,
-      birthday: data.birthDate,
-      gender: data.gender,
-      full_address: {
-        id: userInfo?.[0].address?.id,
-        province_id: data.province.id,
-        city_id: data.city.id,
-        longitude: userInfo?.[0].address?.longitude,
-        latitude: userInfo?.[0].address?.latitude,
-      },
+      id: nullIfEmpty(userInfo?.id || 0),
+      first_name: nullIfEmpty(data.fullName.split(' ')[0]) || null,
+      last_name: nullIfEmpty(data.fullName.split(' ').slice(1).join(' ')) || null,
+      phone_number: nullIfEmpty(data.mobileNumber),
+      father_name: nullIfEmpty(data.fatherName) || null,
+      security_number: nullIfEmpty(data.notionalCode) || null,
+      email: nullIfEmpty(data.email) || null,
+      birthday: nullIfEmpty(
+        data.birthDate
+          ?.split('/')
+          .map((num) => num.padStart(2, '0'))
+          .join('-')
+      ),
+      gender: nullIfEmpty(data.gender) || 'Unknown',
+      province_id: nullIfEmpty(data.province?.id || 0),
+      city_id: nullIfEmpty(data.city?.id || 0),
+      avatar: nullIfEmpty(avatarUrl?.path || (avatarUrl?.url ? avatarUrl.url.replace('/media/', '') : '')),
+      full_address: isAddressEmpty ? null : addressData,
     }
     updateUserInfo(createUser)
   }
@@ -147,64 +269,40 @@ const Account: NextPage = () => {
     setValue('birthDate', `${newBirthDate.year}/${newBirthDate.month}/${newBirthDate.day}`)
   }
 
-  const handleMainFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMainFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files) {
-      const validFiles: any[] = []
+    if (files && files.length > 0) {
+      try {
+        setUploadingAvatar(true)
+        const formData = new FormData()
+        formData.append('file', files[0])
 
-      Array.from(files).forEach((file) => {
-        const img = new Image()
-        img.src = URL.createObjectURL(file)
-
-        img.onload = () => {
-          URL.revokeObjectURL(img.src)
-
-          validFiles.push(file)
-          setValue('image', file, { shouldValidate: true })
-          setSelectedFiles([...validFiles])
-        }
-      })
-    }
-  }
-
-  useEffect(() => {
-    axios
-      .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`, 
-        },
-      })
-      .then((res) => {
-        setProvinces(res.data)
-      })
-      .catch((err) => {
-        console.error('Error fetching provinces:', err)
-      })
-  }, [])
-
-  useEffect(() => {
-    if (selectedProvince?.id) {
-      axios
-        .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+        const response = await axios.post('http://194.5.193.119:4000/api/user/avatar', formData, {
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getToken()}`, // ← اینجا هم تابع را اجرا کن
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${getToken()}`,
           },
         })
-        .then((res) => {
-          setCities(res.data)
-          setValue('city', { name: '', id: 0 })
-        })
-        .catch((err) => {
-          console.error('Error fetching cities:', err)
-          setCities([])
-        })
-    } else {
-      setCities([])
-      setValue('city', { name: '', id: 0 })
+
+        if (response.data.status === 'success') {
+          const avatarUrl = response.data.avatar.url
+          setAvatarUrl(avatarUrl)
+
+          // Show a preview of the selected image
+          const img = new Image()
+          img.src = URL.createObjectURL(files[0])
+          img.onload = () => {
+            URL.revokeObjectURL(img.src)
+            setSelectedFiles([files[0]])
+          }
+        }
+      } catch (error) {
+        console.error('Error uploading avatar:', error)
+      } finally {
+        setUploadingAvatar(false)
+      }
     }
-  }, [selectedProvince, setValue])
+  }
 
   if (errors) {
     console.log(errors, 'errors')
@@ -212,7 +310,7 @@ const Account: NextPage = () => {
   // ? Render(s)
   return (
     <>
-      {' '}
+      <ToastContainer rtl />{' '}
       <form onSubmit={handleSubmit(onSubmit)} className="pb-[100px]">
         <div className="bg-white m-4 rounded-2xl border border-[#E3E3E7]">
           <div className="flex justify-center items-center gap-1 p-4">
@@ -221,6 +319,7 @@ const Account: NextPage = () => {
           <div className="flex flex-col">
             <div className="px-4 pb-4">
               <div className="flex justify-center">
+                {/* user avatar section  */}
                 <div className="">
                   <input
                     type="file"
@@ -230,16 +329,26 @@ const Account: NextPage = () => {
                     accept="image/*"
                   />
                   <label htmlFor="MainThumbnail" className="block cursor-pointer text-sm font-normal">
-                    {selectedFile.length > 0 ? (
-                      selectedFile.map((file: any, index: number) => (
-                        <div key={index} className="">
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt={file.name}
-                            className="object-contain w-[76px] h-[76px] rounded-full"
-                          />
-                        </div>
-                      ))
+                    {uploadingAvatar ? (
+                      <div className="bg-[#fafafa] relative w-[76px] h-[76px] flex-center rounded-full border-[5px] border-[#a3a3a3]">
+                        <span className="text-xs">در حال آپلود...</span>
+                      </div>
+                    ) : selectedFile.length > 0 ? (
+                      <div className="">
+                        <img
+                          src={URL.createObjectURL(selectedFile[0])}
+                          alt="avatar"
+                          className="object-cover w-[76px] h-[76px] rounded-full"
+                        />
+                      </div>
+                    ) : avatarUrl && avatarUrl.url ? (
+                      <div className="">
+                        <img
+                          src={`http://194.5.193.119:4000${avatarUrl.url}`}
+                          alt="user-avatar"
+                          className="object-cover w-[76px] h-[76px] rounded-full"
+                        />
+                      </div>
                     ) : (
                       <div className="bg-[#fafafa] relative w-[76px] h-[76px] flex-center rounded-full border-[5px] border-[#a3a3a3]">
                         <img className="w-[57px]" src="/static/user.png" alt="product-placeholder" />
@@ -326,6 +435,7 @@ const Account: NextPage = () => {
                       isDarker
                       isMarketerForm
                       label="شماره همراه"
+                      disabled
                       type="number"
                       {...field}
                       control={control}
@@ -347,13 +457,8 @@ const Account: NextPage = () => {
                   <label className="text-sm font-normal pb-1">شهر</label>
                   <Combobox control={control} name="city" list={cities} placeholder="لطفا شهر خود را انتخاب کنید" />
                   {errors.city?.name && <DisplayError errors={errors.city?.name} />}
+                  {errors.city?.message && <span className="text-xs text-[#D52133]">{errors.city.message}</span>}
                 </div>
-                {/* <div className="w-full space-y-1">
-                  <label htmlFor="" className="text-sm font-normal pb-1">
-                    استان
-                  </label>
-                  <SelectBox control={control} name="province" list={AllProvinces} placeholder="انتخاب شهر" />
-                </div> */}
                 <Controller
                   name="birthDate"
                   control={control}
@@ -474,11 +579,7 @@ const Account: NextPage = () => {
           </div>
         </div>{' '}
         <div className="px-4">
-          <Button
-            type="submit"
-            //  onClick={() => push('/marketer/register')}
-            className="w-full font-bold text-sm rounded-lg"
-          >
+          <Button type="submit" disabled={isLoading} className="w-full font-bold text-sm rounded-lg">
             ذخیره اطلاعات
           </Button>
           <Button

@@ -98,4 +98,4 @@ export const iranProvincesByPopulation = [
   { province: 'ایلام', population: 600000, geom: { coordinates: [46.4227, 33.6374] } },
 ]
 
-export const NEXT_PUBLIC_API_URL = 'http://194.5.193.119:8000'
+export const NEXT_PUBLIC_API_URL = 'http://194.5.193.119:4000'

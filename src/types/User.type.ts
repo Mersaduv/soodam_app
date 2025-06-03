@@ -15,16 +15,32 @@ export interface User {
   is_active?: boolean
   user_type?: string
   user_group?: number
-  province?: string
-  city?: string
+  province?:
+    | {
+        id: number
+        name: string
+      }
+    | string
+  city?:
+    | {
+        id: number
+        name: string
+      }
+    | string
   birthday?: any
   role?: UserRoleType
-  userType?: string,
-  address?: UserAddress,
-  avatar?: string,
-  rating?: number,
-  member_since?: string,
-  user_wallet?:number,
+  userType?: string
+  address?: UserAddress
+  addresses?: UserAddress[]
+  avatar?:
+    | {
+        url: string
+        path: string
+      }
+    | string
+  rating?: number
+  member_since?: string
+  user_wallet?: number
   subscription?: {
     type: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
     remainingViews: number
@@ -32,7 +48,7 @@ export interface User {
     startDate: string
     endDate: string
     status: 'ACTIVE' | 'EXPIRED'
-    viewedProperties: Array<{ propertyId: string; viewedDate: string }> 
+    viewedProperties: Array<{ propertyId: string; viewedDate: string }>
   }
 }
 
@@ -40,14 +56,18 @@ export interface UserAddress {
   id: string
   content_type_id?: string
   object_id?: string
-  province?: {
-    id: number,
-    name: string
-  } | string,
-  city?: {
-    id: number,
-    name: string
-  } | string,
+  province?:
+    | {
+        id: number
+        name: string
+      }
+    | string
+  city?:
+    | {
+        id: number
+        name: string
+      }
+    | string
   street?: string
   address?: string
   zip_code?: string

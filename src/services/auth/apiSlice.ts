@@ -92,7 +92,6 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
 
     verifyLogin: builder.mutation<VerifyLoginResult, VerifyLoginQuery>({
       query: ({ code, phoneNumber }) => {
-        // const body: VerifyLoginQuery = { code, phoneNumber, role }
         const body = { phone_number: phoneNumber, verify_code: code }
 
         return {
@@ -103,14 +102,19 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
       },
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
+          // Clear any existing cached data first to prevent old user data persistence
+          // dispatch(productionApiSlice.util.resetApiState())
+          
           const { data } = await queryFulfilled
           if (data) {
+            // Clear any remaining stored data before setting new data
+            localStorage.clear()
+            
             localStorage.setItem('token', data.token)
             const userInfoData = await dispatch(authApiSlice.endpoints.getUserInfo.initiate()).unwrap()
             console.log(userInfoData, 'userInfoData----------')
 
-            // const birthdate = `${userInfoData[0].birthday._date__year}/${userInfoData[0].birthday._date__month}/${userInfoData[0].birthday._date__day}`// 1402/01/01
-            const birthdate = userInfoData.birthday || ""
+            const birthdate = userInfoData.birthday || ''
 
             const address = userInfoData.address || null
             const latitude = address?.latitude || null
@@ -190,21 +194,45 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
       query: () => ({
         url: '/api/auth/logout',
         method: 'GET',
+        credentials: 'include', // Include credentials to properly handle server-side session
       }),
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled
+          
+          // Clear Redux state
           dispatch(clearCredentials())
+          
+          // Clear all localStorage and sessionStorage
+          if (typeof window !== 'undefined') {
+            localStorage.clear()
+            sessionStorage.clear()
+          }
+          
+          // Reset all API state to ensure no cached data persists
+          dispatch(productionApiSlice.util.resetApiState())
+          
         } catch (error) {
           console.error('logout:', error)
+          
+          // Even if API call fails, clear local data
+          dispatch(clearCredentials())
+          if (typeof window !== 'undefined') {
+            localStorage.clear()
+            sessionStorage.clear()
+          }
+          dispatch(productionApiSlice.util.resetApiState())
         }
       },
     }),
 
-    updateUserInfo: builder.mutation<MsgResult, UpdateUserInfoQuery>({
+    updateUserInfo: builder.mutation<MsgResult, any>({
       query: (user) => ({
-        url: '/api/user/edit_user_info',
-        method: 'POST',
+        url: '/api/user/profile',
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: user,
       }),
       invalidatesTags: ['User'],

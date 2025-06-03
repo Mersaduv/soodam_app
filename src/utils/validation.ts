@@ -14,7 +14,6 @@ export const adminPhoneSchema = Yup.object().shape({
   security_number: Yup.string().required('کد ملی الزامی است'),
 })
 
-
 export const codeSchema = Yup.object().shape({
   code: Yup.string().length(6, 'کد باید ۵ رقمی باشد').required('کد تایید الزامی است'),
 })
@@ -39,8 +38,7 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
     phoneNumber: Yup.string()
       .required('شماره تماس الزامی است')
       .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
-    nationalCode: Yup.string()
-      .optional(),
+    nationalCode: Yup.string().optional(),
     postalCode: Yup.string().required('کد پستی الزامی است').min(10, 'کد پستی معتبر نیست'),
     address: Yup.string().required('آدرس الزامی است'),
     category: Yup.string().required('دسته‌بندی الزامی است'),
@@ -120,7 +118,13 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
     features: Yup.object().shape(
       contextData &&
         contextData.features
-          .filter((item) => item.type === 'text' && item.key !== 'text_discount' && item.key !== 'text_mortgage_deposit' && item.key !== 'text_monthly_rent')
+          .filter(
+            (item) =>
+              item.type === 'text' &&
+              item.key !== 'text_discount' &&
+              item.key !== 'text_mortgage_deposit' &&
+              item.key !== 'text_monthly_rent'
+          )
           .reduce((schema, field) => {
             schema[field.id] = Yup.string()
               .required(`${field.name} الزامی است`)
@@ -131,7 +135,6 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
             return schema
           }, {} as Record<string, Yup.StringSchema>)
     ),
-
   })
 
 export const validationRequestSchema = (contextData: { features: Feature[]; dealType: string }) =>
@@ -311,34 +314,26 @@ export const marketerUserFormValidationSchema = Yup.object().shape({
 })
 
 export const userInfoFormValidationSchema = Yup.object().shape({
-  image: Yup.mixed(),
-
-  fullName: Yup.string()
-    .required('نام و نام خانوادگی الزامی است'), // فقط حروف فارسی مجاز هستند
-
-  fatherName: Yup.string()
-    .required('نام پدر الزامی است'), // فقط حروف فارسی مجاز هستند
-
-  notionalCode: Yup.string()
-    .required('کد ملی الزامی است')
-    .matches(/^[0-9]{10}$/, 'کد ملی باید ۱۰ رقم باشد'), // دقیقاً ۱۰ رقم
-
-  email: Yup.string()
-    .required('ایمیل الزامی است')
-    .email('ایمیل معتبر نیست'), // اعتبارسنجی فرمت ایمیل
-
   mobileNumber: Yup.string()
     .required('شماره موبایل الزامی است')
     .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'), // شروع با 09 و ۱۱ رقم
-
-  province: Yup.object()
-    .required('استان الزامی است'), // کل شیء province الزامی است
-
-  birthDate: Yup.string()
-    .required('تاریخ تولد الزامی است'), // فرمت تاریخ YYYY-MM-DD
-
-  gender: Yup.string()
-    .required('جنسیت الزامی است'), // فقط مقادیر male یا female مجاز هستند
+  province: Yup.object().shape({
+    id: Yup.number().nullable(),
+    name: Yup.string().nullable()
+  }).nullable().optional(),
+  city: Yup.object().shape({
+    id: Yup.number().nullable(),
+    name: Yup.string().nullable()
+  }).nullable().optional()
+    .test('required-if-province', 'اگر استان انتخاب شده است، شهر هم باید انتخاب شود', function(value) {
+      const { province } = this.parent;
+      // If province is not selected or has no ID, city is optional
+      if (!province || !province.id) {
+        return true;
+      }
+      // If province is selected (has an ID), city is required and must have an ID
+      return !!(value && value.id);
+    })
 })
 
 export const estateConsultantRegisterFormValidationSchema = Yup.object().shape({
@@ -349,14 +344,12 @@ export const estateConsultantRegisterFormValidationSchema = Yup.object().shape({
 
 export const adminFormValidationSchema = Yup.object().shape({
   full_name: Yup.string().required('نام و نام خانوادگی الزامی است'),
-  phone_number: Yup
-    .string()
+  phone_number: Yup.string()
     .required('شماره موبایل الزامی است')
     .matches(/^(09[0-9]{9})$/, 'شماره موبایل معتبر نیست'),
-  email:  Yup.string().required('ایمیل الزامی است').email('ایمیل معتبر نیست'),
+  email: Yup.string().required('ایمیل الزامی است').email('ایمیل معتبر نیست'),
   password: Yup.string().required('رمز عبور الزامی است').min(8, 'رمز عبور باید حداقل 8 کاراکتر باشد'),
-  confirm_password: Yup
-    .string()
+  confirm_password: Yup.string()
     .oneOf([Yup.ref('password')], 'رمز عبور مطابقت ندارد')
     .required('تکرار رمز عبور الزامی است'),
   city: Yup.object().shape({
@@ -364,4 +357,3 @@ export const adminFormValidationSchema = Yup.object().shape({
   }),
   security_number: Yup.string().required('کد امنیتی الزامی است'),
 })
-

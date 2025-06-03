@@ -6,6 +6,7 @@ import { Button } from '@/components/ui'
 import { clearCredentials } from '@/store'
 import { useRouter } from 'next/router'
 import { LogoutSmIcon } from '@/icons'
+import { useLogoutMutation } from '@/services/auth/apiSlice'
 
 export default function LogoutButton({
   isProfile,
@@ -17,21 +18,56 @@ export default function LogoutButton({
   isShowDrawer?: boolean
 }) {
   // ? Assets
-  const { replace, query } = useRouter()
+  const { push } = useRouter()
   const dispatch = useAppDispatch()
+  const [logout] = useLogoutMutation()
 
   // Handlers
-  const handleLogout = () => {
-    dispatch(clearCredentials())
-    localStorage.removeItem('userCity')
-    replace('/')
+  const handleLogout = async () => {
+    try {
+      // Call the logout API
+      await logout().unwrap()
+      
+      // Clear all possible storage
+      if (typeof window !== 'undefined') {
+        localStorage.clear()
+        sessionStorage.clear()
+      }
+      
+      // Clear Redux state
+      dispatch(clearCredentials())
+      
+      // Force page reload to ensure clean state
+      if (typeof window !== 'undefined') {
+        // window.location.href = '/'
+        push('/')
+      } else {
+        push('/')
+      }
+    } catch (error) {
+      console.error('Logout failed:', error)
+      
+      // Even if logout fails, clear local state and redirect
+      if (typeof window !== 'undefined') {
+        localStorage.clear()
+        sessionStorage.clear()
+      }
+      dispatch(clearCredentials())
+      
+      if (typeof window !== 'undefined') {
+        // window.location.href = '/'
+        push('/')
+      } else {
+        push('/')
+      }
+    }
   }
 
   return (
     <>
       {isProfile ? (
         <div
-          className="flex items-center gap-2 text-sm text-[#D52133] font-medium cursor-pointer  w-full py-3"
+          className="flex items-center gap-2 text-sm text-[#D52133] font-medium cursor-pointer w-full py-3"
           onClick={handleLogout}
         >
           <LogoutSmIcon width="24px" height="24px" /> خروج
@@ -61,7 +97,7 @@ export default function LogoutButton({
           )}
         </Button>
       ) : (
-        <Button className="w-full " onClick={handleLogout}>
+        <Button className="w-full" onClick={handleLogout}>
           خروج
         </Button>
       )}

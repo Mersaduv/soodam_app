@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { UploadResult } from './allHousing/types'
 import { generateQueryParams, getToken } from '@/utils'
-import { AdFormValues, CreateAds, Feature, Housing, NearbyAdsResponse, QueryParams, ServiceResponse } from '@/types'
+import { AdFormValues, AdminAdvertisementResponse, CreateAds, Feature, Housing, NearbyAdsResponse, QueryParams, ServiceResponse } from '@/types'
 import { QueryFeatureByCategory } from './feature/type'
 
 const productionApiSlice = createApi({
@@ -131,6 +131,30 @@ const productionApiSlice = createApi({
       }),
       providesTags: (result, error, arg) => [{ type: 'Housing', id: arg }],
     }),
+    getAdvByAdmin: builder.query<AdminAdvertisementResponse, QueryParams | void>({
+      query: (params) => {
+        const queryParams = params ? generateQueryParams(params) : ''
+        return {
+          url: `/api/admin/advertisements${queryParams ? `?${queryParams}` : ''}`,
+          method: 'GET',
+
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      },
+      providesTags: (result) =>
+        result?.items
+          ? [
+              ...result.items.map(({ id }) => ({
+                type: 'Housing' as const,
+                id,
+              })),
+              'Housing',
+            ]
+          : ['Housing'],
+    }),
   }),
 })
 export const {
@@ -143,5 +167,6 @@ export const {
   useGetAdvByGeolocationQuery,
   useGetMyAdvQuery,
   useGetAdvByIdQuery,
+  useGetAdvByAdminQuery,
 } = productionApiSlice
 export default productionApiSlice

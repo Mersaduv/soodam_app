@@ -4,7 +4,7 @@ const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl:
-      process.env.NODE_ENV === 'production' ? 'http://194.5.193.119:8000' : process.env.NEXT_PUBLIC_API_URL_LOCAL,
+      process.env.NODE_ENV === 'production' ? 'http://194.5.193.119:4000' : process.env.NEXT_PUBLIC_API_URL_LOCAL,
     timeout: 60000,
   }),
 

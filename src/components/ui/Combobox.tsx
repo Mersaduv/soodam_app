@@ -42,14 +42,14 @@ const Combobox: React.FC<Props> = (props) => {
 
   // ? Render(s)
   return (
-    <HUICombobox value={field.value ?? ""} name={field.name} onChange={field.onChange}>
+    <HUICombobox value={field.value || null} name={field.name} onChange={field.onChange}>
       <div className="relative">
         <div className={`relative w-full cursor-default overflow-hidden ${!adminHeight ? 'rounded-lg' : 'rounded-[10px]'} border border-gray-200 bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm`}>
           <HUICombobox.Input
             className={`w-full border-none py-2 pl-3 pr-3 text-sm leading-5 text-gray-900 outline-none focus:ring-0 ${
               !adminHeight ? 'h-[40px]' : 'h-[48px] placeholder:text-[14px] px-3'
             }`}
-            displayValue={(item: { name: string }) => item.name ?? ""}
+            displayValue={(item: { name: string }) => (item?.name || "")}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={placeholder}
             autoComplete="off"

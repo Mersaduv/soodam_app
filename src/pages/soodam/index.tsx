@@ -17,29 +17,31 @@ import {
 } from '@/icons'
 import { useAppSelector } from '@/hooks'
 import { useEffect, useState } from 'react'
-import { useGetSubscriptionStatusQuery } from '@/services'
+import { useGetSubscriptionStatusQuery, useGetUserInfoQuery } from '@/services'
 
 const Soodam: NextPage = () => {
   // ? Assets
   const { query, events, back } = useRouter()
-  const { role, phoneNumber, fullName } = useAppSelector((state) => state.auth)
+  const { data: userInfo, isLoading } = useGetUserInfoQuery()
   // ? States
-  const [subscriptionStatus, setSubscriptionStatus] = useState('')
+  const [avatarSrc, setAvatarSrc] = useState('/static/OBJECTM.png')
+
   // ? Queries
-  const { data: statusData, error } = useGetSubscriptionStatusQuery(phoneNumber)
   const handleBack = () => {
     back()
   }
 
+  // Set avatar when user data is available
   useEffect(() => {
-    if (statusData && Object.keys(statusData).length > 0) {
-      console.log(statusData, 'statusData--statusData')
-      setSubscriptionStatus(`${statusData.data.remainingViews}`)
-    } else {
-      setSubscriptionStatus(`0`)
+    try {
+      if (userInfo && userInfo.avatar && typeof userInfo.avatar === 'object' && 'url' in userInfo.avatar) {
+        if (userInfo.avatar.url) setAvatarSrc(userInfo.avatar.url)
+      }
+    } catch (error) {
+      console.error('Error setting avatar:', error)
     }
-  }, [statusData])
-  console.log(fullName, 'fullName')
+  }, [userInfo])
+
   // ? Render(s)
   return (
     <>
@@ -65,11 +67,32 @@ const Soodam: NextPage = () => {
             <div className="absolute bottom-0 flex items-center gap-3 pb-7 px-4 w-full">
               <div className="relative w-[75px] h-[64px]">
                 <div className="border-[3px] border-[#FFFFFF] rounded-full w-[64px] h-[64px] absolute z-10"></div>
-                <img className="w-[53px] h-[53px] absolute right-[6px] top-[5.9px]" src="/static/OBJECTM.png" alt="" />
+                {isLoading ? (
+                  <div className="w-[53px] h-[53px] absolute right-[6px] top-[5.9px] rounded-full bg-[#ffaeb6] animate-pulse"></div>
+                ) : (
+                  <img
+                    className="w-[53px] h-[53px] absolute right-[6px] top-[5.9px] rounded-full object-cover"
+                    src={avatarSrc}
+                    alt="avatar"
+                    onError={() => setAvatarSrc('/static/OBJECTM.png')}
+                  />
+                )}
               </div>
-              <div className="flex flex-col gap-2 w-full">
-                <h1 className="text-base font-semibold">{fullName !== null ? fullName : 'بی نام'}</h1>
-                <span className="text-sm text-[#5A5A5A] font-semibold farsi-digits">{phoneNumber}</span>
+              <div className="flex flex-col gap-2 w-full farsi-digits">
+                {isLoading ? (
+                  <div className="h-5 w-32 bg-[#ffaeb6] rounded animate-pulse"></div>
+                ) : (
+                  <h1 className="text-base font-semibold">
+                    {userInfo?.full_name || userInfo?.phone_number || 'بی نام'}
+                  </h1>
+                )}
+                {isLoading ? (
+                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  <span className="text-sm text-[#5A5A5A] font-semibold farsi-digits">
+                    {userInfo?.phone_number || ''}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -94,13 +117,17 @@ const Soodam: NextPage = () => {
                 <span className="text-[11px] font-normal text-[#5A5A5A] line-clamp-1 overflow-hidden text-ellipsis mb-1">
                   اشتراک باقی مانده
                 </span>
-                <div className="farsi-digits font-bold text-sm line-clamp-1 overflow-hidden text-ellipsis">
-                  {subscriptionStatus} آگهی
-                </div>
+                {isLoading ? (
+                  <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  <div className="farsi-digits font-bold text-sm line-clamp-1 overflow-hidden text-ellipsis">
+                    {userInfo?.subscription?.remainingViews || 0} آگهی
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          <div className='pb-[100px]'>
+          <div className="pb-[100px]">
             <div className="px-4 space-y-2 mt-5 mb-10">
               <Link href={'/soodam/account'} className="flex items-center gap-2 py-3 cursor-pointer">
                 <UserEditSmIcon width="24px" height="24px" />
