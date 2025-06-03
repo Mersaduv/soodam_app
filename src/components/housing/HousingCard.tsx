@@ -49,7 +49,7 @@ const HousingCard: React.FC<Props> = (props) => {
                       width={321}
                       height={100}
                       className="rounded-2xl h-[104px] min-w-[104px] max-w-[104px] object-cover"
-                      src={`${NEXT_PUBLIC_API_URL}${housing.primary_image}`}
+                      src={`${housing.primary_image}`}
                       alt={housing.title}
                     />
                   </div>
@@ -175,7 +175,7 @@ const HousingCard: React.FC<Props> = (props) => {
                   width={321}
                   height={100}
                   className="rounded-2xl h-[183px] object-cover"
-                  src={`${NEXT_PUBLIC_API_URL}${housing.primary_image}`}
+                  src={`${housing.primary_image}`}
                   alt={housing.title}
                 />
               ) : (

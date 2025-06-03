@@ -771,7 +771,7 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
                   width={104}
                   height={100}
                   className="rounded-[10px] h-[104px] object-cover"
-                  src={`${NEXT_PUBLIC_API_URL}${housing.primary_image}`}
+                  src={`${housing.primary_image}`}
                   alt={housing.title}
                 />
               </div>
