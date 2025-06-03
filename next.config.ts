@@ -1,5 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig: import('next').NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://194.5.193.119:8000/api/:path*'
+      },
+      {
+        source: '/media/:path*',
+        destination: 'http://194.5.193.119:8000/media/:path*'
+      } 
+    ];
+  },
   // distDir: '../../backend-soodam/backend_soodam',
   distDir: '.next',
   output: 'export',
@@ -21,23 +33,11 @@ const nextConfig: import('next').NextConfig = {
     domains: ['localhost', '194.5.193.119'],
     remotePatterns: [
       {
-        protocol: 'https',
+        protocol: 'http',
         hostname: '194.5.193.119',
       },
     ],
     unoptimized: true,
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://194.5.193.119:8000/api/:path*'
-      },
-      {
-        source: '/media/:path*',
-        destination: 'http://194.5.193.119:8000/media/:path*'
-      } 
-    ];
   },
   experimental: {
     turbo: {
