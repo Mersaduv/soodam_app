@@ -16,12 +16,13 @@ import { formatPriceLoc, getProvinceFromCoordinates } from '@/utils/stringFormat
 import moment from 'moment-jalaali'
 import { useState } from 'react'
 import { Button, Modal } from '@/components/ui'
+import { roles } from '@/utils'
 moment.loadPersian({ usePersianDigits: true, dialect: 'persian-modern' })
 const Requests: NextPage = () => {
   // ? Assets
   const { query, events, push } = useRouter()
   const dispatch = useAppDispatch()
-  const { role } = useAppSelector((state) => state.auth)
+  const { user } = useAppSelector((state) => state.auth)
 
   // ? States
   const [contactShown, setContactShown] = useState(false)
@@ -34,7 +35,7 @@ const Requests: NextPage = () => {
   // ? handlers
   const handleNavigate = (): void => {
     const logged = localStorage.getItem('loggedIn')
-    if (role === 'User') {
+    if (user?.role === roles.NormalUser) {
       dispatch(setIsShowLogin(true))
     } else if (logged === 'true') {
       push('/requests/new')
@@ -143,7 +144,7 @@ const Requests: NextPage = () => {
                               )}
                             </div>
                             <div className="flex flex-col gap-1">
-                              <h1 className='font-medium'>{item.userInfo.fullName}</h1>
+                              <h1 className="font-medium">{item.userInfo.fullName}</h1>
                               <div className="flex items-center gap-1.5">
                                 <LocationSmIcon width="16px" height="16px" />
                                 <div className="text-xs font-normal">{province}</div>

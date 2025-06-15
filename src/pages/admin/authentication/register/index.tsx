@@ -32,8 +32,8 @@ const RegisterPage: NextPage = () => {
   const [phoneNumber, setPhoneNumber] = useState('')
   // ? Assets
   const { replace, query, push, back } = useRouter()
-  const role = query.role as string
-  const roleName= role === roles.CityAdmin ? 'ادمین شهر' : role === roles.AdvAdmin ? 'ادمین آگهی' : role === roles.BlogAdmin ? 'ادمین خبر' : role === roles.Marketer ? 'بازاریاب' : role === roles.EstateConsultant ? 'مشاور املاک' : 'ادمین سودم'
+  const role = query.role as unknown as number
+  const roleName= role === roles.Admin ? 'ادمین' : 'ادمین سودم'
   const dispatch = useAppDispatch()
   // ? Login User
   const [login, { data, isSuccess, isError, isLoading, error }] = useLoginMutation()

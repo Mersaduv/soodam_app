@@ -92,7 +92,6 @@ function LoginPage() {
     verificationCode({
       code,
       phoneNumber,
-      role: query?.role,
     })
   }
   // const onSuccess = () => replace(query?.redirectTo?.toString() || "/");

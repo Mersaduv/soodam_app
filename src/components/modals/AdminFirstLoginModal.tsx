@@ -13,18 +13,17 @@ interface AdminFirstLoginModalProps {
 }
 
 const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onClose }) => {
-  const { role, phoneNumber, user } = useAppSelector((state) => state.auth)
+  const { phoneNumber, user } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const { push } = useRouter()
 
-  const handleClick = (pathname: string, query: { role: string }) => {
+  const handleClick = (pathname: string, query: { role: number }) => {
     push({
       pathname,
-      query
+      query,
     })
     onClose()
   }
-  
 
   const handleClickEstateConsultant = () => {
     const user = JSON.parse(localStorage.getItem('user'))
@@ -49,7 +48,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
         <Modal.Body>
           <div className="space-y-4">
             <div
-              onClick={() => handleClick('/admin/authentication/register', { role: roles.CityAdmin })}
+              onClick={() => handleClick('/admin/authentication/register', { role: roles.Admin })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
@@ -59,7 +58,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
             </div>
 
             <div
-              onClick={() => handleClick('/admin/authentication/register', { role: roles.AdvAdmin })}
+              onClick={() => handleClick('/admin/authentication/register', { role: roles.Admin })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
@@ -69,7 +68,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
             </div>
 
             <div
-              onClick={() => handleClick('/admin/authentication/register', { role: roles.BlogAdmin })}
+              onClick={() => handleClick('/admin/authentication/register', { role: roles.Admin })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
@@ -79,7 +78,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
             </div>
 
             <div
-              onClick={() => handleClick('/admin/authentication/register', { role: roles.Marketer })}
+              onClick={() => handleClick('/admin/authentication/register', { role: roles.Admin })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">

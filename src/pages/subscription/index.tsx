@@ -41,7 +41,7 @@ const SubscriptionPage: NextPage = () => {
   // ? Assets
   const { query, events, push } = useRouter()
   const dispatch = useAppDispatch()
-  const { role, phoneNumber } = useAppSelector((state) => state.auth)
+  const { phoneNumber, user } = useAppSelector((state) => state.auth)
   // ? States
   const [referralCode, setReferralCode] = useState('')
   const [subscriptionStatus, setSubscriptionStatus] = useState('')
