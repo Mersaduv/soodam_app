@@ -8,18 +8,22 @@ import { useGetSingleHousingQuery } from '@/services'
 import { HousingSliders } from '@/components/sliders'
 import {
   ClockSmIcon,
+  CubeMd2Icon,
   CubeMdIcon,
   EyeSmIcon,
   HearthIcon,
   HeartMdIcon,
   Location,
   Location2,
+  LocationMd2Icon,
   LocationMdIcon,
   LocationRedMdIcon,
   LocationSmIcon,
   LocationTitleIcon,
+  MoneyMd2Icon,
   MoneyMdIcon,
   SaveSmIcon,
+  Warning2SmIcon,
   WarningSmIcon,
 } from '@/icons'
 import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
@@ -32,10 +36,12 @@ import L from 'leaflet'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { HiOutlineLocationMarker } from 'react-icons/hi'
 import dynamic from 'next/dynamic'
-import { Button, Modal } from '@/components/ui'
+import { Button, InlineLoading, Modal } from '@/components/ui'
 import { BiShare } from 'react-icons/bi'
 import { IoShareSocialOutline } from 'react-icons/io5'
 import { useGetAdvByIdQuery } from '@/services/productionBaseApi'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
 interface Props {
   //   housing: Housing
@@ -49,7 +55,7 @@ interface Props {
 //******* */ When running MSW data mocking on server-side rendering, it causes an error.
 //   }
 const LocationMap = dynamic(() => import('@/components/map/LocationMap'), { ssr: false })
-const SingleHousing: NextPage = () => {
+const SingleAdminAdv: NextPage = () => {
   // ? Assets
   const { query, push } = useRouter()
   const dispatch = useAppDispatch()
@@ -60,6 +66,10 @@ const SingleHousing: NextPage = () => {
   const [showCopiedTooltip, setShowCopiedTooltip] = useState(false)
   const [isShow, modalHandlers] = useDisclosure()
   const [selectedPhoneNumber, setSelectedPhoneNumber] = useState('')
+  const [selectedAdId, setSelectedAdId] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [isRejectProcessing, setIsRejectProcessing] = useState(false)
+
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null
   // ? Queries
   const { refetch, data: housingData, isLoading } = useGetAdvByIdQuery(idQuery as string)
@@ -83,7 +93,7 @@ const SingleHousing: NextPage = () => {
       push('/authentication/login?role=memberUser')
       return
     }
-    
+
     // باز کردن مودال و ذخیره شماره تلفن
     setSelectedPhoneNumber(housingData.user?.phone_number || '')
     modalHandlers.open()
@@ -119,6 +129,54 @@ const SingleHousing: NextPage = () => {
     }
   }
 
+  const handleApproveAd = async (): Promise<void> => {
+    setIsProcessing(true)
+    try {
+      const token = localStorage.getItem('token')
+      await axios.post(
+        `/api/admin/advertisement/${idQuery}/approve`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      toast.success('آگهی با موفقیت تایید شد')
+      refetch()
+    } catch (error) {
+      toast.error('خطا در تایید آگهی')
+      console.error(error)
+    } finally {
+      setIsProcessing(false)
+      modalHandlers.close()
+    }
+  }
+
+  const handleRejectAd = async (): Promise<void> => {
+    setIsRejectProcessing(true)
+    try {
+      const token = localStorage.getItem('token')
+      await axios.post(
+        `/api/admin/advertisement/${idQuery}/reject`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      toast.success('آگهی با موفقیت رد شد')
+      refetch()
+    } catch (error) {
+      toast.error('خطا در رد آگهی')
+      console.error(error)
+    } finally {
+      setIsRejectProcessing(false)
+      modalHandlers.close()
+    }
+  }
+
   if (housingData) {
     console.log(housingData, 'housingData')
   }
@@ -128,9 +186,9 @@ const SingleHousing: NextPage = () => {
 
   // Add this function to determine if current user is the ad owner
   const isAdOwner = () => {
-    if (!user || !housingData || !housingData.user) return false;
-    return user.id === housingData.user.id;
-  };
+    if (!user || !housingData || !housingData.user) return false
+    return user.id === housingData.user.id
+  }
 
   // ? Render(s)
   return (
@@ -157,13 +215,24 @@ const SingleHousing: NextPage = () => {
 
                   {/* Edit Button - Only visible to ad owner */}
                   {isAdOwner() && (
-                    <div 
-                      id="editHouse" 
+                    <div
+                      id="editHouse"
                       className="rounded-full cursor-pointer flex-center"
                       onClick={() => push(`/housing/ad/edit?id=${housingData.id}`)}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
                       </svg>
                     </div>
                   )}
@@ -209,8 +278,8 @@ const SingleHousing: NextPage = () => {
               <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7] mt-3">
                 <div>
                   <div className="flex items-center gap-2 p-4 pb-0">
-                    <div className="bg-[#FFF0F2] rounded-[10px] p-1">
-                      <MoneyMdIcon width="24px" height="24px" />
+                    <div className="bg-[#F0F3F6] rounded-[10px] p-1 text-[#2C3E50]">
+                      <MoneyMd2Icon width="24px" height="24px" />
                     </div>
                     {housingData.price && housingData.price.amount > 0 ? (
                       <div className="text-[15px] font-medium">قیمت فروش</div>
@@ -345,7 +414,7 @@ const SingleHousing: NextPage = () => {
 
                     <div className="flex pb-4">
                       <div className="flex items-center gap-1.5 -mr-1">
-                        <WarningSmIcon width="17px" height="17px" />
+                        <Warning2SmIcon width="17px" height="17px" />
                         <div className="text-[#7A7A7A] text-[13px] font-normal flex items-center">گزارش تخلف آگهی</div>
                       </div>
                     </div>
@@ -357,9 +426,9 @@ const SingleHousing: NextPage = () => {
 
               <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7] mt-3 pb-4">
                 <div className="flex items-center gap-2 p-4 pb-0">
-                  <div className="bg-[#FFF0F2] rounded-[10px] p-1">
+                  <div className="bg-[#F0F3F6] rounded-[10px] p-1">
                     {/* در صورت وجود آیکون مناسب می‌توانید آن را تغییر دهید */}
-                    <CubeMdIcon width="24px" height="24px" />
+                    <CubeMd2Icon width="24px" height="24px" />
                   </div>
                   <div className="text-[15px] font-medium">ویژگی و امکانات</div>
                 </div>
@@ -427,12 +496,12 @@ const SingleHousing: NextPage = () => {
 
               <div className="my-4 px-4">
                 <h1 className="font-medium">موقعیت</h1>
-                <LocationMap housingData={housingData} />
+                <LocationMap isAdmin housingData={housingData} />
               </div>
               <div className="bg-white mx-4 border rounded-2xl border-[#E3E3E7] mt-3 pb-4">
                 <div className="flex items-center gap-2 p-4 pb-0">
-                  <div className="bg-[#FFF0F2] rounded-[10px] p-1">
-                    <LocationRedMdIcon width="20px" height="20px" />
+                  <div className="bg-[#F0F3F6] rounded-[10px] p-1">
+                    <LocationMd2Icon width="20px" height="20px" />
                   </div>
                   <div className="flex gap-2">
                     <div className="text-xs text-[#7A7A7A] font-medium whitespace-nowrap">آدرس دقیق:</div>
@@ -441,48 +510,28 @@ const SingleHousing: NextPage = () => {
                 </div>
               </div>
 
-              <div className="mx-4 mt-4 relative">
-                {showCopiedTooltip && (
-                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 text-xs px-2 py-1 rounded shadow">
-                    کپی شد!
-                  </div>
-                )}
-                <Button className="w-full rounded-[10px] farsi-digits" onClick={handleContactOwner}>
-                  {contactShown ? housingData.user?.username || 'تماس با مالک' : 'تماس با مالک'}
-                </Button>
+              <div className="mx-4 mt-4 relative flex gap-2">
+                <button
+                  onClick={handleApproveAd}
+                  disabled={isProcessing}
+                  className="bg-[#2C3E50] hover:bg-[#22303e] w-full text-white h-[40px] rounded-lg text-[12.5px] flex justify-center items-center"
+                >
+                  {isProcessing ? <InlineLoading /> : 'تایید آگهی'}
+                </button>
+                <button
+                  onClick={handleRejectAd}
+                  disabled={isRejectProcessing}
+                  className="border border-[#2C3E50] bg-white hover:bg-[#22303e0f] w-full text-[#2C3E50] h-[40px] rounded-lg text-[12.5px] flex justify-center items-center"
+                >
+                  {isRejectProcessing ? <InlineLoading /> : 'رد آگهی'}
+                </button>
               </div>
             </div>
           </div>
         </main>
       </ClientLayout>
-      <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
-        <Modal.Content
-          onClose={handleModalClose}
-          className="flex h-full flex-col gap-y-5 bg-white p-4 pb-8 rounded-2xl rounded-b-none"
-        >
-          <Modal.Header right onClose={handleModalClose}>
-            اطلاعات تماس
-          </Modal.Header>
-          <Modal.Body>
-            <div className="space-y-4">
-              <button
-                onClick={handleCall}
-                className="w-full py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-lg farsi-digits"
-              >
-                تماس با {selectedPhoneNumber}
-              </button>
-              <button
-                onClick={handleMessage}
-                className="w-full py-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg farsi-digits"
-              >
-                پیامک به {selectedPhoneNumber}
-              </button>
-            </div>
-          </Modal.Body>
-        </Modal.Content>
-      </Modal>
     </>
   )
 }
 
-export default SingleHousing
+export default SingleAdminAdv

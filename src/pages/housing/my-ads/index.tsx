@@ -1,10 +1,10 @@
 import { ClientLayout } from '@/components/layouts'
 import { HousingSkeleton } from '@/components/skeleton'
-import { Button, InlineLoading, LoadingScreen } from '@/components/ui'
+import { Button, InlineLoading, LoadingScreen, Modal } from '@/components/ui'
 import { useAppDispatch, useAppSelector } from '@/hooks'
-import { ArchiveTickIcon, CircleMdIcon, LocationSmIcon, TrashGrayIcon } from '@/icons'
+import { ArchiveTickIcon, ArrowLeftIcon, CircleMdIcon, InfoCircleMdIcon, LocationSmIcon, TrashGrayIcon } from '@/icons'
 import { useGetHousingQuery } from '@/services'
-import { useGetMyAdvQuery } from '@/services/productionBaseApi'
+import { useDeleteAdvMutation, useGetMyAdvQuery } from '@/services/productionBaseApi'
 import { setIsSuccess } from '@/store'
 import { Housing } from '@/types'
 import { formatPriceLoc, getProvinceFromCoordinates, NEXT_PUBLIC_API_URL } from '@/utils'
@@ -13,6 +13,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { BiDotsVerticalRounded } from 'react-icons/bi'
 
 const MyAds: NextPage = () => {
   // ? Assets
@@ -20,6 +21,11 @@ const MyAds: NextPage = () => {
   const { isSuccess } = useAppSelector((state) => state.statesData)
   const dispatch = useAppDispatch()
   const { data: housingData, isLoading } = useGetMyAdvQuery()
+  const [deleteAdv] = useDeleteAdvMutation()
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [selectedAdId, setSelectedAdId] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
   // const [housingAdd, setHousingAdd] = useState<Housing[]>([])
 
   // useEffect(() => {
@@ -37,13 +43,76 @@ const MyAds: NextPage = () => {
     localStorage.removeItem('addAdv')
     // setHousingAdd([])
   }
+  
+  const handleDeleteAd = (id: string) => {
+    setSelectedAdId(id)
+    setIsDeleteModalOpen(true)
+    setOpenMenuId(null)
+  }
 
-  const role = localStorage.getItem('role') ? localStorage.getItem('role')! : null
+  const confirmDeleteAd = async () => {
+    if (selectedAdId) {
+      setIsProcessing(true)
+      try {
+        await deleteAdv({ id: selectedAdId }).unwrap()
+        // After successful deletion, close the modal
+        setIsDeleteModalOpen(false)
+      } catch (error) {
+        console.error('Error deleting ad:', error)
+      } finally {
+        setIsProcessing(false)
+      }
+    }
+  }
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setSelectedAdId(null)
+  }
+
+  const userType = localStorage.getItem('userType') ? localStorage.getItem('userType')! : null
 
   return (
     <>
       <ClientLayout title="آگهی های من">
         <main className="py-[87px] relative">
+
+          {/* Delete Confirmation Modal */}
+          <Modal isShow={isDeleteModalOpen} onClose={closeDeleteModal} effect="ease-out">
+            <Modal.Content onClose={closeDeleteModal} className="flex h-full flex-col gap-y-5 bg-white p-4 rounded-2xl mx-4">
+              <Modal.Header onClose={closeDeleteModal}>
+                <div className="text-base font-medium">حذف آگهی</div>
+              </Modal.Header>
+              <Modal.Body>
+                <div className="space-y-4">
+                  <div className="flex justify-center items-center gap-2 w-full mb-3">
+                    <div>
+                      <InfoCircleMdIcon width="18px" height="18px" />
+                    </div>
+                    <span className="text-[#5A5A5A] font-normal">
+                      آیا از حذف این آگهی مطمئنی؟
+                    </span>
+                  </div>
+                </div>
+                <div className="flex gap-2.5">
+                  <button
+                    onClick={confirmDeleteAd}
+                    disabled={isProcessing}
+                    className="border border-[#D52133] text-[#D52133] hover:bg-[#FFF0F2] w-full h-[40px] rounded-lg text-[12.5px]"
+                  >
+                    {isProcessing ? <InlineLoading /> : 'حذف آگهی'}
+                  </button>
+                  <button
+                    onClick={closeDeleteModal}
+                    className="bg-[#F0F3F6] hover:bg-[#DDE2E6] w-full text-[#2C3E50] h-[40px] rounded-lg text-[12.5px] border border-[#DDE2E6]"
+                  >
+                    انصراف
+                  </button>
+                </div>
+              </Modal.Body>
+            </Modal.Content>
+          </Modal>
+
           {isLoading ? (
             <div className="flex justify-center items-center ">
               <HousingSkeleton />
@@ -64,16 +133,6 @@ const MyAds: NextPage = () => {
             </div>
           ) : (
             <div className=" px-4">
-              <div
-                onClick={handleClearAds}
-                className="flex -mt-1.5 items-center h-[33px] mb-2 cursor-pointer w-fit relative overflow-hidden px-2 rounded-full"
-              >
-                <TrashGrayIcon width="20px" height="21px" />
-                <div className="text-[#1A1E25] border-[#7A7A7A] mr-1 pr-1.5 font-normal text-sm">
-                  پاک کردن همه آگهی‌ها
-                </div>
-                <span className="absolute inset-0 bg-gray-300 opacity-0 transition-opacity duration-500 hover:opacity-30"></span>
-              </div>
               <div className="space-y-4">
                 {housingData &&
                   housingData?.items.length > 0 &&
@@ -83,7 +142,7 @@ const MyAds: NextPage = () => {
                       return (
                         <div
                           key={housing.id}
-                          className="bg-white rounded-lg p-4 shadow w-full"
+                          className="bg-white rounded-lg p-4 pb-3 shadow w-full"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex flex-col">
@@ -114,15 +173,20 @@ const MyAds: NextPage = () => {
                                 </div>
                               )}
                               <div className="flex-1 flex flex-col">
-                                <div className="flex items-center gap-1.5">
-                                  <LocationSmIcon width="16px" height="16px" />
-                                  <div className="text-xs font-normal">
-                                    {housing.full_address && housing.full_address.province
-                                      ? typeof housing.full_address.province === 'object' &&
-                                        housing.full_address.province !== null
-                                        ? (housing.full_address.province as { name: string }).name
-                                        : String(housing.full_address.province)
-                                      : 'نامشخص'}
+                                <div className="flex justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <LocationSmIcon width="16px" height="16px" />
+                                    <div className="text-xs font-normal">
+                                      {housing.full_address && housing.full_address.province
+                                        ? typeof housing.full_address.province === 'object' &&
+                                          housing.full_address.province !== null
+                                          ? (housing.full_address.province as { name: string }).name
+                                          : String(housing.full_address.province)
+                                        : 'نامشخص'}
+                                    </div>
+                                  </div>
+                                  <div className="rotate-90">
+                                    <ArrowLeftIcon width="26px" height="26px" />
                                   </div>
                                 </div>
 
@@ -192,7 +256,6 @@ const MyAds: NextPage = () => {
                               </div>
                             </Link>
 
-                            {/* Property Details */}
                             <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-start gap-6">
                               {/* {housing.highlight_features &&
                               housing.highlight_features.map((feature) => {
@@ -221,6 +284,59 @@ const MyAds: NextPage = () => {
                                 {' '}
                                 <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
                                 <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
+                              </div>
+                            </div>
+                            <hr className='my-3'/>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className={`text-sm font-medium ${
+                                  housing.status === 0 ? 'text-yellow-600' : 
+                                  housing.status === 1 ? 'text-green-600' : 
+                                  housing.status === 2 ? 'text-red-600' : ''
+                                }`}>
+                                  {housing.status === 0 ? 'در انتظار تایید' : 
+                                   housing.status === 1 ? 'تایید شده' : 
+                                   housing.status === 2 ? 'رد شده' : 'نامشخص'}
+                                </div>
+                              </div>
+                              <div className='relative'>
+                                <div 
+                                  className='rounded-full p-1 cursor-pointer hover:bg-gray-100 transition-all duration-500'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(openMenuId === housing.id ? null : housing.id);
+                                  }}
+                                >
+                                  <BiDotsVerticalRounded className='text-2xl text-gray-500' />
+                                </div>
+                                {openMenuId === housing.id && (
+                                  <>
+                                    <div 
+                                      className="fixed inset-0 z-10"
+                                      onClick={() => setOpenMenuId(null)}
+                                    />
+                                    <div className="absolute left-0 mt-1 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-20">
+                                      <div className="py-1">
+                                        <Link 
+                                          href={`/housing/ad/edit?id=${housing.id}`}
+                                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          ویرایش آگهی
+                                        </Link>
+                                        <button
+                                          className="block w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteAd(housing.id);
+                                          }}
+                                        >
+                                          حذف آگهی
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>

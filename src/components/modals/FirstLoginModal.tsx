@@ -2,7 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Modal } from '../ui'
-import { roles } from '@/utils'
+import { roles, userTypes } from '@/utils'
 import { useAppSelector, useAppDispatch } from '@/hooks'
 import { clearCredentials } from '@/store'
 import { useRouter } from 'next/router'
@@ -12,32 +12,48 @@ interface FirstLoginModalProps {
   onClose: () => void
 }
 
+// No longer need these enums as we're using the imported constants
+// enum UserType {
+//   NormalUser = 1,
+//   MemberUser = 2,
+//   Marketer = 3,
+//   EstateAgent = 4,
+// }
+
+// enum AdminGroup {
+//   SuperAdmin = 1,
+//   Admin = 2,
+//   SubscriberUser = 3,
+//   NormalUser = 4,
+// }
+
 const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) => {
-  const { role, phoneNumber, user } = useAppSelector((state) => state.auth)
+  const { userType, phoneNumber, user } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const { push } = useRouter()
 
-  const handleClick = (pathname: string, query: { role: string }) => {
-    localStorage.removeItem('role')
+  const handleClick = (pathname: string, userType: number) => {
     localStorage.removeItem('user')
-    if (user && user.role !== 'marketer') {
-      push('/marketer')
-      return
-    }
+
     dispatch(clearCredentials())
-    localStorage.setItem('role', 'user')
+    push(pathname, {
+      query: {
+        userType: userType.toString(),
+      },
+    })
     onClose()
   }
 
   const handleClickNewAdAsMarketerNav = () => {
     const user = JSON.parse(localStorage.getItem('user'))
-    const role = localStorage.getItem('role')
+    const userType = localStorage.getItem('userType')
 
-    if (role === 'user' || !role) {
-      push(`/authentication/login?role=${roles.Marketer}`)
+    if (!userType) {
+      push(`/authentication/login?userType=${userTypes.Marketer}`)
       return
     }
-    if (user && user.role !== roles.Marketer) {
+
+    if (user && user.user_type !== userTypes.Marketer) {
       push('/marketer')
     } else {
       push('/soodam')
@@ -47,14 +63,15 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
 
   const handleClickEstateConsultant = () => {
     const user = JSON.parse(localStorage.getItem('user'))
-    const role = localStorage.getItem('role')
+    const userType = localStorage.getItem('userType')
 
-    if (role === 'user' || !role) {
-      push(`/authentication/login?role=${roles.EstateConsultant}`)
+    if (!userType) {
+      push(`/authentication/login?userType=${userTypes.EstateAgent}`)
       return
     }
-    if (user && user.role !== roles.EstateConsultant) {
-      push(`/authentication/login?role=${roles.EstateConsultant}`)
+
+    if (user && user.user_type !== userTypes.EstateAgent) {
+      push(`/authentication/login?userType=${userTypes.EstateAgent}`)
     } else {
       push('/estate-consultant')
     }
@@ -67,12 +84,9 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
         <Modal.Header onClose={onClose}>کانال‌های ورودی</Modal.Header>
         <Modal.Body>
           <div className="space-y-4">
-            <Link
-              href={{
-                pathname: '/authentication/login',
-                query: { role: roles.MemberUser },
-              }}
-              onClick={() => handleClick('/authentication/login', { role: roles.MemberUser })}
+            {/* Member User - Type 2 */}
+            <div
+              onClick={() => handleClick('/authentication/login', userTypes.MemberUser)}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
@@ -80,27 +94,22 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
                 <button className="text-white bg-[#D52133] w-full text-xs py-1 rounded-lg mt-2">خرید اشتراک</button>
               </div>
               <Image src="/static/listening-to-feedback.png" alt="عضو" layout="intrinsic" width={95} height={95} />
-            </Link>
+            </div>
 
-            <Link
-              href={{
-                pathname: '/',
-              }}
-              onClick={() => handleClick('', { role: 'user' })}
+            {/* Normal User - Type 1 */}
+            <div
+              onClick={() => handleClick('/', userTypes.NormalUser)}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
                 <p className="text-sm">ورود به عنوان کاربر معمولی</p>
               </div>
               <Image src="/static/smart-home-contol.png" alt="کاربر معمولی" layout="intrinsic" width={95} height={95} />
-            </Link>
+            </div>
 
+            {/* Marketer - Type 3 */}
             <div
-              // href={{
-              //   pathname: '/authentication/login',
-              //   query: { role: roles.Marketer },
-              // }}
-              onClick={handleClickNewAdAsMarketerNav}
+              onClick={() => handleClick('/authentication/login', userTypes.Marketer)}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
@@ -109,16 +118,13 @@ const FirstLoginModal: React.FC<FirstLoginModalProps> = ({ isShow, onClose }) =>
               <Image src="/static/becoming-rich.png" alt="بازاریاب" layout="intrinsic" width={95} height={95} />
             </div>
 
+            {/* Estate Agent - Type 4 */}
             <div
-              // href={{
-              //   pathname: '/authentication/login',
-              //   query: { role: roles.EstateConsultant },
-              // }}
-              onClick={handleClickEstateConsultant}
+              onClick={() => handleClick('/authentication/login', userTypes.EstateAgent)}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
-                <p className="text-sm">ورود به عنوان مشاور املاک</p>
+                <p className="text-sm">ورود به عنوان بنگاه املاک</p>
               </div>
               <Image src="/static/business-deal.png" alt="املاک" layout="intrinsic" width={95} height={95} />
             </div>

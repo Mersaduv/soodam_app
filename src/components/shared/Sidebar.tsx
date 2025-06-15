@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
 
 import { useAppDispatch, useDisclosure } from '@/hooks'
@@ -18,8 +18,9 @@ import {
 } from '@/icons'
 import { useRouter } from 'next/router'
 import { setIsShowLogin } from '@/store'
-import { roles } from '@/utils'
+import { roles, userTypes } from '@/utils'
 import { CiGrid41 } from "react-icons/ci";
+
 export default function Sidebar() {
   const [isSidebar, sidebarHandlers] = useDisclosure()
   const { query, push } = useRouter()
@@ -27,13 +28,13 @@ export default function Sidebar() {
 
   const handleClickNewAdAsMarketerNav = () => {
     const user = JSON.parse(localStorage.getItem('user'))
-    const role = localStorage.getItem('role')
+    const userType = localStorage.getItem('userType')
 
-    if (role === 'user' || !role) {
-      push('/authentication/login?role=marketer')
+    if (!userType) {
+      push(`/authentication/login?role=${userTypes.Marketer}`)
       return
     }
-    if (user && user.role !== 'marketer') {
+    if (user && user.user_type !== userTypes.Marketer) {
       push('/marketer')
     } else {
       push('/soodam')
@@ -42,8 +43,8 @@ export default function Sidebar() {
 
   const handleClickNewAdNav = () => {
     // const user = JSON.parse(localStorage.getItem('user'))
-    const role = localStorage.getItem('role')
-    if (role === null || role === 'user') {
+    const userType = localStorage.getItem('userType')
+    if (!userType) {
       dispatch(setIsShowLogin(true))
     } else {
       push('/housing/ad/new')
@@ -52,14 +53,14 @@ export default function Sidebar() {
 
   const handleClickEstateConsultant = () => {
       const user = JSON.parse(localStorage.getItem('user'))
-      const role = localStorage.getItem('role')
+      const userType = localStorage.getItem('userType')
   
-      if (role === 'user' || !role) {
-        push(`/authentication/login?role=${roles.EstateConsultant}`)
+      if (!userType) {
+        push(`/authentication/login?role=${userTypes.EstateAgent}`)
         return
       }
-      if (user && user.role !== roles.EstateConsultant) {
-        push(`/authentication/login?role=${roles.EstateConsultant}`)
+      if (user && user.user_type !== userTypes.EstateAgent) {
+        push(`/authentication/login?role=${userTypes.EstateAgent}`)
       } else {
         push('/estate-consultant')
       }
@@ -211,6 +212,7 @@ export default function Sidebar() {
     </>
   )
 }
+
 const menuItems = [
   {
     title: "پیشخوان",

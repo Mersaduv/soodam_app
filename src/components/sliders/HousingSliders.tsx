@@ -16,7 +16,7 @@ import { NEXT_PUBLIC_API_URL } from '@/utils'
 interface Props {
   data: Housing
 }
-SwiperCore.use([Navigation, Pagination, Thumbs]);
+SwiperCore.use([Navigation, Pagination, Thumbs])
 const HousingSliders: React.FC<Props> = (props) => {
   // ? Props
   const { data } = props
@@ -38,42 +38,65 @@ const HousingSliders: React.FC<Props> = (props) => {
 
   return (
     <section className={`section-swiper relative`}>
-      <Swiper
-        pagination={{ clickable: true }}
-        modules={[Pagination, Navigation, Thumbs]}
-        className="mySwiper"
-        onClick={() => setIsOpen(true)}
-      >
-        {data.images.map((item, index) => (
-          <SwiperSlide key={index}>
-            <Image className="w-full h-[263px] object-cover cursor-pointer" width={1000} height={0} src={`${item.url}`} alt={`image-${index}`} />
-          </SwiperSlide>
-        ))}
-      </Swiper>
-
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex justify-center items-center">
-          <button className="absolute top-[90px] right-5 text-white border rounded-full" onClick={() => setIsOpen(false)}>
-            <Close className="text-4xl" />
-          </button>
+      {data.images.length > 0 ? (
+        <>
           <Swiper
             pagination={{ clickable: true }}
-            thumbs={{ swiper: thumbsSwiper }}
-            modules={[Pagination, Thumbs]}
-            className="w-full max-w-4xl"
+            modules={[Pagination, Navigation, Thumbs]}
+            className="mySwiper"
+            onClick={() => setIsOpen(true)}
           >
             {data.images.map((item, index) => (
               <SwiperSlide key={index}>
                 <Image
-                  className="w-full h-auto max-h-[60vh] object-contain"
+                  className="w-full h-[263px] object-cover cursor-pointer"
                   width={1000}
                   height={0}
                   src={`${item.url}`}
-                  alt={`fullscreen-${index}`}
+                  alt={`image-${index}`}
                 />
               </SwiperSlide>
             ))}
           </Swiper>
+
+          {isOpen && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex justify-center items-center">
+              <button
+                className="absolute top-[90px] right-5 text-white border rounded-full"
+                onClick={() => setIsOpen(false)}
+              >
+                <Close className="text-4xl" />
+              </button>
+              <Swiper
+                pagination={{ clickable: true }}
+                thumbs={{ swiper: thumbsSwiper }}
+                modules={[Pagination, Thumbs]}
+                className="w-full max-w-4xl"
+              >
+                {data.images.map((item, index) => (
+                  <SwiperSlide key={index}>
+                    <Image
+                      className="w-full h-auto max-h-[60vh] object-contain"
+                      width={1000}
+                      height={0}
+                      src={`${item.url}`}
+                      alt={`fullscreen-${index}`}
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className=" bg-gray-200 rounded-[10px] mb-4">
+          <img
+            width={104}
+            height={100}
+            className="w-full h-[263px] object-cover"
+            src="/static/R.png"
+            alt={data.title}
+          />
         </div>
       )}
     </section>

@@ -1,7 +1,16 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { UploadResult } from './allHousing/types'
+import { IdQuery, UploadResult } from './allHousing/types'
 import { generateQueryParams, getToken } from '@/utils'
-import { AdFormValues, AdminAdvertisementResponse, CreateAds, Feature, Housing, NearbyAdsResponse, QueryParams, ServiceResponse } from '@/types'
+import {
+  AdFormValues,
+  AdminAdvertisementResponse,
+  CreateAds,
+  Feature,
+  Housing,
+  NearbyAdsResponse,
+  QueryParams,
+  ServiceResponse,
+} from '@/types'
 import { QueryFeatureByCategory } from './feature/type'
 
 const productionApiSlice = createApi({
@@ -119,6 +128,16 @@ const productionApiSlice = createApi({
           Authorization: `Bearer ${getToken()}`,
         },
       }),
+      providesTags: (result) =>
+        result?.items
+          ? [
+              ...result.items.map(({ id }) => ({
+                type: 'Housing' as const,
+                id,
+              })),
+              'Housing',
+            ]
+          : ['Housing'],
     }),
 
     getAdvById: builder.query<Housing, string>({
@@ -155,6 +174,27 @@ const productionApiSlice = createApi({
             ]
           : ['Housing'],
     }),
+    deleteAdv: builder.mutation<ServiceResponse<Housing>, IdQuery>({
+      query: ({ id }) => ({
+        url: `/api/advertisements/${id}`,
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }),
+      invalidatesTags: ['Housing'],
+    }),
+    updateAdv: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/api/advertisements/${id}`,
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: data,
+      }),
+      invalidatesTags: ['Housing'],
+    }),
   }),
 })
 export const {
@@ -168,5 +208,7 @@ export const {
   useGetMyAdvQuery,
   useGetAdvByIdQuery,
   useGetAdvByAdminQuery,
+  useDeleteAdvMutation,
+  useUpdateAdvMutation,
 } = productionApiSlice
 export default productionApiSlice

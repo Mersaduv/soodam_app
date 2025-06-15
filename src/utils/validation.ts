@@ -39,7 +39,7 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
       .required('شماره تماس الزامی است')
       .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'),
     nationalCode: Yup.string().optional(),
-    postalCode: Yup.string().required('کد پستی الزامی است').min(10, 'کد پستی معتبر نیست'),
+    postalCode: Yup.string().required('کد پستی الزامی است').min(10, 'کد پستی معتبر نیست').max(10, 'کد پستی معتبر نیست'),
     address: Yup.string().required('آدرس الزامی است'),
     category: Yup.string().required('دسته‌بندی الزامی است'),
     location: Yup.object().shape({
@@ -317,23 +317,29 @@ export const userInfoFormValidationSchema = Yup.object().shape({
   mobileNumber: Yup.string()
     .required('شماره موبایل الزامی است')
     .matches(/^09[0-9]{9}$/, 'شماره موبایل معتبر نیست'), // شروع با 09 و ۱۱ رقم
-  province: Yup.object().shape({
-    id: Yup.number().nullable(),
-    name: Yup.string().nullable()
-  }).nullable().optional(),
-  city: Yup.object().shape({
-    id: Yup.number().nullable(),
-    name: Yup.string().nullable()
-  }).nullable().optional()
-    .test('required-if-province', 'اگر استان انتخاب شده است، شهر هم باید انتخاب شود', function(value) {
-      const { province } = this.parent;
+  province: Yup.object()
+    .shape({
+      id: Yup.number().nullable(),
+      name: Yup.string().nullable(),
+    })
+    .nullable()
+    .optional(),
+  city: Yup.object()
+    .shape({
+      id: Yup.number().nullable(),
+      name: Yup.string().nullable(),
+    })
+    .nullable()
+    .optional()
+    .test('required-if-province', 'اگر استان انتخاب شده است، شهر هم باید انتخاب شود', function (value) {
+      const { province } = this.parent
       // If province is not selected or has no ID, city is optional
       if (!province || !province.id) {
-        return true;
+        return true
       }
       // If province is selected (has an ID), city is required and must have an ID
-      return !!(value && value.id);
-    })
+      return !!(value && value.id)
+    }),
 })
 
 export const estateConsultantRegisterFormValidationSchema = Yup.object().shape({

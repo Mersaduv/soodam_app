@@ -151,7 +151,7 @@ const Account: NextPage = () => {
         notionalCode: userInfo.security_number ?? null,
         email: userInfo.email ?? null,
         mobileNumber: userInfo.phone_number ?? null,
-        gender: userInfo.user_type === 'male' || userInfo.user_type === 'female' ? userInfo.user_type : '',
+        gender: userInfo.gender === 'male' || userInfo.gender === 'female' ? userInfo.gender : '',
         birthDate: userInfo.birthday ?? null,
       })
 

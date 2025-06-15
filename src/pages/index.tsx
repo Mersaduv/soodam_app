@@ -9,6 +9,7 @@ import { useGetHousingQuery } from '@/services'
 import { useGetAdvByGeolocationQuery } from '@/services/productionBaseApi'
 import { setIsVisible, setRefetchMap } from '@/store'
 import { Housing, ServiceResponse } from '@/types'
+import { userTypes } from '@/utils'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -69,16 +70,19 @@ export default function Home() {
       return newBounds
     })
   }, [])
+  
   useEffect(() => {
     if (role) {
-      localStorage.setItem('role', role)
+      localStorage.setItem('userType', role)
     }
   }, [role])
+  
   useEffect(() => {
     if (map.mode && leafletMapRef.current) {
       leafletMapRef.current.invalidateSize()
     }
   }, [map.mode])
+  
   const handleHousingCardClick = (housing: Housing) => {
     if (bounds) {
       if (typeof window !== 'undefined') {
@@ -97,20 +101,25 @@ export default function Home() {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
-    const role = localStorage.getItem('role')
-    if (role === 'user' || !role) {
+    const userType = localStorage.getItem('userType')
+    
+    if (!userType) {
       dispatch(setIsVisible(true))
     }
-    if (user && user.role === 'memberUser' && user.subscription == undefined) {
+    
+    if (user && user.user_type === userTypes.MemberUser && user.subscription == undefined) {
       dispatch(setIsVisible(true))
     }
+    
     if (user && user.subscription && user.subscription.status !== 'ACTIVE') {
       dispatch(setIsVisible(true))
     }
-    if (user && user.role === 'marketer' && user.subscription == undefined) {
+    
+    if (user && user.user_type === userTypes.Marketer && user.subscription == undefined) {
       dispatch(setIsVisible(true))
     }
   }, [])
+  
   const housingList = housingData?.items || []
 
   return (

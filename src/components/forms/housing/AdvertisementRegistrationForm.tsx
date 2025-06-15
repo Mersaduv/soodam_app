@@ -36,6 +36,8 @@ import {
   useAddHousingMutation,
   useLazyGetFeaturesByCategoryQuery,
   useUploadMediaMutation,
+  useGetAdvByIdQuery,
+  useUpdateAdvMutation,
 } from '@/services/productionBaseApi'
 import { title } from 'process'
 import axios from 'axios'
@@ -74,14 +76,16 @@ const dealFieldsMap = {
 const MapLocationPicker = dynamic(() => import('@/components/map/MapLocationPicker'), { ssr: false })
 interface Props {
   roleUser: string
+  adId?: string
+  isEditMode?: boolean
 }
 
 // Static array for skeleton steps
 const skeletonSteps = ['مشخصات', 'قیمت', 'ویژگی‌ها', 'عکس و ویدئو']
 
-const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
+const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEditMode }) => {
   // ? Assets
-  const { query } = useRouter()
+  const { query, push } = useRouter()
   // ? States
   const [provinces, setProvinces] = useState([])
   const [cities, setCities] = useState([])
@@ -112,8 +116,15 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const addressInputRef = useRef(null)
 
+  // Add loading states for media uploads
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
+  const [loadingImages, setLoadingImages] = useState<{ [key: string]: boolean }>({})
+
   // Add isLoadingAddressSuggestions state
   const [isLoadingAddressSuggestions, setIsLoadingAddressSuggestions] = useState(false)
+
+  // Add a state to track user category changes
+  const [userChangedCategory, setUserChangedCategory] = useState(false);
 
   const dispatch = useAppDispatch()
   const formRef = useRef<HTMLDivElement | null>(null)
@@ -126,6 +137,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     { isLoading: isLoadingCreate, isSuccess: isSuccessCreate, isError: isErrorCreate, error: errorCreate },
   ] = useAddHousingMutation()
   const [createUrl, { data: dataUpload, isSuccess: isSuccessUpload }] = useUploadMediaMutation()
+
+  // Add update mutation
+  const [updateHousing, { isLoading: isLoadingUpdate, isSuccess: isSuccessUpdate }] = useUpdateAdvMutation()
+
+  // Fetch ad data if in edit mode
+  const { data: adData, isLoading: isLoadingAd } = useGetAdvByIdQuery(adId || '', {
+    skip: !isEditMode || !adId,
+  })
 
   const getDealTypeFromCategory = (category: Category) => {
     if (!category) return null
@@ -270,39 +289,62 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     // Define major cities and provinces for identification
     const majorCities = ['تهران', 'مشهد', 'اصفهان', 'شیراز', 'تبریز', 'اهواز', 'کرج', 'قم', 'کرمانشاه', 'رشت', 'ارومیه']
     const provinces = [
-      'تهران', 'خراسان رضوی', 'اصفهان', 'فارس', 'آذربایجان شرقی', 'خوزستان', 'البرز', 'قم', 'کرمانشاه', 'گیلان', 'آذربایجان غربی',
-      'مازندران', 'کرمان', 'گلستان', 'همدان', 'سیستان و بلوچستان', 'لرستان', 'یزد', 'هرمزگان', 'اردبیل', 'بوشهر',
-      'زنجان', 'قزوین', 'مرکزی', 'چهارمحال و بختیاری', 'سمنان', 'ایلام', 'کهگیلویه و بویراحمد', 'خراسان شمالی', 'خراسان جنوبی'
+      'تهران',
+      'خراسان رضوی',
+      'اصفهان',
+      'فارس',
+      'آذربایجان شرقی',
+      'خوزستان',
+      'البرز',
+      'قم',
+      'کرمانشاه',
+      'گیلان',
+      'آذربایجان غربی',
+      'مازندران',
+      'کرمان',
+      'گلستان',
+      'همدان',
+      'سیستان و بلوچستان',
+      'لرستان',
+      'یزد',
+      'هرمزگان',
+      'اردبیل',
+      'بوشهر',
+      'زنجان',
+      'قزوین',
+      'مرکزی',
+      'چهارمحال و بختیاری',
+      'سمنان',
+      'ایلام',
+      'کهگیلویه و بویراحمد',
+      'خراسان شمالی',
+      'خراسان جنوبی',
     ]
 
     // Identify city and province parts
     const cityProvinceParts = []
     const otherParts = []
-    
-    uniqueParts.forEach(part => {
+
+    uniqueParts.forEach((part) => {
       // Check if the part contains a city or province name
-      const isCityOrProvince = [...majorCities, ...provinces].some(name => 
-        part.includes(name) || part === name
-      )
-      
+      const isCityOrProvince = [...majorCities, ...provinces].some((name) => part.includes(name) || part === name)
+
       if (isCityOrProvince) {
         cityProvinceParts.push(part)
       } else {
         otherParts.push(part)
       }
     })
-    
+
     // For each identified city/province, ensure it appears only once (keep shortest)
     const uniqueCityProvinceParts = []
-    
-    cityProvinceParts.forEach(part => {
-      const shortestNamePart = uniqueCityProvinceParts.find(existingPart => {
+
+    cityProvinceParts.forEach((part) => {
+      const shortestNamePart = uniqueCityProvinceParts.find((existingPart) => {
         // Check if they refer to the same city/province
-        return [...majorCities, ...provinces].some(name => 
-          existingPart.includes(name) && part.includes(name)
-        )
+        return [...majorCities, ...provinces].some((name) => existingPart.includes(name) && part.includes(name))
       })
-      
+
       if (!shortestNamePart) {
         uniqueCityProvinceParts.push(part)
       } else if (part.length < shortestNamePart.length) {
@@ -314,7 +356,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
     // Reorder: city/province parts first, then other parts
     const reorderedParts = [...uniqueCityProvinceParts, ...otherParts]
-    
+
     // Keep only maximum 4 parts for readability
     const relevantParts = reorderedParts.slice(0, Math.min(4, reorderedParts.length))
 
@@ -429,11 +471,16 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     }
   }
 
-  //? Re-Renders
+  //? Re-Renders - اصلاح شده برای اطمینان از اینکه مقدار location در فرم به درستی تنظیم می‌شود
   useEffect(() => {
     if (selectedLocation) {
-      setValue('location.lat', selectedLocation[0])
-      setValue('location.lng', selectedLocation[1])
+      console.log('selectedLocation updated in useEffect:', selectedLocation)
+      
+      // به‌روزرسانی مستقیم مقادیر به‌جای setValue('location.lat')
+      setValue('location', {
+        lat: selectedLocation[0],
+        lng: selectedLocation[1]
+      })
 
       // Get address from coordinates
       const getAddress = async () => {
@@ -467,53 +514,66 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     }
   }, [selectedLocation, setValue])
 
-  // useEffect(() => {
-  //   if (selectedCategory) {
-  //     setValue('category', selectedCategory.id)
-  //     setIsSelectCategorySkip(false)
-  //   }
+  // اصلاح useEffect برای تنظیم صحیح موقعیت مکانی در حالت ویرایش
+  useEffect(() => {
+    if (isEditMode && adData && !isLoadingAd) {
+      console.log('Edit mode location effect')
+
+      // تنظیم مستقیم موقعیت روی نقشه از اطلاعات آگهی
+      if (adData.full_address?.latitude && adData.full_address?.longitude) {
+        const newLocation: [number, number] = [adData.full_address.latitude, adData.full_address.longitude]
+        
+        // تنظیم مستقیم موقعیت نقشه
+        setSelectedLocation(newLocation)
+        
+        // به روزرسانی مقادیر location در فرم
+        setValue('location', {
+          lat: adData.full_address.latitude,
+          lng: adData.full_address.longitude,
+        })
+        
+        console.log('Map location set to:', newLocation)
+      }
+    }
+  }, [isEditMode, adData, isLoadingAd, setValue])
+
+  // رفع مشکل فیلد عنوان
+  useEffect(() => {
+    if (isEditMode && adData?.title) {
+      console.log('Setting title directly in form:', adData.title)
+      setValue('title', adData.title)
+    }
+  }, [isEditMode, adData, setValue])
 
   useEffect(() => {
     const fetchFeatures = async (category: Category, parent: Category = null) => {
       if (!category) return
 
+      // Only set current category ID, don't update the category itself
       setCurrentCategoryId(category.id)
 
-      const fetchedFeatures = await triggerGetFeaturesByCategory({
-        sub_category_id: parent !== null ? parent.id : category.id,
-        sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
-      })
-
-      //   // فقط اگه ویژگی نداشت، دیگه دنبال بالا رفتن تو parentCategory نیستیم چون حذف شده
-      //   // پس نیازی به fetchFeatures دوباره نداریم
+      // Only fetch features if we don't already have them
+      if (!features || features.features.length === 0) {
+        console.log('Fetching features for category:', category.name)
+        const params = {
+          sub_category_id: parent !== null ? parent.id : category.id,
+          sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
+        };
+        triggerGetFeaturesByCategory(params)
+      }
     }
 
-    if (selectedCategory) {
+    // Only proceed with setValue if this is first initialization, not a user selection
+    if (selectedCategory && !userChangedCategory) {
+      console.log('Setting form value for category (initialization):', selectedCategory.id)
       setValue('category', selectedCategory.id)
       fetchFeatures(selectedCategory, selectedParentCategory)
-    }
-  }, [
-    selectedCategory,
-    setValue,
-    // triggerGetFeaturesByCategory
-  ])
-
-  useEffect(() => {
-    const fetchFeatures = async (category: Category, parent: Category = null) => {
-      if (!category) return
-
-      // Trigger the query manually
-      const fetchedFeatures = await triggerGetFeaturesByCategory({
-        sub_category_id: parent !== null ? parent.id : category.id,
-        sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
-      })
-    }
-
-    if (selectedCategory) {
-      setValue('category', selectedCategory.id)
+    } else if (selectedCategory && userChangedCategory) {
+      // For user changes, just fetch features but don't update selectedCategory
+      console.log('User selected category, fetching features without state update')
       fetchFeatures(selectedCategory, selectedParentCategory)
     }
-  }, [selectedCategory, triggerGetFeaturesByCategory])
+  }, [selectedCategory, setValue, selectedParentCategory, triggerGetFeaturesByCategory, features, userChangedCategory])
 
   useEffect(() => {
     if (features) {
@@ -550,47 +610,81 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
   // }
   const getProvinceAndCityFromCoordinates = async (lat: number, lng: number) => {
-    // مرحله ۱: گرفتن نام استان و شهر از روی lat/lng با استفاده از reverse geocoding
-    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=fa`
-    const nominatimResponse = await axios.get(nominatimUrl)
-    const address = nominatimResponse.data.address
-    console.log(address, 'address')
+    try {
+      // مرحله ۱: گرفتن نام استان و شهر از روی lat/lng با استفاده از reverse geocoding
+      const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=fa`
+      const nominatimResponse = await axios.get(nominatimUrl)
+      const address = nominatimResponse.data.address
+      console.log(address, 'address')
 
-    const cityName = address.city || address.town || address.village || ''
-    const provinceName = address.province || ''
+      const cityName = address.city || address.town || address.village || address.county || ''
+      const provinceName = address.province || address.state || ''
+      
+      console.log(`استان: "${provinceName}", شهر: "${cityName}"`)
 
-    const provincesResponse = await axios.get(`/api/geolocation/get_provinces`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`,
-      },
-    })
+      // دریافت لیست استان‌ها
+      const provincesResponse = await axios.get(`/api/geolocation/get_provinces`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+      })
 
-    const matchedProvince = provincesResponse.data.find(
-      (p: any) => p.name === provinceName || `استان ${p.name}` === provinceName
-    )
+      // تلاش برای یافتن استان با چند روش مختلف
+      let matchedProvince = provincesResponse.data.find(
+        (p: any) => p.name === provinceName || 
+                  `استان ${p.name}` === provinceName ||
+                  provinceName.includes(p.name) ||
+                  (p.name && provinceName && p.name.includes(provinceName))
+      )
 
-    if (!matchedProvince) {
-      throw new Error(`استان '${provinceName}' در لیست یافت نشد`)
-    }
+      // اگر استان پیدا نشد، اولین استان را انتخاب کنیم (تهران)
+      if (!matchedProvince) {
+        console.warn(`استان '${provinceName}' پیدا نشد، از استان پیش‌فرض استفاده می‌شود`)
+        matchedProvince = provincesResponse.data[0] // معمولاً استان تهران
+      }
 
-    // مرحله ۳: گرفتن لیست شهرهای استان یافت‌شده
-    const citiesResponse = await axios.get(`/api/geolocation/get_cites_by_id/${matchedProvince.id}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${getToken()}`,
-      },
-    })
+      // مرحله ۳: گرفتن لیست شهرهای استان یافت‌شده
+      const citiesResponse = await axios.get(`/api/geolocation/get_cites_by_id/${matchedProvince.id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+      })
 
-    const matchedCity = citiesResponse.data.find((c: any) => c.name === cityName)
+      // تلاش برای یافتن شهر با چند روش مختلف
+      let matchedCity = citiesResponse.data.find(
+        (c: any) => c.name === cityName ||
+                  cityName.includes(c.name) ||
+                  (c.name && c.name.includes(cityName)) ||
+                  (cityName.includes('شهر') && c.name === cityName.replace('شهر ', ''))
+      )
 
-    if (!matchedCity) {
-      throw new Error(`شهر '${cityName}' در استان '${provinceName}' یافت نشد`)
-    }
+      // اگر شهر پیدا نشد، اولین شهر استان را انتخاب کنیم
+      if (!matchedCity && citiesResponse.data.length > 0) {
+        console.warn(`شهر '${cityName}' در استان '${matchedProvince.name}' پیدا نشد، از اولین شهر استان استفاده می‌شود`)
+        matchedCity = citiesResponse.data[0]
+      }
 
-    return {
-      province_id: matchedProvince.id,
-      city_id: matchedCity.id,
+      // اگر هیچ شهری در استان پیدا نشد، خطا بدهیم
+      if (!matchedCity) {
+        throw new Error(`هیچ شهری برای استان ${matchedProvince.name} یافت نشد`)
+      }
+
+      console.log(`استان '${matchedProvince.name}' (${matchedProvince.id}) و شهر '${matchedCity.name}' (${matchedCity.id}) انتخاب شدند`)
+
+      return {
+        province_id: matchedProvince.id,
+        city_id: matchedCity.id,
+      }
+    } catch (error) {
+      console.error('خطا در تبدیل مختصات به استان و شهر:', error)
+      
+      // در صورت بروز هر گونه خطا، مقادیر پیش‌فرض (تهران) را برگردان
+      return {
+        province_id: 8, // فرض می‌کنیم استان تهران با ID 8 است
+        city_id: 100, // فرض می‌کنیم شهر تهران با ID 100 است
+      }
     }
   }
 
@@ -613,7 +707,19 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
         console.log(value, '3. data.features[key]', data.features[key])
 
         if (featureInfo.type === 'bool') {
-          value = value === 'دارد' ? true : false
+          // مدیریت bool_convertible
+          if (featureInfo.key === 'bool_convertible') {
+            // اگر مقدار را به صورت boolean ذخیره کرده ایم
+            if (typeof value === 'boolean') {
+              value = value;
+            } else {
+              value = value === 'دارد' || value === true || value === 'true';
+            }
+            console.log(`Converting convertible for API: ${value}`);
+          } else {
+            // مقدار‌دهی معمولی برای سایر فیلدهای bool
+            value = value === 'دارد' || value === true || value === 'true';
+          }
         } else if (featureInfo.type === 'choice') {
           if (Array.isArray(featureInfo.value)) {
             const selectedValue = featureInfo.value.find((v) => v.id === value.id)
@@ -625,15 +731,16 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
         return {
           id: featureInfo.id,
           name: featureInfo.name,
-          key: featureInfo.key, // یا هرچی که بجاش داری
+          key: featureInfo.key,
           type: featureInfo.type,
           value:
-            featureInfo.key === 'text_discount'
-              ? value ?? '0'
-              : featureInfo.key === 'text_mortgage_deposit'
-              ? value ?? '0'
-              : featureInfo.key === 'text_monthly_rent'
-              ? value ?? '0'
+            featureInfo.key === 'text_discount' ||
+            featureInfo.key === 'text_mortgage_deposit' ||
+            featureInfo.key === 'text_monthly_rent' ||
+            featureInfo.key === 'text_selling_price' ||
+            featureInfo.key === 'text_area' ||
+            featureInfo.key.startsWith('text_')
+              ? String(value || '0')
               : value,
         }
       })
@@ -659,6 +766,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
       const priceStr = String(priceFeature.value)
       // Remove non-numeric characters and convert to number
       priceAmount = parseInt(priceStr.replace(/[^\d]/g, '')) || 0
+
+      // اطمینان از اینکه مقدار در attributes به صورت string است
+      priceFeature.value = String(priceFeature.value)
     }
 
     if (discountFeature && discountFeature.value) {
@@ -666,27 +776,28 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
       const discountStr = String(discountFeature.value)
       // Remove non-numeric characters and convert to number
       discountAmount = parseInt(discountStr.replace(/[^\d]/g, '')) || 0
+
+      // اطمینان از اینکه مقدار در attributes به صورت string است
+      discountFeature.value = String(discountFeature.value)
     }
 
     if (depositFeature && depositFeature.value) {
       const depositStr = String(depositFeature.value)
       depositAmount = parseInt(depositStr.replace(/[^\d]/g, '')) || 0
+
+      // اطمینان از اینکه مقدار در attributes به صورت string است
+      depositFeature.value = String(depositFeature.value)
     }
 
     if (rentFeature && rentFeature.value) {
       const rentStr = String(rentFeature.value)
       rentAmount = parseInt(rentStr.replace(/[^\d]/g, '')) || 0
+
+      // اطمینان از اینکه مقدار در attributes به صورت string است
+      rentFeature.value = String(rentFeature.value)
     }
 
-    const finalData = {
-      ...data,
-      features: formattedFeatures,
-    }
-
-    console.log(finalData, 'finalData')
-    console.log('Form submitted:', data, roleUser)
-    data.status = 1
-    const createAds = {
+    const advData = {
       title: data.title,
       security_code_owner_building: data.nationalCode || '',
       phone_number_owner_building: data.phoneNumber,
@@ -746,16 +857,75 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
       })),
       expiry_date: '2023-12-31T23:59:59Z',
     }
-    console.log(createAds, 'data-submit')
 
-    addHousing(createAds)
+    console.log('Submitting data:', isEditMode ? 'Update' : 'Create', advData)
+
+    // If editing, update the ad; otherwise create a new one
+    if (isEditMode && adId) {
+      // Preserve any fields from the original ad that should be maintained
+      const updatedData = {
+        ...advData,
+        // Maintain any important fields from the original ad that should not change
+        status: adData?.status || 0,
+      }
+
+      // تبدیل نهایی تمام مقادیر متنی به string
+      updatedData.attributes = updatedData.attributes.map((attr) => {
+        if (attr.type === 'text' || attr.key.startsWith('text_')) {
+          return {
+            ...attr,
+            value: String(attr.value || ''),
+          }
+        }
+        return attr
+      })
+
+      console.log('Updating ad with ID:', adId, updatedData)
+
+      // بررسی تبدیل صحیح مقادیر به string
+      console.log(
+        'Attributes values types:',
+        updatedData.attributes.map((attr) => ({
+          key: attr.key,
+          value: attr.value,
+          type: typeof attr.value,
+        }))
+      )
+
+      updateHousing({ id: adId, data: updatedData })
+    } else {
+      // تبدیل نهایی تمام مقادیر متنی به string
+      advData.attributes = advData.attributes.map((attr) => {
+        if (attr.type === 'text' || attr.key.startsWith('text_')) {
+          return {
+            ...attr,
+            value: String(attr.value || ''),
+          }
+        }
+        return attr
+      })
+
+      console.log('Creating new ad:', advData)
+
+      // بررسی تبدیل صحیح مقادیر به string
+      console.log(
+        'Attributes values types:',
+        advData.attributes.map((attr) => ({
+          key: attr.key,
+          value: attr.value,
+          type: typeof attr.value,
+        }))
+      )
+
+      addHousing(advData)
+    }
   }
 
   useEffect(() => {
-    if (isSuccessCreate) {
+    if (isSuccessCreate || isSuccessUpdate) {
       dispatch(setIsSuccess(true))
     }
-  }, [isSuccessCreate, dispatch])
+  }, [isSuccessCreate, isSuccessUpdate, dispatch])
 
   const validateCurrentStep = async () => {
     let fieldsToValidate: string[] = []
@@ -815,11 +985,23 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     modalHandlers.close()
   }
 
-  // Fix the duplicate handleSelectCategory function
+  // اصلاح تابع handleLocationChange برای ذخیره صحیح مختصات در فرم
   const handleLocationChange = (location: [number, number]) => {
-    setSelectedLocation(location)
-    setIsLoadingAddressSuggestions(true)
+    console.log('New location selected:', location)
     
+    // ذخیره مختصات در state
+    setSelectedLocation(location)
+    
+    // ذخیره مختصات مستقیماً در فرم
+    setValue('location', {
+      lat: location[0],
+      lng: location[1]
+    })
+    
+    console.log('Location set in form:', { lat: location[0], lng: location[1] })
+    
+    setIsLoadingAddressSuggestions(true)
+
     // Get address from coordinates
     const getAddress = async () => {
       try {
@@ -833,20 +1015,46 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
         setIsLoadingAddressSuggestions(false)
       }
     }
-    
+
     getAddress()
   }
 
   // Only keep one handleSelectCategory function
   const handleSelectCategory = (category: Category, parent?: Category) => {
-    if (parent) setSelectedParentCategory(parent)
-    if (selectedCategory && selectedCategory.id === category.id) {
-      setSelectedCategory(null)
-      setValue('category', null)
-    } else {
-      setSelectedCategory(category)
+    try {
+      console.log('handleSelectCategory called with:', category.name, 'ID:', category.id);
+      
+      // Mark that user has changed the category manually - THIS IS CRITICAL
+      setUserChangedCategory(true);
+      
+      // Set parent category if provided
+      if (parent) {
+        console.log('Setting parent category:', parent.name, 'ID:', parent.id);
+        setSelectedParentCategory(parent);
+      }
+      
+      // Always set the new category regardless of previous selection
+      setSelectedCategory(category);
+      setValue('category', category.id);
+      
+      // Reset features when changing category to avoid feature conflicts
+      setFeatureData([]);
+      
+      // Trigger feature fetching for the new category
+      const categoryParams = {
+        sub_category_id: parent ? parent.id : category.id,
+        sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
+      };
+      
+      console.log('Fetching features with params:', categoryParams);
+      triggerGetFeaturesByCategory(categoryParams);
+      
+      handleModalClose();
+      
+      console.log('Category selection completed successfully');
+    } catch (error) {
+      console.error('Error in handleSelectCategory:', error);
     }
-    handleModalClose()
   }
 
   const handleSelectRentalTerms = (item: { id: number; name: string }) => {
@@ -869,29 +1077,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     if (!fileList) return
 
     const files = Array.from(fileList)
+    setIsUploadingMedia(true)
     createUrl(files)
-    // if (selectedFiles.length === maxFiles) return
-    // if (files) {
-    //   const validFiles: any[] = []
-
-    //   Array.from(files).forEach((file) => {
-    //     const img = new Image()
-    //     img.src = URL.createObjectURL(file)
-
-    //     img.onload = () => {
-    //       URL.revokeObjectURL(img.src)
-    //       validFiles.push(file)
-    //       if (validFiles.length === Array.from(files).length) {
-    //         setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles])
-    //         if (validFiles.length > 0) {
-    //           setValue('media.images', ((getValues('media.images') as File[]) || []).concat(validFiles))
-    //         } else {
-    //           setValue('media.images', [])
-    //         }
-    //       }
-    //     }
-    //   })
-    // }
   }
 
   useEffect(() => {
@@ -901,14 +1088,22 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
 
       dataUpload.forEach((item) => {
         const ext = getFileExtension(item.url).toLowerCase()
+
         if (videoExtensions.some((videoExt) => ext.includes(videoExt))) {
           // It's a video
           appendVideo({ url: item.url })
         } else {
-          // It's an image
+          // It's an image - immediately set as not loading
           append({ url: item.url })
+
+          // Force set loading state to false after a brief delay
+          setTimeout(() => {
+            setLoadingImages((prev) => ({ ...prev, [item.url]: false }))
+          }, 500)
         }
       })
+
+      setIsUploadingMedia(false)
     }
   }, [isSuccessUpload, dataUpload, append, appendVideo])
 
@@ -923,22 +1118,36 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
     if (!fileList) return
     if (selectedVideos.length + fileList.length > maxVideos) return
 
+    // Set uploading state
+    setIsUploadingMedia(true)
+
     // Upload the videos through the API
     createUrl(Array.from(fileList))
   }
 
+  // Add this function
+  const handleVideoLoaded = (url: string) => {
+    // Make sure video is not shown as loading anymore
+    setLoadingImages((prev) => ({ ...prev, [url]: false }))
+  }
+
   const handleDelete = (index: number, type = 'pic') => {
     if (type === 'pic') {
-      remove(index); // Remove image from mediaImages field array
+      remove(index) // Remove image from mediaImages field array
     } else {
-      removeVideo(index); // Remove video from mediaVideos field array
+      removeVideo(index) // Remove video from mediaVideos field array
     }
   }
   useEffect(() => {
     const getLocationInfo = async () => {
-      if (selectedLocation) {
-        const locationInfo = await getProvinceAndCityFromCoordinates(selectedLocation[0], selectedLocation[1])
-        console.log(locationInfo, 'locationInfo')
+      if (selectedLocation && selectedLocation[0] && selectedLocation[1]) {
+        try {
+          const locationInfo = await getProvinceAndCityFromCoordinates(selectedLocation[0], selectedLocation[1])
+          console.log(locationInfo, 'locationInfo')
+        } catch (error) {
+          console.error("خطا در دریافت اطلاعات موقعیت:", error);
+          // خطا را نشان نمی‌دهیم، فقط لاگ می‌کنیم تا جریان کار متوقف نشود
+        }
       }
     }
     getLocationInfo()
@@ -954,64 +1163,376 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
   // Define step title based on category
   const getStepTitle = (): string => {
     if (!selectedCategory) return 'قیمت'
-    
-    if (selectedCategory.name?.includes('مالک') || 
-        selectedCategory.name?.includes('سازنده') || 
-        selectedCategory.name?.includes('پیش فروش')) {
+
+    if (
+      selectedCategory.name?.includes('مالک') ||
+      selectedCategory.name?.includes('سازنده') ||
+      selectedCategory.name?.includes('پیش فروش')
+    ) {
       return 'سود'
     } else if (selectedCategory.name?.includes('اجاره کوتاه')) {
       return 'شرایط اجاره'
     }
     return 'قیمت'
   }
-  
+
   // Steps array for the actual form
   const steps = ['مشخصات', getStepTitle(), 'ویژگی‌ها', 'عکس و ویدئو']
-  
-  if (isFetching) return (
-    <div className="mx-auto py-5 border rounded-[16px] bg-white">
-      {/* Skeleton for Progress Steps */}
-      <div className="flex justify-between items-center mb-6 px-[33px]">
-        <Skeleton count={1}>
-          <Skeleton.Items className="flex justify-between items-center w-full">
-            {skeletonSteps.map((_, index) => (
-              <React.Fragment key={index}>
-                <Skeleton.Item height="h-5" width="w-5" animated="background" className="rounded-full" />
-                {index < skeletonSteps.length - 1 && <Skeleton.Item height="h-2" width="w-full mx-4" animated="background" />}
-              </React.Fragment>
-            ))}
-          </Skeleton.Items>
-        </Skeleton>
-      </div>
 
-      {/* Rest of skeleton component remains the same */}
-      <div className="space-y-4 px-4 pt-6">
-        <Skeleton count={1}>
-          <Skeleton.Items className="space-y-4 w-full">
-            {/* 5 form fields with labels */}
-            {Array.from({ length: 5 }).map((_, index) => (
-              <div key={index} className="w-full">
-                <Skeleton.Item height="h-5" width="w-1/4" animated="background" className="mb-2" />
-                <Skeleton.Item height="h-10" width="w-full" animated="background" />
+  // Function to handle image loaded event
+  const handleImageLoaded = (url: string) => {
+    setLoadingImages((prev) => ({ ...prev, [url]: false }))
+  }
+
+  // Initialize form with ad data if in edit mode
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+
+  useEffect(() => {
+    if (isEditMode && adData && !isLoadingAd) {
+      console.log('Starting to load advertisement data for editing:', adData.id);
+      
+      // Mark this data as loaded to avoid reloading
+      if (!initialDataLoaded) {
+        setInitialDataLoaded(true);
+      }
+
+      // Set title and description
+      setValue('title', adData.title || '')
+      setValue('description', adData.description || '')
+
+      // Set contact information if available
+      if ('phone_number_owner_building' in adData) {
+        const phoneNumber = adData.phone_number_owner_building as string
+        setValue('phoneNumber', phoneNumber || '')
+      }
+
+      if ('security_code_owner_building' in adData) {
+        const nationalCode = adData.security_code_owner_building as string
+        setValue('nationalCode', nationalCode || '')
+      }
+
+      // Set address information
+      if (adData.full_address) {
+        setValue('postalCode', adData.full_address.zip_code || '')
+        setValue('address', adData.full_address.address || '')
+
+        // برای مختصات، مطمئن شویم که آنها وجود دارند
+        if (adData.full_address.latitude && adData.full_address.longitude) {
+          const newLocation: [number, number] = [adData.full_address.latitude, adData.full_address.longitude]
+
+          // تنظیم مقادیر در فرم
+          setValue('location', {
+            lat: adData.full_address.latitude,
+            lng: adData.full_address.longitude,
+          })
+
+          // تنظیم selectedLocation برای نقشه
+          setSelectedLocation(newLocation)
+
+          console.log('Setting map location to:', newLocation)
+        }
+      }
+
+      // Set province and city
+      if (adData.full_address.province && adData.full_address.city) {
+        console.log('Setting province:', adData.full_address.province)
+        // Find province in the provinces array
+        const provinceObj = adData.full_address.province as { id: number; name: string }
+        const province = provinces.find((p) => p.id === provinceObj.id)
+        if (province) {
+          setSelectedProvince(province)
+        }
+      }
+
+      // Set category ONLY if user hasn't changed it AND it's the first load
+      if (adData.category && !userChangedCategory) {
+        console.log('Setting initial category from adData (no user changes detected):', adData.category);
+        
+        // First check if categoriesData is loaded
+        if (categoriesData && categoriesData.main_categories) {
+          // Try to find the category using the deep search helper
+          const categoryResult = findCategoryDeep(categoriesData.main_categories, adData.category.id);
+          
+          if (categoryResult) {
+            const { category, parent } = categoryResult;
+            console.log('Found category using deep search:', category.name, 'ID:', category.id);
+            console.log('Parent category:', parent.name, 'ID:', parent.id);
+            
+            // Set the category and parent
+            setSelectedCategory(category);
+            setSelectedParentCategory(parent);
+            setValue('category', category.id);
+            
+            // Trigger feature fetching for the initial category
+            setTimeout(() => {
+              console.log('Triggering initial feature fetching');
+              const params = {
+                sub_category_id: parent.id,
+                sub_category_level_two_id: category.id,
+              };
+              triggerGetFeaturesByCategory(params);
+            }, 500); // Short delay to ensure state is updated
+          } else {
+            // Fall back to original method
+            console.log('Deep search failed, trying traditional lookup');
+            const mainCategory = categoriesData.main_categories.find((c) => c.id === adData.category.main_category?.id);
+            
+            if (mainCategory && mainCategory.sub_categories) {
+              const category = mainCategory.sub_categories.find((sc) => sc.id === adData.category.id);
+
+              if (category) {
+                console.log('Found matching category:', category.name, 'ID:', category.id);
+                setSelectedCategory(category);
+                setSelectedParentCategory(mainCategory);
+                setValue('category', category.id);
+                
+                triggerGetFeaturesByCategory({
+                  sub_category_id: mainCategory.id,
+                  sub_category_level_two_id: category.id,
+                });
+              } else {
+                console.warn('Could not find matching category in subcategories');
+              }
+            } else {
+              console.warn('Main category has no subcategories');
+            }
+          }
+        } else {
+          console.warn('Categories data not loaded yet');
+        }
+      } else if (adData.category && userChangedCategory) {
+        console.log('Skipping category initialization because user already changed it to:', 
+          selectedCategory ? `${selectedCategory.name} (${selectedCategory.id})` : 'UNKNOWN');
+      } else {
+        console.warn('No category in ad data');
+      }
+
+      // Set media
+      if (adData.images && adData.images.length > 0) {
+        const formattedImages = adData.images.map((img) => ({ url: img.url }))
+        setValue('mediaImages', formattedImages)
+      }
+
+      // Set videos if available
+      if ('videos' in adData && Array.isArray(adData.videos) && adData.videos.length > 0) {
+        const formattedVideos = (adData.videos as any[]).map((vid) => ({ url: vid.url }))
+        setValue('mediaVideos', formattedVideos)
+      }
+
+      // Handle attributes after features are loaded
+      if (featureData.length > 0 && adData.attributes && adData.attributes.length > 0) {
+        console.log('Setting attributes:', adData.attributes)
+
+        adData.attributes.forEach((attr) => {
+          const feature = featureData.find((f) => f.id === attr.id)
+          if (feature) {
+            console.log(`Setting feature ${feature.name} (${attr.id}) with value:`, attr.value)
+
+            if (attr.type === 'bool') {
+              // مدیریت مقادیر boolean
+              const boolValue = attr.value === true ? 'دارد' : 'ندارد';
+              
+              // مدیریت ویژه برای قابل تبدیل بودن
+              if (feature.key === 'bool_convertible') {
+                const isConverted = attr.value === true;
+                console.log(`Setting convertible from API: ${isConverted}`);
+                setIsConvertible(isConverted);
+                setValue('convertible', isConverted);
+                setValue(`features.${attr.id}`, isConverted); // ذخیره به عنوان boolean نه string
+              } 
+              
+              // مدیریت checkbox ها - bool_renovated و bool_document
+              else if (feature.key === 'bool_renovated' || feature.key === 'bool_document') {
+                setValue(`features.${attr.id}`, attr.value === true ? 'true' : 'false');
+              } 
+              // سایر فیلدهای boolean
+              else {
+                setValue(`features.${attr.id}`, boolValue);
+              }
+            } 
+            else if (attr.type === 'choice' && attr.value) {
+              // مدیریت choice items با مقداردهی dropdown
+              // ذخیره در فرم
+              setValue(`features.${attr.id}`, attr.value);
+              
+              // تنظیم مقادیر برای نمایش در dropdownها
+              if (typeof attr.value === 'object' && attr.value !== null) {
+                // بررسی کردن فرمت مناسب برای dropdown و اضافه کردن type assertion
+                const choiceValue = attr.value as { id: string; value: string };
+                if ('id' in attr.value && 'value' in attr.value) {
+                  setSelectedValues((prev) => ({ ...prev, [attr.id]: choiceValue.id }));
+                  setSelectedNames((prev) => ({ ...prev, [attr.id]: choiceValue.value }));
+                }
+              }
+            } 
+            else if (attr.type === 'text' || attr.type === 'number' || attr.type === 'string') {
+              setValue(`features.${attr.id}`, String(attr.value || ''))
+            }
+          }
+        })
+      }
+
+      // Set price information
+      if (adData.price) {
+        // For deposit and rent (رهن و اجاره)
+        if (adData.price.deposit) {
+          const depositFeature = featureData.find((f) => f.key === 'text_mortgage_deposit')
+          if (depositFeature) {
+            setValue(`features.${depositFeature.id}`, String(adData.price.deposit))
+          }
+        }
+
+        if (adData.price.rent) {
+          const rentFeature = featureData.find((f) => f.key === 'text_monthly_rent')
+          if (rentFeature) {
+            setValue(`features.${rentFeature.id}`, String(adData.price.rent))
+          }
+        }
+
+        // For sale price (قیمت فروش)
+        if (adData.price.amount) {
+          const priceFeature = featureData.find((f) => f.key === 'text_selling_price')
+          if (priceFeature) {
+            setValue(`features.${priceFeature.id}`, String(adData.price.amount))
+          }
+        }
+
+        // For discount (تخفیف)
+        if (adData.price.discount_amount) {
+          const discountFeature = featureData.find((f) => f.key === 'text_discount')
+          if (discountFeature) {
+            setValue(`features.${discountFeature.id}`, String(adData.price.discount_amount))
+          }
+        }
+      }
+      
+      console.log('Finished setting ad data for editing');
+    }
+  }, [isEditMode, adData, isLoadingAd, featureData, setValue, categoriesData, provinces, triggerGetFeaturesByCategory, userChangedCategory, selectedCategory])
+
+  // اضافه کردن useEffect برای دیباگ مقادیر در زمان ویرایش
+  useEffect(() => {
+    if (isEditMode && Object.keys(selectedValues).length > 0) {
+      console.log('Selected dropdown values:', selectedValues);
+      console.log('Selected dropdown names:', selectedNames);
+    }
+  }, [isEditMode, selectedValues, selectedNames]);
+
+  console.log(adData, 'adData')
+
+  // Add tracking effect for category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      console.log('TRACKING: Category changed to:', selectedCategory.name, 'ID:', selectedCategory.id);
+    }
+  }, [selectedCategory]);
+
+  // Reset userChangedCategory when ad data changes
+  useEffect(() => {
+    if (adData && isEditMode) {
+      console.log('Ad data changed, resetting userChangedCategory flag');
+      setUserChangedCategory(false);
+    }
+  }, [adData, isEditMode]);
+
+  // Debug category data
+  useEffect(() => {
+    if (isEditMode && adData?.category && categoriesData?.main_categories) {
+      const mainCategory = categoriesData.main_categories.find(c => c.id === adData.category.main_category?.id);
+      
+      console.log('DEBUG CATEGORY INFO:');
+      console.log('- Ad Category ID:', adData.category.id);
+      console.log('- Ad Main Category ID:', adData.category.main_category?.id);
+      console.log('- Found Main Category:', mainCategory ? `${mainCategory.name} (${mainCategory.id})` : 'NOT FOUND');
+      
+      if (mainCategory?.sub_categories) {
+        const subCategory = mainCategory.sub_categories.find(sc => sc.id === adData.category.id);
+        console.log('- Found Sub Category:', subCategory ? `${subCategory.name} (${subCategory.id})` : 'NOT FOUND');
+      }
+      
+      console.log('- Current Selected Category:', selectedCategory ? `${selectedCategory.name} (${selectedCategory.id})` : 'NONE');
+    }
+  }, [isEditMode, adData, categoriesData, selectedCategory]);
+
+  // Helper function to find category deep in the hierarchy
+  const findCategoryDeep = (categories: any[], targetId: string | number): { category: any, parent: any } | null => {
+    if (!categories || !targetId) return null;
+    
+    // First level search - direct subcategories
+    for (const mainCat of categories) {
+      if (mainCat.sub_categories) {
+        for (const subCat of mainCat.sub_categories) {
+          if (subCat.id === targetId) {
+            return { category: subCat, parent: mainCat };
+          }
+          
+          // Second level search - if there are sub_sub_categories
+          if (subCat.sub_sub_category) {
+            for (const subSubCat of subCat.sub_sub_category) {
+              if (subSubCat.id === targetId) {
+                return { category: subSubCat, parent: subCat };
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  // Add debug message for userChangedCategory
+  useEffect(() => {
+    console.log('User category selection state:', userChangedCategory ? 'MANUALLY CHANGED' : 'DEFAULT/INITIAL');
+  }, [userChangedCategory]);
+
+  if (isFetching)
+    return (
+      <div className="mx-auto py-5 border rounded-[16px] bg-white">
+        {/* Skeleton for Progress Steps */}
+        <div className="flex justify-between items-center mb-6 px-[33px]">
+          <Skeleton count={1}>
+            <Skeleton.Items className="flex justify-between items-center w-full">
+              {skeletonSteps.map((_, index) => (
+                <React.Fragment key={index}>
+                  <Skeleton.Item height="h-5" width="w-5" animated="background" className="rounded-full" />
+                  {index < skeletonSteps.length - 1 && (
+                    <Skeleton.Item height="h-2" width="w-full mx-4" animated="background" />
+                  )}
+                </React.Fragment>
+              ))}
+            </Skeleton.Items>
+          </Skeleton>
+        </div>
+
+        {/* Rest of skeleton component remains the same */}
+        <div className="space-y-4 px-4 pt-6">
+          <Skeleton count={1}>
+            <Skeleton.Items className="space-y-4 w-full">
+              {/* 5 form fields with labels */}
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="w-full">
+                  <Skeleton.Item height="h-5" width="w-1/4" animated="background" className="mb-2" />
+                  <Skeleton.Item height="h-10" width="w-full" animated="background" />
+                </div>
+              ))}
+
+              {/* Map field */}
+              <div>
+                <Skeleton.Item height="h-5" width="w-1/3" animated="background" className="mb-2" />
+                <Skeleton.Item height="h-52" width="w-full" animated="background" />
               </div>
-            ))}
+            </Skeleton.Items>
+          </Skeleton>
 
-            {/* Map field */}
-            <div>
-              <Skeleton.Item height="h-5" width="w-1/3" animated="background" className="mb-2" />
-              <Skeleton.Item height="h-52" width="w-full" animated="background" />
-            </div>
-          </Skeleton.Items>
-        </Skeleton>
-
-        {/* Navigation Buttons */}
-        <div className="w-full mt-6 flex justify-between">
-          <Skeleton.Item height="h-12" width="w-32" animated="background" />
-          <Skeleton.Item height="h-12" width="w-32" animated="background" />
+          {/* Navigation Buttons */}
+          <div className="w-full mt-6 flex justify-between">
+            <Skeleton.Item height="h-12" width="w-32" animated="background" />
+            <Skeleton.Item height="h-12" width="w-32" animated="background" />
+          </div>
         </div>
       </div>
-    </div>
-  );
+    )
 
   if (features) {
     console.log(features, 'features')
@@ -1028,7 +1549,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
           className="flex h-full flex-col gap-y-5 bg-white p-4 rounded-2xl rounded-b-none"
         >
           <Modal.Header onClose={handleModalClose}>
-            <div className="pt-4">دسته بندی</div>
+            <div className="pt-4">دسته بندی {selectedCategory && `( ${mapCategoryName(selectedCategory.name)})`}</div>
           </Modal.Header>
           <Modal.Body>
             <div className=" mt-2 w-full z-10">
@@ -1062,10 +1583,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                       <>
                                         <Disclosure.Button
                                           className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                            selectedCategory?.id === subItem.id ? 'bg-gray-50 rounded-lg' : ''
+                                            selectedCategory?.id === subItem.id ? 'bg-[#FFE2E5]  font-medium rounded-lg' : ''
                                           }`}
                                         >
-                                          <span className="font-light text-[14px] text-[#5A5A5A]">{subItem.name}</span>
+                                          <span className={`text-[14px] ${selectedCategory?.id === subItem.id ? ' font-medium' : 'text-[#5A5A5A] font-light'}`}>
+                                            {subItem.name}
+                                          </span>
                                           <ArrowLeftIcon
                                             className={`w-5 h-5 ml-4 ${
                                               subOpen ? '' : 'rotate-90 text-gray-700'
@@ -1079,12 +1602,13 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                               key={childItem.id}
                                               onClick={() => handleSelectCategory(childItem, subItem)}
                                               className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                                selectedCategory?.id === childItem.id ? 'bg-gray-50 rounded-lg' : ''
+                                                selectedCategory?.id === childItem.id ? 'bg-[#FFE2E5]  font-medium rounded-lg' : ''
                                               }`}
                                             >
-                                              <span className="font-light text-[14px] text-[#5A5A5A]">
+                                              <span className={`text-[14px] ${selectedCategory?.id === childItem.id ? ' font-medium' : 'text-[#5A5A5A] font-light'}`}>
                                                 {childItem.name}
                                               </span>
+                                              
                                             </div>
                                           ))}
                                         </Disclosure.Panel>
@@ -1095,10 +1619,13 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                   <div
                                     onClick={() => handleSelectCategory(subItem)}
                                     className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                      selectedCategory?.id === subItem.id ? 'bg-gray-50 rounded-lg' : ''
+                                      selectedCategory?.id === subItem.id ? 'bg-[#FFE2E5]  font-medium rounded-lg' : ''
                                     }`}
                                   >
-                                    <span className="font-light text-[14px] text-[#5A5A5A]">{subItem.name}</span>
+                                    <span className={`text-[14px] ${selectedCategory?.id === subItem.id ? ' font-medium' : 'text-[#5A5A5A] font-light'}`}>
+                                      {subItem.name}
+                                    </span>
+                                   
                                   </div>
                                 )}
                               </div>
@@ -1246,7 +1773,6 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                   />
                 )}
               />
-
               <MapLocationPicker
                 label={'لوکیشن دقیق ملک'}
                 selectedLocation={selectedLocation}
@@ -1314,14 +1840,15 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 </label>
                 <div
                   onClick={modalHandlers.open}
-                  className="w-full cursor-pointer border-[1.5px] bg-[#FCFCFC] rounded-[8px] px-4 h-[40px] text-right text-[#5A5A5A] flex justify-between items-center"
+                  className={`w-full cursor-pointer border-[1.5px] ${selectedCategory ? '' : 'bg-[#FCFCFC]'} rounded-[8px] px-4 h-[40px] text-right ${selectedCategory ? '' : 'text-[#5A5A5A]'} flex justify-between items-center`}
                 >
-                  <span className="text-[14px]">
-                    {!isShow}
-                    {selectedCategory ? mapCategoryName(selectedCategory.name) : 'انتخاب'}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className={`text-[14px] ${selectedCategory ? 'font-medium' : ''}`}>
+                      {selectedCategory ? mapCategoryName(selectedCategory.name) : 'انتخاب'}
+                    </span>
+                  </div>
                   <ArrowLeftIcon
-                    className={`w-5 h-5 text-[#9D9D9D] transition-transform ${isShow ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 ${selectedCategory ? '' : 'text-[#9D9D9D]'} transition-transform ${isShow ? 'rotate-180' : ''}`}
                   />
                 </div>
                 <div className="w-fit" dir={'ltr'}>
@@ -1421,8 +1948,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                               name={`features.${field.id}`}
                               checked={isConvertible}
                               onChange={() => {
-                                setIsConvertible((prev) => !prev)
-                                setValue(`features.${field.id}`, !isConvertible)
+                                const newValue = !isConvertible;
+                                setIsConvertible(newValue);
+                                setValue(`features.${field.id}`, newValue); // نگهداری به عنوان boolean
+                                setValue('convertible', newValue); // تنظیم مستقیم فیلد convertible
+                                console.log(`Checkbox bool_convertible set to: ${newValue}`);
                               }}
                               label=""
                               customStyle="bg"
@@ -1449,69 +1979,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                   </span>
                 </div>
               </div>
-            ) : // <div className="space-y-4">
-            //   <Controller
-            //     name="deposit"
-            //     control={control}
-            //     render={({ field }) => (
-            //       <TextFiledPrice
-            //         adForm
-            //         label="رهن یا ودیعه"
-            //         type="text"
-            //         name="deposit"
-            //         value={field.value}
-            //         onChange={field.onChange}
-            //         onBlur={field.onBlur}
-            //         errors={errors.deposit}
-            //         placeholder="مثال : 100 میلیون تومان"
-            //         formatPrice={true}
-            //         inputMode="numeric"
-            //         pattern="[0-9]*"
-            //       />
-            //     )}
-            //   />
-
-            //   <Controller
-            //     name="rent"
-            //     control={control}
-            //     render={({ field }) => (
-            //       <TextFiledPrice
-            //         adForm
-            //         label="اجاره ماهیانه"
-            //         type="text"
-            //         name="rent"
-            //         value={field.value}
-            //         onChange={field.onChange}
-            //         onBlur={field.onBlur}
-            //         errors={errors.rent}
-            //         placeholder="مثال : 10 میلیون "
-            //         formatPrice={true}
-            //         inputMode="numeric"
-            //         pattern="[0-9]*"
-            //       />
-            //     )}
-            //   />
-
-            //   <div className="flex flex-row-reverse items-center gap-2 w-full pt-2">
-            //     <CustomCheckbox
-            //       name={`convertible`}
-            //       checked={isConvertible}
-            //       onChange={() => setIsConvertible((prev) => !prev)}
-            //       label=""
-            //       customStyle="bg"
-            //     />
-            //     <label htmlFor="convertible" className="flex items-center gap-2 w-full font-normal text-sm">
-            //       <RepeatIcon width="24px" height="24px" />
-            //       قابل تبدیل
-            //     </label>
-            //   </div>
-            //   <div className="flex items-center gap-2">
-            //     <InfoCircleIcon width="16px" height="16px" />
-            //     <span className="text-[#5A5A5A] font-normal text-xs">
-            //       به ازای هر یک میلیون تومان ودیعه 30 هزار تومان اجاره عرف بازار می باشد.
-            //     </span>
-            //   </div>
-            // </div>
+            ) : 
             dealType === 'shortRent' ? (
               <div className="space-y-4">
                 <Controller
@@ -1746,8 +2214,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                                   <input
                                     type="checkbox"
                                     className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#17A586] checked:bg-[#17A586] checked:border-[#17A586]"
-                                    checked={value === 'true'}
-                                    onChange={(e) => onChange(e.target.checked ? 'true' : 'false')} // مقدار را به صورت string ذخیره می‌کند
+                                    checked={value === 'true' || value === true}
+                                    onChange={(e) => {
+                                      const newValue = e.target.checked ? 'true' : 'false';
+                                      onChange(newValue); 
+                                      console.log(`Checkbox ${field.name} set to: ${newValue}`);
+                                    }} // مقدار را به صورت string ذخیره می‌کند
                                   />
                                   <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                                     <svg
@@ -1924,20 +2396,21 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                       ))}
                 </div>
                 <div className="mt-6">
-                  <Controller
-                    name="title"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        adForm
-                        label="عنوان آگهی"
-                        {...field}
-                        control={control}
-                        errors={errors.title}
-                        placeholder="مثال: خانه ویلایی 300 متری خیابان جمهوری"
-                      />
-                    )}
+                  <label
+                    className="block text-sm font-normal mb-2 text-gray-700 md:min-w-max lg:text-sm"
+                    htmlFor="title"
+                  >
+                    عنوان آگهی
+                  </label>
+                  <input
+                    className="input w-full h-[40px] border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs px-2"
+                    id="title"
+                    {...register('title')}
+                    placeholder="مثال: خانه ویلایی 300 متری خیابان جمهوری"
                   />
+                  <div className="w-fit" dir={'ltr'}>
+                    <DisplayError adForm errors={errors.title} />
+                  </div>
                 </div>
                 <div className="mt-4">
                   <label
@@ -1973,7 +2446,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                 <div>
                   <input
                     type="file"
-                    accept=".jpg,.jpeg,.png,.webp"
+                    accept="*"
                     multiple
                     className="hidden"
                     id="Thumbnail"
@@ -2009,8 +2482,16 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                         </button>
                       </div>
                     ))}
+
+                    {/* Show loading placeholder during upload */}
+                    {isUploadingMedia && fields.length < maxFiles && (
+                      <div className="h-[58px] w-full custom-dashed rounded-[4px] bg-gray-100 animate-pulse flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-gray-300 border-t-[#D52133] rounded-full animate-spin"></div>
+                      </div>
+                    )}
+
                     {/* نمایش جایگاه‌های خالی */}
-                    {Array.from({ length: maxFiles - fields.length }).map((_, index) => (
+                    {Array.from({ length: maxFiles - fields.length - (isUploadingMedia ? 1 : 0) }).map((_, index) => (
                       <div
                         key={`empty-${index}`}
                         className="w-full h-[58px] custom-dashed rounded-[4px] shadow-product flex items-center justify-center text-gray-500"
@@ -2020,7 +2501,6 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                     ))}
                   </div>
                 </div>
-                {/* {errors?.media?.images && <p className="text-red-500 text-sm mt-1">{errors.media.images.message}</p>} */}
               </div>
 
               <div className="mb-6">
@@ -2055,6 +2535,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                             src={`${file.url}`}
                             className="h-[58px] w-full object-cover rounded-[4px]"
                             id={`video-${index}`}
+                            onLoadedData={() => handleVideoLoaded(file.url)}
                           />
                           <div
                             className="absolute inset-0 flex items-center justify-center cursor-pointer"
@@ -2087,9 +2568,17 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
                         </button>
                       </div>
                     ))}
+
+                    {/* Show loading placeholder for videos */}
+                    {isUploadingMedia && videoFields.length < maxVideos && (
+                      <div className="h-[58px] w-full custom-dashed rounded-[4px] bg-gray-100 animate-pulse flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-gray-300 border-t-[#D52133] rounded-full animate-spin"></div>
+                      </div>
+                    )}
+
                     {/* Empty video slots */}
                     {Array.from({
-                      length: maxVideos - videoFields.length,
+                      length: maxVideos - videoFields.length - (isUploadingMedia ? 1 : 0),
                     }).map((_, index) => (
                       <div
                         key={`empty-${index}`}
@@ -2149,10 +2638,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser }) => {
             ) : (
               <Button
                 type="submit"
-                isLoading={isLoadingCreate}
-                className={` ${isLoadingCreate ? 'w-auto' : 'w-[120px]'} whitespace-nowrap float-left h-[48px] text-white rounded-lg font-bold text-sm hover:bg-[#f75263]`}
+                isLoading={isLoadingCreate || isLoadingUpdate}
+                className={` ${
+                  isLoadingCreate || isLoadingUpdate ? 'w-auto' : 'w-[120px]'
+                } whitespace-nowrap float-left h-[48px] text-white rounded-lg font-bold text-sm hover:bg-[#f75263]`}
               >
-                ثبت نهایی{' '}
+              {isEditMode ? "بروزرسانی نهایی" : "ثبت نهایی"}{' '}
               </Button>
             )}
           </div>

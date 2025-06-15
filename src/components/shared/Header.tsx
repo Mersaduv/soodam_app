@@ -5,7 +5,7 @@ import MapMode from './MapMode'
 import FilterControlNavBar from './FilterControlNavBar'
 import { Close } from '@/icons'
 import { useAppDispatch, useAppSelector } from '@/hooks'
-import { roles } from '@/utils'
+import { roles, userTypes } from '@/utils'
 import { useRouter } from 'next/router'
 import { setIsVisible } from '@/store'
 
@@ -21,17 +21,25 @@ const Header = ({ isEstateHeader }: { isEstateHeader?: boolean }) => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user'))
-    const role = localStorage.getItem('role')
-    if (role === 'user' || !role) {
+    const userType = localStorage.getItem('userType')
+    
+    // If no userType is set or it's a basic user, show subscription message
+    if (!userType) {
       dispatch(setIsVisible(true))
     }
-    if (user && user.role === 'memberUser' && user.subscription == undefined) {
+    
+    // If user is a member but has no subscription
+    if (user && user.user_type === userTypes.MemberUser && user.subscription == undefined) {
       dispatch(setIsVisible(true))
     }
+    
+    // If user has subscription but it's not active
     if (user && user.subscription && user.subscription.status !== 'ACTIVE') {
       dispatch(setIsVisible(true))
     }
-    if (user && user.role === 'marketer' && user.subscription == undefined) {
+    
+    // If user is a marketer but has no subscription
+    if (user && user.user_type === userTypes.Marketer && user.subscription == undefined) {
       dispatch(setIsVisible(true))
     }
   }, [])

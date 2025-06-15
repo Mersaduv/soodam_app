@@ -104,13 +104,14 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
         try {
           // Clear any existing cached data first to prevent old user data persistence
           // dispatch(productionApiSlice.util.resetApiState())
-          
+
           const { data } = await queryFulfilled
           if (data) {
             // Clear any remaining stored data before setting new data
             localStorage.clear()
-            
+
             localStorage.setItem('token', data.token)
+            localStorage.setItem('userType', args.userType as string)
             const userInfoData = await dispatch(authApiSlice.endpoints.getUserInfo.initiate()).unwrap()
             console.log(userInfoData, 'userInfoData----------')
 
@@ -133,7 +134,6 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
               is_active: userInfoData.is_active,
               user_type: userInfoData.user_type,
               user_group: userInfoData.user_group,
-              role: args.role as UserRoleType,
               birthday: birthdate,
               province: userInfoData.province,
               city: userInfoData.city,
@@ -150,7 +150,7 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
               setCredentials({
                 fullName: '',
                 phoneNumber: args.phoneNumber,
-                role: (args.role as string) || '',
+                // userType: (args.userType as unknown as number) || null,
                 token: data.token,
                 loggedIn: true,
               })
@@ -199,22 +199,21 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled
-          
+
           // Clear Redux state
           dispatch(clearCredentials())
-          
+
           // Clear all localStorage and sessionStorage
           if (typeof window !== 'undefined') {
             localStorage.clear()
             sessionStorage.clear()
           }
-          
+
           // Reset all API state to ensure no cached data persists
           dispatch(productionApiSlice.util.resetApiState())
-          
         } catch (error) {
           console.error('logout:', error)
-          
+
           // Even if API call fails, clear local data
           dispatch(clearCredentials())
           if (typeof window !== 'undefined') {

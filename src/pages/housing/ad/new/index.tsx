@@ -4,6 +4,7 @@ import { Button } from '@/components/ui'
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { SmallArrowLeftIcon } from '@/icons'
 import { setAdConfirmExit, setIsSuccess } from '@/store'
+import { userTypes } from '@/utils'
 import { NextPage } from 'next'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
@@ -22,7 +23,7 @@ const NewAdPage: NextPage = () => {
   return (
     <ClientLayout
       isAdConfirmExit={true}
-      title={`${query.role === 'marketer' ? 'ثبت آگهی به عنوان بازاریاب' : 'ثبت آگهی شخصی'}`}
+      title={`${Number(query.role) === userTypes.Marketer ? 'ثبت آگهی به عنوان بازاریاب' : 'ثبت آگهی شخصی'}`}
     >
       <div className="py-[90px] px-4 relative">
         {/* کامپوننت فرم همیشه رندر می‌شود */}

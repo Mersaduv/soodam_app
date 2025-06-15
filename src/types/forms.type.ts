@@ -10,7 +10,7 @@ export interface AdminPhoneFormValues {
 export interface CodeFormValues {
   code: string
   phoneNumber?: number
-  role?: string
+  userType?: string
 }
 
 export interface AdFormValues {

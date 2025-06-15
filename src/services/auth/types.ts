@@ -12,7 +12,7 @@ export type LoginQuery = {
 export type VerifyLoginQuery = {
   code: string
   phoneNumber?: string
-  role?: string | string[]
+  userType?: string | string[]
 }
 export type UpdateUserInfoQuery = {
   id: string;

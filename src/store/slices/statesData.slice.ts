@@ -16,6 +16,7 @@ interface State {
   mode: string
   itemFilesInArea: any[]
   isSatelliteView: boolean
+  isSatelliteViewMapPicker: boolean
   isSuccess: boolean
   userCityLocation: number[]
   estateMap: Estate[]
@@ -37,6 +38,7 @@ const initialState: State = {
   mode: 'none',
   itemFilesInArea: [],
   isSatelliteView: false,
+  isSatelliteViewMapPicker: true,
   isSuccess: false,
   userCityLocation: [35.745929, 51.402726],
   estateMap: [],
@@ -92,6 +94,9 @@ const updateSlice = createSlice({
     setIsSatelliteView: (state, action) => {
       state.isSatelliteView = action.payload
     },
+    setIsSatelliteViewMapPicker: (state, action) => {
+      state.isSatelliteViewMapPicker = action.payload
+    },
     setIsSuccess: (state, action) => {
       state.isSuccess = action.payload
     },
@@ -120,6 +125,7 @@ export const {
   setItemFilesInArea,
   resetDrawing,
   setIsSatelliteView,
+  setIsSatelliteViewMapPicker,
   setIsSuccess,
   setUserCityLocation,
   setIsVisible

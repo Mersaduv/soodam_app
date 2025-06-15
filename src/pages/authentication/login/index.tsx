@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 import { HandleResponse } from '@/components/shared'
 import { setIsMemberUserLogin, setIsShowLogin, showAlert } from '@/store'
 import { useAppDispatch } from '@/hooks'
-import { roles } from '@/utils'
+import { userTypes } from '@/utils'
 
 function LoginPage() {
   // ? States
@@ -68,7 +68,7 @@ function LoginPage() {
     verificationCode({
       code,
       phoneNumber,
-      role: query?.role,
+      userType: query?.userType,
     })
   }
   // const onSuccess = () => replace(query?.redirectTo?.toString() || "/");
@@ -87,13 +87,13 @@ function LoginPage() {
       replace(query?.redirectTo?.toString() || '/')
       localStorage.setItem('hasSeenModal', 'true')
       dispatch(setIsShowLogin(false))
-      if (query?.role === roles.Marketer) {
+      if (query?.userType === userTypes.Marketer.toString()) {
         push('/marketer')
       }
-      if (query?.role === roles.MemberUser) {
+      if (query?.userType === userTypes.MemberUser.toString()) {
         dispatch(setIsMemberUserLogin(true))
       }
-      if (query?.role === roles.EstateConsultant) {
+      if (query?.userType === userTypes.EstateAgent.toString()) {
         push('/estate-consultant')
       }
     }, 50)

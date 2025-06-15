@@ -11,9 +11,10 @@ export interface User {
   security_number?: string
   email?: string
   phone_number?: string
+  gender?: string
   is_verified?: boolean
   is_active?: boolean
-  user_type?: string
+  user_type?: number
   user_group?: number
   province?:
     | {
@@ -29,7 +30,7 @@ export interface User {
     | string
   birthday?: any
   role?: UserRoleType
-  userType?: string
+  userType?: number
   address?: UserAddress
   addresses?: UserAddress[]
   avatar?:

@@ -7,13 +7,14 @@ import { Popup } from 'leaflet'
 
 interface LocationMap {
   housingData: Housing
+  isAdmin?: boolean
 }
 const LocationMap: React.FC<LocationMap> = (props) => {
-  const { housingData } = props
+  const { housingData, isAdmin } = props
   const position: any = [housingData.full_address.latitude, housingData.full_address.longitude]
   const customIcon = L.divIcon({
     html: renderToStaticMarkup(
-      <div className="bg-red-500 rounded-full">
+      <div className={`${!isAdmin ? 'bg-red-500' : 'bg-[#2C3E50]'} rounded-full`}>
         <HiOutlineLocationMarker size={24} color="white" />
       </div>
     ),

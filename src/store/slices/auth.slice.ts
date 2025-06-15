@@ -4,15 +4,29 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 interface AuthState {
   phoneNumber: string | null
   fullName: string | null
-  role: string | null
   token: string | null
   loggedIn: boolean
   user: User | null
+  userType: number | null
+  userGroup: number | null
 }
 
 const getPhoneNumber = () => (typeof window !== 'undefined' && localStorage.getItem('phoneNumber')) || null
 const getFullName = () => (typeof window !== 'undefined' && localStorage.getItem('fullName')) || null
-const getRole = () => (typeof window !== 'undefined' && localStorage.getItem('role')) || null
+const getUserType = () => {
+  if (typeof window !== 'undefined') {
+    const type = localStorage.getItem('userType')
+    return type ? Number(type) : null
+  }
+  return null
+}
+const getUserGroup = () => {
+  if (typeof window !== 'undefined') {
+    const group = localStorage.getItem('userGroup')
+    return group ? Number(group) : null
+  }
+  return null
+}
 const getToken = () => (typeof window !== 'undefined' && localStorage.getItem('token')) || null
 const getUser = () => {
   if (typeof window !== 'undefined') {
@@ -32,10 +46,11 @@ const getLoggedIn = () => {
 const initialState: AuthState = {
   phoneNumber: getPhoneNumber(),
   fullName: getFullName(),
-  role: getRole(),
   token: getToken(),
   loggedIn: getLoggedIn(),
   user: getUser(),
+  userType: getUserType(),
+  userGroup: getUserGroup()
 }
 
 const authSlice = createSlice({
@@ -44,18 +59,28 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (
       state,
-      action: PayloadAction<{ phoneNumber: string; fullName: string; role: string; token: string; loggedIn: boolean }>
+      action: PayloadAction<{ 
+        phoneNumber: string; 
+        fullName: string; 
+        token: string; 
+        loggedIn: boolean;
+        userType?: number;
+        userGroup?: number;
+      }>
     ) => {
-      const { phoneNumber, fullName, loggedIn, role, token } = action.payload
+      const { phoneNumber, fullName, loggedIn, token, userType, userGroup } = action.payload
       state.phoneNumber = phoneNumber
       state.fullName = fullName
       state.loggedIn = loggedIn
-      state.role = role
       state.token = token
+      state.userType = userType || null
+      state.userGroup = userGroup || null
+      
       if (typeof window !== 'undefined') {
         localStorage.setItem('phoneNumber', phoneNumber)
         localStorage.setItem('fullName', fullName)
-        localStorage.setItem('role', role)
+        if (userType) localStorage.setItem('userType', userType.toString())
+        if (userGroup) localStorage.setItem('userGroup', userGroup.toString())
         localStorage.setItem('token', token)
         localStorage.setItem('loggedIn', JSON.stringify(loggedIn))
       }
@@ -63,14 +88,17 @@ const authSlice = createSlice({
     clearCredentials: (state) => {
       state.phoneNumber = null
       state.fullName = null
-      state.role = null
       state.token = null
       state.loggedIn = false
       state.user = null
+      state.userType = null
+      state.userGroup = null
+      
       if (typeof window !== 'undefined') {
         localStorage.removeItem('phoneNumber')
         localStorage.removeItem('fullName')
-        localStorage.removeItem('role')
+        localStorage.removeItem('userType')
+        localStorage.removeItem('userGroup')
         localStorage.removeItem('token')
         localStorage.removeItem('loggedIn')
         localStorage.removeItem('hasSeenModal')
@@ -82,6 +110,18 @@ const authSlice = createSlice({
     },
     updateUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload
+      if (action.payload?.user_type) {
+        state.userType = action.payload.user_type
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userType', action.payload.user_type.toString())
+        }
+      }
+      if (action.payload?.user_group) {
+        state.userGroup = action.payload.user_group
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userGroup', action.payload.user_group.toString())
+        }
+      }
     },
   },
 })

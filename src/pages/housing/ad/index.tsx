@@ -2,6 +2,7 @@ import { ClientLayout } from '@/components/layouts'
 import { useAppDispatch } from '@/hooks'
 import { SmallArrowLeftIcon } from '@/icons'
 import { setIsShowLogin } from '@/store'
+import { userTypes } from '@/utils'
 import { NextPage } from 'next'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
@@ -13,10 +14,10 @@ const AdPage: NextPage = () => {
   const dispatch = useAppDispatch()
   const handleClickNav = () => {
     const user = JSON.parse(localStorage.getItem('user'))
-    if (user && user.role !== 'marketer') {
+    if (user && user.role !== userTypes.Marketer) {
       push('/marketer')
     } else {
-      push('/housing/ad/new?role=marketer')
+      push(`/housing/ad/new?role=${userTypes.Marketer}`)
     }
   }
   return (
@@ -26,7 +27,7 @@ const AdPage: NextPage = () => {
           <Link
             href={{
               pathname: '/housing/ad/new',
-              query: { role: 'MemberUser' },
+              query: { role: userTypes.MemberUser },
             }}
             className="hover:bg-[#FFF0F2] relative bg-white border hover:border-[#D52133] cursor-pointer p-4 rounded-[16px] flex justify-between items-center flex-col"
           >

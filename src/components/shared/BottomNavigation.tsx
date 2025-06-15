@@ -4,12 +4,14 @@ import { useRouter } from 'next/router'
 import { Home2Icon, MoreIcon, ProfileNoTick, ProfileTick, ProfileTickGreen, SearchIcon, SquareTaskIcon } from '@/icons'
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { setIsShowLogin } from '@/store'
+import { userTypes } from '@/utils/constants'
 
 const BottomNavigation: React.FC = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { pathname } = router
-  const { role, phoneNumber, user } = useAppSelector((state) => state.auth)
+  const { phoneNumber, user } = useAppSelector((state) => state.auth)
+  const userType = localStorage.getItem('userType')
 
   const navItems = [
     { href: '/', icon: <SearchIcon width="24px" height="24px" />, label: 'جستجو' },
@@ -18,9 +20,9 @@ const BottomNavigation: React.FC = () => {
     {
       href: '/marketer',
       icon:
-        role === 'user' || !role ? (
+        userType === userTypes.NormalUser.toString() || !userType ? (
           <ProfileNoTick width="24px" height="24px" />
-        ) : user && user.subscription && user.subscription.status === 'ACTIVE' ? (
+        ) : user && user.subscription ? (
           <ProfileTickGreen width="24px" height="24px" />
         ) : (
           <ProfileTick width="24px" height="24px" />
@@ -46,9 +48,9 @@ const BottomNavigation: React.FC = () => {
               }`}
               passHref
               onClick={(e) => {
-                const role = localStorage.getItem('role')
+                const userType = localStorage.getItem('userType')
                 if (item.href === '/soodam') {
-                  if (role === 'user' || !role) {
+                  if (!userType) {
                     e.preventDefault()
                     handleShowModalClick()
                   }

@@ -6,7 +6,7 @@ import { HiOutlineLocationMarker } from 'react-icons/hi'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import * as turf from '@turf/turf'
 import { useAppDispatch, useAppSelector, useDisclosure } from '@/hooks'
-import { setIsSatelliteView, setStateData } from '@/store'
+import { setIsSatelliteView, setIsSatelliteViewMapPicker, setStateData } from '@/store'
 import { useRouter } from 'next/router'
 import { CustomCheckbox, Modal } from '../ui'
 import { GrClear } from 'react-icons/gr'
@@ -415,8 +415,31 @@ function throttle(func, limit) {
   }
 }
 
-const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationChange }) => {
-  const [position, setPosition] = useState<[number, number]>([35.6892, 51.389]) // مقدار پیش‌فرض تهران
+const LocationPicker: React.FC<LocationPickerProps & {initialPosition?: [number, number]}> = ({ 
+  onLocationChange, 
+  initialPosition = [35.6892, 51.389] // مقدار پیش‌فرض تهران
+}) => {
+  const [position, setPosition] = useState<[number, number]>(initialPosition)
+
+  // وقتی initialPosition تغییر کند، position را به‌روز کنیم
+  useEffect(() => {
+    if (initialPosition && Array.isArray(initialPosition) && (initialPosition[0] !== 0 || initialPosition[1] !== 0)) {
+      setPosition(initialPosition);
+      
+      // اگر مختصات معتبر باشد، نقشه را به آن موقعیت حرکت دهیم
+      try {
+        const mapElement = document.querySelector('.leaflet-container');
+        // @ts-ignore - _leaflet_map یک خاصیت داخلی Leaflet است که TypeScript آن را نمی‌شناسد
+        const leafletMap = mapElement ? mapElement['_leaflet_map'] : null;
+        
+        if (leafletMap) {
+          leafletMap.setView(initialPosition, leafletMap.getZoom());
+        }
+      } catch (error) {
+        console.error('Error setting map view:', error);
+      }
+    }
+  }, [initialPosition]);
 
   const customIcon = L.divIcon({
     html: renderToStaticMarkup(
@@ -424,7 +447,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationChange }) => 
         <HiOutlineLocationMarker size={24} color="white" />
       </div>
     ),
-    className: 'custo m-marker-icon',
+    className: "custom-marker-icon",
     iconSize: [24, 24], // اندازه آیکون
     iconAnchor: [12, 24], // نقطه‌ای که روی موقعیت تنظیم می‌شود
   })
@@ -443,14 +466,14 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ onLocationChange }) => 
 const MapLocationPicker = (props: Props) => {
   const { selectedLocation, handleLocationChange, label, drawnPoints, setDrawnPoints, ads } = props
   const { query, push } = useRouter()
-  const { role, phoneNumber } = useAppSelector((state) => state.auth)
-  const { housingMap, isSatelliteView } = useAppSelector((state) => state.statesData)
+  const { userType, phoneNumber } = useAppSelector((state) => state.auth)
+  const { housingMap, isSatelliteViewMapPicker } = useAppSelector((state) => state.statesData)
   const dispatch = useAppDispatch()
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
   const [itemFiles, setItemFiles] = useState([])
   const [tileLayerUrl, setTileLayerUrl] = useState(
-    isSatelliteView
+    isSatelliteViewMapPicker
       ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
       : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
   )
@@ -509,7 +532,7 @@ const MapLocationPicker = (props: Props) => {
   }
   const toggleMapType = () => {
     setTileLayerUrl(
-      isSatelliteView
+      isSatelliteViewMapPicker
         ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
         : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
     )
@@ -671,8 +694,8 @@ const MapLocationPicker = (props: Props) => {
                 <div className="flex flex-row-reverse items-center gap-2 w-full">
                   <CustomCheckbox
                     name={`satellite-view`}
-                    checked={isSatelliteView}
-                    onChange={() => dispatch(setIsSatelliteView(!isSatelliteView))}
+                    checked={isSatelliteViewMapPicker}
+                    onChange={() => dispatch(setIsSatelliteViewMapPicker(!isSatelliteViewMapPicker))}
                     label=""
                     customStyle="bg-sky-500"
                   />
@@ -689,7 +712,7 @@ const MapLocationPicker = (props: Props) => {
           </Modal.Content>
         </Modal>
         <MapContainer
-          center={[35.6892, 51.389]}
+          center={selectedLocation && Array.isArray(selectedLocation) ? selectedLocation : [35.6892, 51.389]}
           zoom={12}
           style={{ height: '175px', width: '100%', borderRadius: '8px' }}
           ref={mapRef}
@@ -716,7 +739,7 @@ const MapLocationPicker = (props: Props) => {
             }
           />
           {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
-          {ads && <LocationPicker onLocationChange={handleLocationChange} />}
+          {ads && <LocationPicker onLocationChange={handleLocationChange} initialPosition={Array.isArray(selectedLocation) ? selectedLocation : [35.6892, 51.389]} />}
         </MapContainer>
       </div>
     </div>

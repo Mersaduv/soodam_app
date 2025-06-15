@@ -54,6 +54,7 @@ import {
   getProvinceFromCoordinates,
   IRAN_PROVINCES,
   iranProvincesByPopulation,
+  userTypes,
 } from '@/utils'
 import Link from 'next/link'
 interface Props {
@@ -173,14 +174,14 @@ const createIcon = (
 
 const ZoomHandler: React.FC = () => {
   const dispatch = useAppDispatch()
-  const role = localStorage.getItem('role')
+  const userType = localStorage.getItem('userType')
   const user = JSON.parse(localStorage.getItem('user'))
 
   useMapEvents({
     zoomend: (e) => {
       const map = e.target
       let newZoom = map.getZoom()
-      if (user && user.role === 'marketer' && user.subscription == undefined && newZoom > 13) {
+      if (user && user.user_type === userTypes.Marketer && user.subscription == undefined && newZoom > 13) {
         newZoom = 13
         map.setZoom(13)
       }
@@ -189,12 +190,12 @@ const ZoomHandler: React.FC = () => {
         map.setZoom(13)
       }
 
-      if (user && user.role === 'memberUser' && user.subscription == undefined && newZoom > 13) {
+      if (user && user.user_type === userTypes.MemberUser && user.subscription == undefined && newZoom > 13) {
         newZoom = 13
         map.setZoom(13)
       }
 
-      if (role === 'user' && newZoom > 13) {
+      if (!userType && newZoom > 13) {
         newZoom = 13
         map.setZoom(13)
       }

@@ -54,6 +54,7 @@ import {
   IRAN_PROVINCES,
   iranProvincesByPopulation,
   NEXT_PUBLIC_API_URL,
+  userTypes,
 } from '@/utils'
 import Link from 'next/link'
 interface Props {
@@ -339,14 +340,14 @@ const createIconWithPrice = (
 
 const ZoomHandler: React.FC = () => {
   const dispatch = useAppDispatch()
-  const role = localStorage.getItem('role')
+  const userType = localStorage.getItem('userType')
   const user = JSON.parse(localStorage.getItem('user'))
 
   useMapEvents({
     zoomend: (e) => {
       const map = e.target
       let newZoom = map.getZoom()
-      if (user && user.role === 'marketer' && user.subscription == undefined && newZoom > 13) {
+      if (user && user.user_type === userTypes.Marketer && user.subscription == undefined && newZoom > 13) {
         newZoom = 13
         map.setZoom(13)
       }
@@ -355,12 +356,12 @@ const ZoomHandler: React.FC = () => {
         map.setZoom(13)
       }
 
-      if (user && user.role === 'memberUser' && user.subscription == undefined && newZoom > 13) {
+      if (user && user.user_type === userTypes.MemberUser && user.subscription == undefined && newZoom > 13) {
         newZoom = 13
         map.setZoom(13)
       }
 
-      if (role === 'user' && newZoom > 13) {
+      if (!userType && newZoom > 13) {
         newZoom = 13
         map.setZoom(13)
       }
@@ -765,13 +766,23 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
       <div className="bg-white rounded-lg p-4 shadow-lg max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col">
           <Link href={`/housing/${housing.id}`} className="flex gap-2">
-            {housing.primary_image && (
+            {housing.primary_image ? (
               <div className=" bg-gray-200 rounded-[10px] mb-4">
                 <Image
                   width={104}
                   height={100}
                   className="rounded-[10px] h-[104px] object-cover"
                   src={`${housing.primary_image}`}
+                  alt={housing.title}
+                />
+              </div>
+            ) : (
+              <div className=" bg-gray-200 rounded-[10px] mb-4">
+                <Image
+                  width={104}
+                  height={100}
+                  className="rounded-[10px] h-[104px] object-cover"
+                  src={`/static/R.png`}
                   alt={housing.title}
                 />
               </div>
@@ -1160,10 +1171,10 @@ const LeafletMap: React.FC<Props> = ({ housingData, onBoundsChanged }) => {
 
   const handleNavigate = (): void => {
     const logged = localStorage.getItem('loggedIn')
-    const role = localStorage.getItem('role')
-    console.log(role)
+    const userType = localStorage.getItem('userType')
+    console.log(userType)
 
-    if (role === 'user' || role === null) {
+    if (userType === 'user' || userType === null) {
       push('/authentication/login?role=memberUser')
     } else if (logged === 'true') {
       push('/housing/ad')

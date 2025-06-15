@@ -39,7 +39,7 @@ const Advertisements: NextPage = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const [pageSize, setPageSize] = useState<number>(1)
+  const [pageSize, setPageSize] = useState<number>(4)
   const [paginationMeta, setPaginationMeta] = useState<PaginationMetadata | null>(null)
   const [isPaginationLoading, setIsPaginationLoading] = useState(false)
 
@@ -284,7 +284,10 @@ const Advertisements: NextPage = () => {
                 <h1 className="font-medium text-sm">تا اکنون آگهی به ثبت نرسیده.</h1>
               </div>
               <div className="mx-4 mt-8 mb-7 flex gap-3">
-                <Button onClick={() => push('/housing/ad')} className="w-full bg-[#2C3E50] rounded-[10px] font-bold text-sm">
+                <Button
+                  onClick={() => push('/housing/ad')}
+                  className="w-full bg-[#2C3E50] rounded-[10px] font-bold text-sm"
+                >
                   ثبت آگهی
                 </Button>
               </div>
@@ -304,7 +307,7 @@ const Advertisements: NextPage = () => {
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex flex-col">
-                            <Link href={`/housing/${housing.id}`} className="flex gap-2">
+                            <Link href={`/admin/advertisements/${housing.id}`} className="flex gap-2">
                               {housing.primary_image ? (
                                 <div className=" bg-gray-200 rounded-[10px] mb-4">
                                   <Image
@@ -440,6 +443,28 @@ const Advertisements: NextPage = () => {
                                 رد آگهی
                               </button>
                             </div>
+                            <hr className="my-3" />
+                            <div className="flex justify-end items-center gap-2">
+                              <div
+                                className={`text-sm font-medium ${
+                                  housing.status === 0
+                                    ? 'text-yellow-600'
+                                    : housing.status === 1
+                                    ? 'text-green-600'
+                                    : housing.status === 2
+                                    ? 'text-red-600'
+                                    : ''
+                                }`}
+                              >
+                                {housing.status === 0
+                                  ? 'در انتظار تایید'
+                                  : housing.status === 1
+                                  ? 'تایید شده'
+                                  : housing.status === 2
+                                  ? 'رد شده'
+                                  : 'نامشخص'}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )
@@ -463,19 +488,71 @@ const Advertisements: NextPage = () => {
                     </button>
 
                     <div className="flex gap-2">
-                      {Array.from({ length: paginationMeta.total_pages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => handlePageChange(page)}
-                          className={`px-3 py-1 rounded-md ${
-                            currentPage === page
-                              ? 'bg-[#2C3E50] text-white'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                      {(() => {
+                        const pageNumbers = []
+                        const maxVisiblePages = 3 // Reduced number of visible pages
+
+                        if (paginationMeta.total_pages <= maxVisiblePages) {
+                          // Show all pages if total pages are less than or equal to maxVisiblePages
+                          for (let i = 1; i <= paginationMeta.total_pages; i++) {
+                            pageNumbers.push(i)
+                          }
+                        } else {
+                          // Always show first page
+                          pageNumbers.push(1)
+
+                          // If current page is not first or last
+                          if (currentPage > 1 && currentPage < paginationMeta.total_pages) {
+                            // Add ellipsis after first page if needed
+                            if (currentPage > 2) {
+                              pageNumbers.push('...')
+                            }
+
+                            // Add current page
+                            pageNumbers.push(currentPage)
+
+                            // Add ellipsis before last page if needed
+                            if (currentPage < paginationMeta.total_pages - 1) {
+                              pageNumbers.push('...')
+                            }
+                          } else if (currentPage === 1 && paginationMeta.total_pages > 2) {
+                            // If on first page, show page 2 and ellipsis
+                            pageNumbers.push(2)
+                            pageNumbers.push('...')
+                          } else if (currentPage === paginationMeta.total_pages && paginationMeta.total_pages > 2) {
+                            // If on last page, show ellipsis and second-to-last page
+                            pageNumbers.push('...')
+                            pageNumbers.push(paginationMeta.total_pages - 1)
+                          }
+
+                          // Always show last page
+                          pageNumbers.push(paginationMeta.total_pages)
+                        }
+
+                        return pageNumbers.map((page, index) => {
+                          if (page === '...') {
+                            return (
+                              <span key={`ellipsis-${index}`} className="px-3 py-1">
+                                ...
+                              </span>
+                            )
+                          }
+
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => handlePageChange(page)}
+                              className={`px-3 py-1 rounded-md ${
+                                currentPage === page
+                                  ? 'bg-[#2C3E50] text-white'
+                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          )
+                        })
+                      })()}
                     </div>
 
                     <button
