@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { useForm, Controller, Resolver, useFieldArray, set } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import {
@@ -124,7 +124,10 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   const [isLoadingAddressSuggestions, setIsLoadingAddressSuggestions] = useState(false)
 
   // Add a state to track user category changes
-  const [userChangedCategory, setUserChangedCategory] = useState(false);
+  const [userChangedCategory, setUserChangedCategory] = useState(false)
+
+  // Track if the title has been manually edited by the user
+  const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false)
 
   const dispatch = useAppDispatch()
   const formRef = useRef<HTMLDivElement | null>(null)
@@ -179,6 +182,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
     setValue,
     getValues,
     watch,
+    reset,
     resetField,
     formState: { errors, isValid },
   } = useForm<AdFormValues>({
@@ -377,7 +381,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           'accept-language': 'fa',
         },
         headers: {
-          'User-Agent': 'Soodam-App',
+          'User-Agent': 'Soodam-App2',
         },
       })
 
@@ -412,7 +416,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           'accept-language': 'fa',
         },
         headers: {
-          'User-Agent': 'Soodam-App',
+          'User-Agent': 'Soodam-App2',
         },
       })
 
@@ -475,11 +479,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   useEffect(() => {
     if (selectedLocation) {
       console.log('selectedLocation updated in useEffect:', selectedLocation)
-      
+
       // به‌روزرسانی مستقیم مقادیر به‌جای setValue('location.lat')
       setValue('location', {
         lat: selectedLocation[0],
-        lng: selectedLocation[1]
+        lng: selectedLocation[1],
       })
 
       // Get address from coordinates
@@ -522,16 +526,16 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
       // تنظیم مستقیم موقعیت روی نقشه از اطلاعات آگهی
       if (adData.full_address?.latitude && adData.full_address?.longitude) {
         const newLocation: [number, number] = [adData.full_address.latitude, adData.full_address.longitude]
-        
+
         // تنظیم مستقیم موقعیت نقشه
         setSelectedLocation(newLocation)
-        
+
         // به روزرسانی مقادیر location در فرم
         setValue('location', {
           lat: adData.full_address.latitude,
           lng: adData.full_address.longitude,
         })
-        
+
         console.log('Map location set to:', newLocation)
       }
     }
@@ -541,7 +545,10 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   useEffect(() => {
     if (isEditMode && adData?.title) {
       console.log('Setting title directly in form:', adData.title)
-      setValue('title', adData.title)
+      setValue('title', adData.title || '')
+      // Prevent auto-suggest from overwriting the existing title in edit mode
+      setIsTitleManuallyEdited(true)
+      setValue('description', adData.description || '')
     }
   }, [isEditMode, adData, setValue])
 
@@ -558,7 +565,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
         const params = {
           sub_category_id: parent !== null ? parent.id : category.id,
           sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
-        };
+        }
         triggerGetFeaturesByCategory(params)
       }
     }
@@ -619,7 +626,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
       const cityName = address.city || address.town || address.village || address.county || ''
       const provinceName = address.province || address.state || ''
-      
+
       console.log(`استان: "${provinceName}", شهر: "${cityName}"`)
 
       // دریافت لیست استان‌ها
@@ -632,10 +639,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
       // تلاش برای یافتن استان با چند روش مختلف
       let matchedProvince = provincesResponse.data.find(
-        (p: any) => p.name === provinceName || 
-                  `استان ${p.name}` === provinceName ||
-                  provinceName.includes(p.name) ||
-                  (p.name && provinceName && p.name.includes(provinceName))
+        (p: any) =>
+          p.name === provinceName ||
+          `استان ${p.name}` === provinceName ||
+          provinceName.includes(p.name) ||
+          (p.name && provinceName && p.name.includes(provinceName))
       )
 
       // اگر استان پیدا نشد، اولین استان را انتخاب کنیم (تهران)
@@ -654,10 +662,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
       // تلاش برای یافتن شهر با چند روش مختلف
       let matchedCity = citiesResponse.data.find(
-        (c: any) => c.name === cityName ||
-                  cityName.includes(c.name) ||
-                  (c.name && c.name.includes(cityName)) ||
-                  (cityName.includes('شهر') && c.name === cityName.replace('شهر ', ''))
+        (c: any) =>
+          c.name === cityName ||
+          cityName.includes(c.name) ||
+          (c.name && c.name.includes(cityName)) ||
+          (cityName.includes('شهر') && c.name === cityName.replace('شهر ', ''))
       )
 
       // اگر شهر پیدا نشد، اولین شهر استان را انتخاب کنیم
@@ -671,7 +680,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
         throw new Error(`هیچ شهری برای استان ${matchedProvince.name} یافت نشد`)
       }
 
-      console.log(`استان '${matchedProvince.name}' (${matchedProvince.id}) و شهر '${matchedCity.name}' (${matchedCity.id}) انتخاب شدند`)
+      console.log(
+        `استان '${matchedProvince.name}' (${matchedProvince.id}) و شهر '${matchedCity.name}' (${matchedCity.id}) انتخاب شدند`
+      )
 
       return {
         province_id: matchedProvince.id,
@@ -679,7 +690,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
       }
     } catch (error) {
       console.error('خطا در تبدیل مختصات به استان و شهر:', error)
-      
+
       // در صورت بروز هر گونه خطا، مقادیر پیش‌فرض (تهران) را برگردان
       return {
         province_id: 8, // فرض می‌کنیم استان تهران با ID 8 است
@@ -711,14 +722,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           if (featureInfo.key === 'bool_convertible') {
             // اگر مقدار را به صورت boolean ذخیره کرده ایم
             if (typeof value === 'boolean') {
-              value = value;
+              value = value
             } else {
-              value = value === 'دارد' || value === true || value === 'true';
+              value = value === 'دارد' || value === true || value === 'true'
             }
-            console.log(`Converting convertible for API: ${value}`);
+            console.log(`Converting convertible for API: ${value}`)
           } else {
             // مقدار‌دهی معمولی برای سایر فیلدهای bool
-            value = value === 'دارد' || value === true || value === 'true';
+            value = value === 'دارد' || value === true || value === 'true'
           }
         } else if (featureInfo.type === 'choice') {
           if (Array.isArray(featureInfo.value)) {
@@ -923,9 +934,16 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
   useEffect(() => {
     if (isSuccessCreate || isSuccessUpdate) {
+      reset({
+        title: '',
+        description: '',
+        phoneNumber: '',
+        postalCode: '',
+        address: '',
+      })
       dispatch(setIsSuccess(true))
     }
-  }, [isSuccessCreate, isSuccessUpdate, dispatch])
+  }, [isSuccessCreate, isSuccessUpdate])
 
   const validateCurrentStep = async () => {
     let fieldsToValidate: string[] = []
@@ -988,18 +1006,18 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   // اصلاح تابع handleLocationChange برای ذخیره صحیح مختصات در فرم
   const handleLocationChange = (location: [number, number]) => {
     console.log('New location selected:', location)
-    
+
     // ذخیره مختصات در state
     setSelectedLocation(location)
-    
+
     // ذخیره مختصات مستقیماً در فرم
     setValue('location', {
       lat: location[0],
-      lng: location[1]
+      lng: location[1],
     })
-    
+
     console.log('Location set in form:', { lat: location[0], lng: location[1] })
-    
+
     setIsLoadingAddressSuggestions(true)
 
     // Get address from coordinates
@@ -1022,38 +1040,38 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   // Only keep one handleSelectCategory function
   const handleSelectCategory = (category: Category, parent?: Category) => {
     try {
-      console.log('handleSelectCategory called with:', category.name, 'ID:', category.id);
-      
+      console.log('handleSelectCategory called with:', category.name, 'ID:', category.id)
+
       // Mark that user has changed the category manually - THIS IS CRITICAL
-      setUserChangedCategory(true);
-      
+      setUserChangedCategory(true)
+
       // Set parent category if provided
       if (parent) {
-        console.log('Setting parent category:', parent.name, 'ID:', parent.id);
-        setSelectedParentCategory(parent);
+        console.log('Setting parent category:', parent.name, 'ID:', parent.id)
+        setSelectedParentCategory(parent)
       }
-      
+
       // Always set the new category regardless of previous selection
-      setSelectedCategory(category);
-      setValue('category', category.id);
-      
+      setSelectedCategory(category)
+      setValue('category', category.id)
+
       // Reset features when changing category to avoid feature conflicts
-      setFeatureData([]);
-      
+      setFeatureData([])
+
       // Trigger feature fetching for the new category
       const categoryParams = {
         sub_category_id: parent ? parent.id : category.id,
         sub_category_level_two_id: category.sub_sub_category === undefined ? category.id : 0,
-      };
-      
-      console.log('Fetching features with params:', categoryParams);
-      triggerGetFeaturesByCategory(categoryParams);
-      
-      handleModalClose();
-      
-      console.log('Category selection completed successfully');
+      }
+
+      console.log('Fetching features with params:', categoryParams)
+      triggerGetFeaturesByCategory(categoryParams)
+
+      handleModalClose()
+
+      console.log('Category selection completed successfully')
     } catch (error) {
-      console.error('Error in handleSelectCategory:', error);
+      console.error('Error in handleSelectCategory:', error)
     }
   }
 
@@ -1145,7 +1163,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           const locationInfo = await getProvinceAndCityFromCoordinates(selectedLocation[0], selectedLocation[1])
           console.log(locationInfo, 'locationInfo')
         } catch (error) {
-          console.error("خطا در دریافت اطلاعات موقعیت:", error);
+          console.error('خطا در دریافت اطلاعات موقعیت:', error)
           // خطا را نشان نمی‌دهیم، فقط لاگ می‌کنیم تا جریان کار متوقف نشود
         }
       }
@@ -1185,15 +1203,15 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   }
 
   // Initialize form with ad data if in edit mode
-  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false)
 
   useEffect(() => {
     if (isEditMode && adData && !isLoadingAd) {
-      console.log('Starting to load advertisement data for editing:', adData.id);
-      
+      console.log('Starting to load advertisement data for editing:', adData.id)
+
       // Mark this data as loaded to avoid reloading
       if (!initialDataLoaded) {
-        setInitialDataLoaded(true);
+        setInitialDataLoaded(true)
       }
 
       // Set title and description
@@ -1246,65 +1264,67 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
       // Set category ONLY if user hasn't changed it AND it's the first load
       if (adData.category && !userChangedCategory) {
-        console.log('Setting initial category from adData (no user changes detected):', adData.category);
-        
+        console.log('Setting initial category from adData (no user changes detected):', adData.category)
+
         // First check if categoriesData is loaded
         if (categoriesData && categoriesData.main_categories) {
           // Try to find the category using the deep search helper
-          const categoryResult = findCategoryDeep(categoriesData.main_categories, adData.category.id);
-          
+          const categoryResult = findCategoryDeep(categoriesData.main_categories, adData.category.id)
+
           if (categoryResult) {
-            const { category, parent } = categoryResult;
-            console.log('Found category using deep search:', category.name, 'ID:', category.id);
-            console.log('Parent category:', parent.name, 'ID:', parent.id);
-            
+            const { category, parent } = categoryResult
+            console.log('Found category using deep search:', category.name, 'ID:', category.id)
+            console.log('Parent category:', parent.name, 'ID:', parent.id)
+
             // Set the category and parent
-            setSelectedCategory(category);
-            setSelectedParentCategory(parent);
-            setValue('category', category.id);
-            
+            setSelectedCategory(category)
+            setSelectedParentCategory(parent)
+            setValue('category', category.id)
+
             // Trigger feature fetching for the initial category
             setTimeout(() => {
-              console.log('Triggering initial feature fetching');
+              console.log('Triggering initial feature fetching')
               const params = {
                 sub_category_id: parent.id,
                 sub_category_level_two_id: category.id,
-              };
-              triggerGetFeaturesByCategory(params);
-            }, 500); // Short delay to ensure state is updated
+              }
+              triggerGetFeaturesByCategory(params)
+            }, 500) // Short delay to ensure state is updated
           } else {
             // Fall back to original method
-            console.log('Deep search failed, trying traditional lookup');
-            const mainCategory = categoriesData.main_categories.find((c) => c.id === adData.category.main_category?.id);
-            
+            console.log('Deep search failed, trying traditional lookup')
+            const mainCategory = categoriesData.main_categories.find((c) => c.id === adData.category.main_category?.id)
+
             if (mainCategory && mainCategory.sub_categories) {
-              const category = mainCategory.sub_categories.find((sc) => sc.id === adData.category.id);
+              const category = mainCategory.sub_categories.find((sc) => sc.id === adData.category.id)
 
               if (category) {
-                console.log('Found matching category:', category.name, 'ID:', category.id);
-                setSelectedCategory(category);
-                setSelectedParentCategory(mainCategory);
-                setValue('category', category.id);
-                
+                console.log('Found matching category:', category.name, 'ID:', category.id)
+                setSelectedCategory(category)
+                setSelectedParentCategory(mainCategory)
+                setValue('category', category.id)
+
                 triggerGetFeaturesByCategory({
                   sub_category_id: mainCategory.id,
                   sub_category_level_two_id: category.id,
-                });
+                })
               } else {
-                console.warn('Could not find matching category in subcategories');
+                console.warn('Could not find matching category in subcategories')
               }
             } else {
-              console.warn('Main category has no subcategories');
+              console.warn('Main category has no subcategories')
             }
           }
         } else {
-          console.warn('Categories data not loaded yet');
+          console.warn('Categories data not loaded yet')
         }
       } else if (adData.category && userChangedCategory) {
-        console.log('Skipping category initialization because user already changed it to:', 
-          selectedCategory ? `${selectedCategory.name} (${selectedCategory.id})` : 'UNKNOWN');
+        console.log(
+          'Skipping category initialization because user already changed it to:',
+          selectedCategory ? `${selectedCategory.name} (${selectedCategory.id})` : 'UNKNOWN'
+        )
       } else {
-        console.warn('No category in ad data');
+        console.warn('No category in ad data')
       }
 
       // Set media
@@ -1330,42 +1350,40 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
             if (attr.type === 'bool') {
               // مدیریت مقادیر boolean
-              const boolValue = attr.value === true ? 'دارد' : 'ندارد';
-              
+              const boolValue = attr.value === true ? 'دارد' : 'ندارد'
+
               // مدیریت ویژه برای قابل تبدیل بودن
               if (feature.key === 'bool_convertible') {
-                const isConverted = attr.value === true;
-                console.log(`Setting convertible from API: ${isConverted}`);
-                setIsConvertible(isConverted);
-                setValue('convertible', isConverted);
-                setValue(`features.${attr.id}`, isConverted); // ذخیره به عنوان boolean نه string
-              } 
-              
+                const isConverted = attr.value === true
+                console.log(`Setting convertible from API: ${isConverted}`)
+                setIsConvertible(isConverted)
+                setValue('convertible', isConverted)
+                setValue(`features.${attr.id}`, isConverted) // ذخیره به عنوان boolean نه string
+              }
+
               // مدیریت checkbox ها - bool_renovated و bool_document
               else if (feature.key === 'bool_renovated' || feature.key === 'bool_document') {
-                setValue(`features.${attr.id}`, attr.value === true ? 'true' : 'false');
-              } 
+                setValue(`features.${attr.id}`, attr.value === true ? 'true' : 'false')
+              }
               // سایر فیلدهای boolean
               else {
-                setValue(`features.${attr.id}`, boolValue);
+                setValue(`features.${attr.id}`, boolValue)
               }
-            } 
-            else if (attr.type === 'choice' && attr.value) {
+            } else if (attr.type === 'choice' && attr.value) {
               // مدیریت choice items با مقداردهی dropdown
               // ذخیره در فرم
-              setValue(`features.${attr.id}`, attr.value);
-              
+              setValue(`features.${attr.id}`, attr.value)
+
               // تنظیم مقادیر برای نمایش در dropdownها
               if (typeof attr.value === 'object' && attr.value !== null) {
                 // بررسی کردن فرمت مناسب برای dropdown و اضافه کردن type assertion
-                const choiceValue = attr.value as { id: string; value: string };
+                const choiceValue = attr.value as { id: string; value: string }
                 if ('id' in attr.value && 'value' in attr.value) {
-                  setSelectedValues((prev) => ({ ...prev, [attr.id]: choiceValue.id }));
-                  setSelectedNames((prev) => ({ ...prev, [attr.id]: choiceValue.value }));
+                  setSelectedValues((prev) => ({ ...prev, [attr.id]: choiceValue.id }))
+                  setSelectedNames((prev) => ({ ...prev, [attr.id]: choiceValue.value }))
                 }
               }
-            } 
-            else if (attr.type === 'text' || attr.type === 'number' || attr.type === 'string') {
+            } else if (attr.type === 'text' || attr.type === 'number' || attr.type === 'string') {
               setValue(`features.${attr.id}`, String(attr.value || ''))
             }
           }
@@ -1405,86 +1423,126 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           }
         }
       }
-      
-      console.log('Finished setting ad data for editing');
+
+      console.log('Finished setting ad data for editing')
     }
-  }, [isEditMode, adData, isLoadingAd, featureData, setValue, categoriesData, provinces, triggerGetFeaturesByCategory, userChangedCategory, selectedCategory])
+  }, [
+    isEditMode,
+    adData,
+    isLoadingAd,
+    featureData,
+    setValue,
+    categoriesData,
+    provinces,
+    triggerGetFeaturesByCategory,
+    userChangedCategory,
+    selectedCategory,
+  ])
 
   // اضافه کردن useEffect برای دیباگ مقادیر در زمان ویرایش
   useEffect(() => {
     if (isEditMode && Object.keys(selectedValues).length > 0) {
-      console.log('Selected dropdown values:', selectedValues);
-      console.log('Selected dropdown names:', selectedNames);
+      console.log('Selected dropdown values:', selectedValues)
+      console.log('Selected dropdown names:', selectedNames)
     }
-  }, [isEditMode, selectedValues, selectedNames]);
+  }, [isEditMode, selectedValues, selectedNames])
 
   console.log(adData, 'adData')
 
   // Add tracking effect for category changes
   useEffect(() => {
     if (selectedCategory) {
-      console.log('TRACKING: Category changed to:', selectedCategory.name, 'ID:', selectedCategory.id);
+      console.log('TRACKING: Category changed to:', selectedCategory.name, 'ID:', selectedCategory.id)
     }
-  }, [selectedCategory]);
+  }, [selectedCategory])
 
   // Reset userChangedCategory when ad data changes
   useEffect(() => {
     if (adData && isEditMode) {
-      console.log('Ad data changed, resetting userChangedCategory flag');
-      setUserChangedCategory(false);
+      console.log('Ad data changed, resetting userChangedCategory flag')
+      setUserChangedCategory(false)
     }
-  }, [adData, isEditMode]);
+  }, [adData, isEditMode])
 
   // Debug category data
   useEffect(() => {
     if (isEditMode && adData?.category && categoriesData?.main_categories) {
-      const mainCategory = categoriesData.main_categories.find(c => c.id === adData.category.main_category?.id);
-      
-      console.log('DEBUG CATEGORY INFO:');
-      console.log('- Ad Category ID:', adData.category.id);
-      console.log('- Ad Main Category ID:', adData.category.main_category?.id);
-      console.log('- Found Main Category:', mainCategory ? `${mainCategory.name} (${mainCategory.id})` : 'NOT FOUND');
-      
+      const mainCategory = categoriesData.main_categories.find((c) => c.id === adData.category.main_category?.id)
+
+      console.log('DEBUG CATEGORY INFO:')
+      console.log('- Ad Category ID:', adData.category.id)
+      console.log('- Ad Main Category ID:', adData.category.main_category?.id)
+      console.log('- Found Main Category:', mainCategory ? `${mainCategory.name} (${mainCategory.id})` : 'NOT FOUND')
+
       if (mainCategory?.sub_categories) {
-        const subCategory = mainCategory.sub_categories.find(sc => sc.id === adData.category.id);
-        console.log('- Found Sub Category:', subCategory ? `${subCategory.name} (${subCategory.id})` : 'NOT FOUND');
+        const subCategory = mainCategory.sub_categories.find((sc) => sc.id === adData.category.id)
+        console.log('- Found Sub Category:', subCategory ? `${subCategory.name} (${subCategory.id})` : 'NOT FOUND')
       }
-      
-      console.log('- Current Selected Category:', selectedCategory ? `${selectedCategory.name} (${selectedCategory.id})` : 'NONE');
+
+      console.log(
+        '- Current Selected Category:',
+        selectedCategory ? `${selectedCategory.name} (${selectedCategory.id})` : 'NONE'
+      )
     }
-  }, [isEditMode, adData, categoriesData, selectedCategory]);
+  }, [isEditMode, adData, categoriesData, selectedCategory])
 
   // Helper function to find category deep in the hierarchy
-  const findCategoryDeep = (categories: any[], targetId: string | number): { category: any, parent: any } | null => {
-    if (!categories || !targetId) return null;
-    
+  const findCategoryDeep = (categories: any[], targetId: string | number): { category: any; parent: any } | null => {
+    if (!categories || !targetId) return null
+
     // First level search - direct subcategories
     for (const mainCat of categories) {
       if (mainCat.sub_categories) {
         for (const subCat of mainCat.sub_categories) {
           if (subCat.id === targetId) {
-            return { category: subCat, parent: mainCat };
+            return { category: subCat, parent: mainCat }
           }
-          
+
           // Second level search - if there are sub_sub_categories
           if (subCat.sub_sub_category) {
             for (const subSubCat of subCat.sub_sub_category) {
               if (subSubCat.id === targetId) {
-                return { category: subSubCat, parent: subCat };
+                return { category: subSubCat, parent: subCat }
               }
             }
           }
         }
       }
     }
-    
-    return null;
-  };
+
+    return null
+  }
 
   // Add debug message for userChangedCategory
   useEffect(() => {
-    console.log('User category selection state:', userChangedCategory ? 'MANUALLY CHANGED' : 'DEFAULT/INITIAL');
-  }, [userChangedCategory]);
+    console.log('User category selection state:', userChangedCategory ? 'MANUALLY CHANGED' : 'DEFAULT/INITIAL')
+  }, [userChangedCategory])
+
+  // Extract neighborhood from address
+  const extractNeighborhood = (fullAddress: string): string => {
+    if (!fullAddress) return ''
+
+    // Split address by delimiter and take the last meaningful part as neighborhood
+    const parts = fullAddress.split('، ')
+
+    // If we have multiple parts, take the most specific part (often the last meaningful one)
+    if (parts.length > 1) {
+      // Skip parts that are likely postal codes or very short/generic
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const part = parts[i].trim()
+        // Skip postal codes or very short parts
+        if (part.length > 3 && !/^\d+$/.test(part)) {
+          return part
+        }
+      }
+    }
+
+    // If no suitable part found, return the original address or its last part
+    return parts.length > 0 ? parts[parts.length - 1] : fullAddress
+  }
+
+  if (isSuccessCreate || isSuccessUpdate) {
+  }
 
   if (isFetching)
     return (
@@ -1583,10 +1641,18 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                       <>
                                         <Disclosure.Button
                                           className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                            selectedCategory?.id === subItem.id ? 'bg-[#FFE2E5]  font-medium rounded-lg' : ''
+                                            selectedCategory?.id === subItem.id
+                                              ? 'bg-[#FFE2E5]  font-medium rounded-lg'
+                                              : ''
                                           }`}
                                         >
-                                          <span className={`text-[14px] ${selectedCategory?.id === subItem.id ? ' font-medium' : 'text-[#5A5A5A] font-light'}`}>
+                                          <span
+                                            className={`text-[14px] ${
+                                              selectedCategory?.id === subItem.id
+                                                ? ' font-medium'
+                                                : 'text-[#5A5A5A] font-light'
+                                            }`}
+                                          >
                                             {subItem.name}
                                           </span>
                                           <ArrowLeftIcon
@@ -1602,13 +1668,20 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                               key={childItem.id}
                                               onClick={() => handleSelectCategory(childItem, subItem)}
                                               className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                                selectedCategory?.id === childItem.id ? 'bg-[#FFE2E5]  font-medium rounded-lg' : ''
+                                                selectedCategory?.id === childItem.id
+                                                  ? 'bg-[#FFE2E5]  font-medium rounded-lg'
+                                                  : ''
                                               }`}
                                             >
-                                              <span className={`text-[14px] ${selectedCategory?.id === childItem.id ? ' font-medium' : 'text-[#5A5A5A] font-light'}`}>
+                                              <span
+                                                className={`text-[14px] ${
+                                                  selectedCategory?.id === childItem.id
+                                                    ? ' font-medium'
+                                                    : 'text-[#5A5A5A] font-light'
+                                                }`}
+                                              >
                                                 {childItem.name}
                                               </span>
-                                              
                                             </div>
                                           ))}
                                         </Disclosure.Panel>
@@ -1622,10 +1695,15 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                       selectedCategory?.id === subItem.id ? 'bg-[#FFE2E5]  font-medium rounded-lg' : ''
                                     }`}
                                   >
-                                    <span className={`text-[14px] ${selectedCategory?.id === subItem.id ? ' font-medium' : 'text-[#5A5A5A] font-light'}`}>
+                                    <span
+                                      className={`text-[14px] ${
+                                        selectedCategory?.id === subItem.id
+                                          ? ' font-medium'
+                                          : 'text-[#5A5A5A] font-light'
+                                      }`}
+                                    >
                                       {subItem.name}
                                     </span>
-                                   
                                   </div>
                                 )}
                               </div>
@@ -1840,7 +1918,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                 </label>
                 <div
                   onClick={modalHandlers.open}
-                  className={`w-full cursor-pointer border-[1.5px] ${selectedCategory ? '' : 'bg-[#FCFCFC]'} rounded-[8px] px-4 h-[40px] text-right ${selectedCategory ? '' : 'text-[#5A5A5A]'} flex justify-between items-center`}
+                  className={`w-full cursor-pointer border-[1.5px] ${
+                    selectedCategory ? '' : 'bg-[#FCFCFC]'
+                  } rounded-[8px] px-4 h-[40px] text-right ${
+                    selectedCategory ? '' : 'text-[#5A5A5A]'
+                  } flex justify-between items-center`}
                 >
                   <div className="flex flex-col">
                     <span className={`text-[14px] ${selectedCategory ? 'font-medium' : ''}`}>
@@ -1848,7 +1930,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                     </span>
                   </div>
                   <ArrowLeftIcon
-                    className={`w-5 h-5 ${selectedCategory ? '' : 'text-[#9D9D9D]'} transition-transform ${isShow ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 ${selectedCategory ? '' : 'text-[#9D9D9D]'} transition-transform ${
+                      isShow ? 'rotate-180' : ''
+                    }`}
                   />
                 </div>
                 <div className="w-fit" dir={'ltr'}>
@@ -1948,11 +2032,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                               name={`features.${field.id}`}
                               checked={isConvertible}
                               onChange={() => {
-                                const newValue = !isConvertible;
-                                setIsConvertible(newValue);
-                                setValue(`features.${field.id}`, newValue); // نگهداری به عنوان boolean
-                                setValue('convertible', newValue); // تنظیم مستقیم فیلد convertible
-                                console.log(`Checkbox bool_convertible set to: ${newValue}`);
+                                const newValue = !isConvertible
+                                setIsConvertible(newValue)
+                                setValue(`features.${field.id}`, newValue) // نگهداری به عنوان boolean
+                                setValue('convertible', newValue) // تنظیم مستقیم فیلد convertible
+                                console.log(`Checkbox bool_convertible set to: ${newValue}`)
                               }}
                               label=""
                               customStyle="bg"
@@ -1979,8 +2063,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                   </span>
                 </div>
               </div>
-            ) : 
-            dealType === 'shortRent' ? (
+            ) : dealType === 'shortRent' ? (
               <div className="space-y-4">
                 <Controller
                   name="capacity"
@@ -2216,9 +2299,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                     className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#17A586] checked:bg-[#17A586] checked:border-[#17A586]"
                                     checked={value === 'true' || value === true}
                                     onChange={(e) => {
-                                      const newValue = e.target.checked ? 'true' : 'false';
-                                      onChange(newValue); 
-                                      console.log(`Checkbox ${field.name} set to: ${newValue}`);
+                                      const newValue = e.target.checked ? 'true' : 'false'
+                                      onChange(newValue)
+                                      console.log(`Checkbox ${field.name} set to: ${newValue}`)
                                     }} // مقدار را به صورت string ذخیره می‌کند
                                   />
                                   <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -2396,17 +2479,109 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                       ))}
                 </div>
                 <div className="mt-6">
-                  <label
-                    className="block text-sm font-normal mb-2 text-gray-700 md:min-w-max lg:text-sm"
-                    htmlFor="title"
-                  >
-                    عنوان آگهی
-                  </label>
-                  <input
-                    className="input w-full h-[40px] border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs px-2"
-                    id="title"
-                    {...register('title')}
-                    placeholder="مثال: خانه ویلایی 300 متری خیابان جمهوری"
+                  <Controller
+                    name="title"
+                    control={control}
+                    render={({ field }) => {
+                      // Generate suggested title based on category, area and location
+                      useEffect(() => {
+                        if (selectedCategory && features?.features) {
+                          // Watch all feature values to respond to changes
+                          const allValues = watch()
+
+                          // Try to find features in this order: متراژ (area) -> سال ساخت (year) -> any text feature
+                          let featureText = ''
+
+                          // 1. First try to find area feature
+                          const areaFeature = features.features.find(
+                            (f) => f.type === 'text' && (f.name.includes('متراژ') || (f.key && f.key.includes('area')))
+                          )
+
+                          if (areaFeature && allValues.features?.[areaFeature.id]) {
+                            featureText = ` ${allValues.features[areaFeature.id]} متری`
+                          } else {
+                            // 2. Try to find year built feature
+                            const yearFeature = features.features.find(
+                              (f) => f.type === 'text' && (f.name.includes('سال') || (f.key && f.key.includes('year')))
+                            )
+
+                            if (yearFeature && allValues.features?.[yearFeature.id]) {
+                              featureText = ` سال ${allValues.features[yearFeature.id]}`
+                            } else {
+                              // 3. Try to find any text feature with value
+                              const anyTextFeature = features.features.find(
+                                (f) =>
+                                  f.type === 'text' &&
+                                  allValues.features?.[f.id] &&
+                                  // Exclude unrelated text features
+                                  !f.key?.includes('discount') &&
+                                  !f.key?.includes('selling_price') &&
+                                  !f.key?.includes('mortgage') &&
+                                  !f.key?.includes('rent')
+                              )
+
+                              if (anyTextFeature && allValues.features?.[anyTextFeature.id]) {
+                                featureText = ` ${anyTextFeature.name}: ${allValues.features[anyTextFeature.id]}`
+                              }
+                            }
+                          }
+
+                          // Get location from address (extract district/neighborhood)
+                          const address = allValues.address || ''
+                          let location = ''
+                          if (address) {
+                            // Try to extract neighborhood or most specific part
+                            const addressParts = address.split('،').map((part) => part.trim())
+                            if (addressParts.length > 0) {
+                              // Use the most specific part (usually the last meaningful part)
+                              const meaningfulParts = addressParts.filter(
+                                (part) => part && !part.match(/^\d+$/) && part.length > 1
+                              )
+                              location =
+                                meaningfulParts.length > 0 ? ` ${meaningfulParts[meaningfulParts.length - 1]}` : ''
+                            }
+                          }
+
+                          const categoryName = selectedCategory.name
+                            .replace('خرید', 'فروش')
+                            .replace('پیش فروش', '')
+                            .replace('رهن و اجاره', '')
+                            .replace('اجاره کوتاه مدت', '')
+                            .trim()
+
+                          let suggestedTitle = categoryName
+                          if (featureText) {
+                            suggestedTitle += `، ${featureText.trim()}`
+                          }
+                          if (location) {
+                            suggestedTitle += `، ${location.trim()}`
+                          }
+
+                          // Update suggested title whenever user has not manually edited
+                          if (!isTitleManuallyEdited) {
+                            field.onChange(suggestedTitle)
+                          }
+                        }
+                      }, [selectedCategory, features, watch(), isTitleManuallyEdited])
+
+                      return (
+                        <TextField
+                          adForm
+                          label="عنوان آگهی"
+                          {...field}
+                          control={control}
+                          errors={errors.title}
+                          placeholder="مثال: خانه ویلایی 300 متری خیابان جمهوری"
+                          onChange={(e) => {
+                            const value = e?.target?.value ?? ''
+                            if (!isTitleManuallyEdited && value !== '') {
+                              setIsTitleManuallyEdited(true)
+                            }
+                            field.onChange(e)
+                          }}
+                        />
+                      )
+                    }}
                   />
                   <div className="w-fit" dir={'ltr'}>
                     <DisplayError adForm errors={errors.title} />
@@ -2643,7 +2818,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                   isLoadingCreate || isLoadingUpdate ? 'w-auto' : 'w-[120px]'
                 } whitespace-nowrap float-left h-[48px] text-white rounded-lg font-bold text-sm hover:bg-[#f75263]`}
               >
-              {isEditMode ? "بروزرسانی نهایی" : "ثبت نهایی"}{' '}
+                {isEditMode ? 'بروزرسانی نهایی' : 'ثبت نهایی'}{' '}
               </Button>
             )}
           </div>

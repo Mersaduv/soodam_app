@@ -121,6 +121,7 @@ export const validationSchema = (contextData: { features: Feature[]; dealType: s
           .filter(
             (item) =>
               item.type === 'text' &&
+              item.key !== 'text_selling_price' &&
               item.key !== 'text_discount' &&
               item.key !== 'text_mortgage_deposit' &&
               item.key !== 'text_monthly_rent'
