@@ -43,9 +43,9 @@ const DataStateDisplay: React.FC<Props> = (props) => {
             تلاش مجدد
           </Button>
         </div>
-      ) : isFetching ? (
+      ) : isFetching && dataLength === 0 ? (
         <div className="px-3">{loadingComponent}</div>
-      ) : isSuccess && dataLength > 0 ? (
+      ) : dataLength > 0 ? (
         <>{children}</>
       ) : isSuccess && dataLength === 0 ? // <div>{emptyComponent}</div>
       null 

@@ -8,13 +8,33 @@ import { useAppDispatch, useAppSelector } from '@/hooks'
 import { Housing } from '@/types'
 import { useEffect, useState } from 'react'
 import { useGetHousingQuery } from '@/services'
-import { ArchiveTickIcon, TrashGrayIcon } from '@/icons'
+import { ArchiveTickIcon, ArrowLeftIcon, HeartWithSlashFavIcon, LocationSmIcon, TrashGrayIcon } from '@/icons'
 import { HousingCard } from '@/components/housing'
 import { DataStateDisplay } from '@/components/shared'
 import { HousingSkeleton } from '@/components/skeleton'
 import { EmptyCustomList } from '@/components/emptyList'
 import { Button } from '@/components/ui'
 import { clearSavedHouses, setMapMode } from '@/store'
+import { useAddFavoriteMutation, useGetFavoritesQuery } from '@/services/productionBaseApi'
+import { formatPriceLoc } from '@/utils'
+import Image from 'next/image'
+import { PaginationMetadata } from '@/types'
+
+// Define a type for the favorites pagination response structure
+interface FavoritesPaginationMetadata {
+  total: number
+  page: number
+  limit: number
+  pages: number
+  has_next: boolean
+  has_prev: boolean
+  filters: Record<string, any>
+  sort: {
+    field: string
+    order: string
+  }
+}
+
 const LeafletMap = dynamic(() => import('@/components/map/Map'), { ssr: false })
 const Lists: NextPage = () => {
   // ? Assets
@@ -24,92 +44,318 @@ const Lists: NextPage = () => {
   const { housingMap } = useAppSelector((state) => state.statesData)
   const [saveHousingData, setSaveHousingData] = useState<Housing[]>([])
   const dispatch = useAppDispatch()
-  const { housing: housingDataSaveHousing, isFetching: isFetching } = useGetHousingQuery(
-    {
-      pageSize: 9999, //
-      isActive: true,
-    },
-    {
-      selectFromResult: ({ data, isFetching }) => ({
-        housing: data?.data,
-        isFetching,
-      }),
-    }
-  )
+  const [addFavorite, { isLoading: isAddingFavorite, isSuccess: isAddedFavorite }] = useAddFavoriteMutation()
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [pageSize, setPageSize] = useState<number>(2)
+  const [paginationMeta, setPaginationMeta] = useState<FavoritesPaginationMetadata | null>(null)
+  const [isPaginationLoading, setIsPaginationLoading] = useState(false)
+
+  const { data: favoritesData, isFetching: isFetchingFavorites } = useGetFavoritesQuery({
+    page: currentPage,
+    limit: pageSize,
+  })
 
   useEffect(() => {
-    if (housingDataSaveHousing) {
-      const updated = housingDataSaveHousing
-        .filter((housingItem) => savedHouses.some((savedItem) => savedItem.id === housingItem.id))
-        .map((item) => {
-          const savedItem = savedHouses.find((s) => s.id === item.id)
-          return savedItem ? { ...item, created: savedItem.savedTime } : item
-        })
-
-      setSaveHousingData(updated)
+    if (favoritesData) {
+      // Extract pagination metadata from favoritesData
+      const { items, ...metadata } = favoritesData
+      setPaginationMeta(metadata as FavoritesPaginationMetadata)
+      setIsPaginationLoading(false)
     }
-  }, [housingDataSaveHousing, savedHouses])
-  const handleClearSavedHouses = () => {
-    localStorage.removeItem('savedHouses')
-    setSaveHousingData([])
-    dispatch(clearSavedHouses())
-  }
-  if (savedHouses || saveHousingData) {
-    console.log(savedHouses, 'savedHouses', saveHousingData, 'saveHousingData')
-  }
+  }, [favoritesData])
+
   const handleHousingCardClick = (housing: Housing) => {
     push(`/housing/${housing.id}`)
   }
-  if (isFetching) return <div>loading...</div>
+
+  const handleUnAddFavoriteClick = (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
+    event.preventDefault()
+    event.stopPropagation()
+    addFavorite({ id: housing.id })
+  }
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setIsPaginationLoading(true)
+    setCurrentPage(page)
+  }
+
+  // Handle page size change
+  const handlePageSizeChange = (size: number) => {
+    setIsPaginationLoading(true)
+    setPageSize(size)
+    setCurrentPage(1) // Reset to first page when changing page size
+  }
+  console.log(favoritesData, 'favoritesData')
+
+  if (isFetchingFavorites || isPaginationLoading)
+    return (
+      <div className="p-10">
+        <HousingSkeleton />
+      </div>
+    )
   // ? Render(s)
   return (
     <>
-      <ClientLayout title={`${saveHousingData.length > 0 ? '' : 'آگهی های مورد علاقه'}`}>
-        {saveHousingData.length > 0 ? (
-          <main className="">
-            {saveHousingData && saveHousingData.length > 0 && (
-              <div className={`h-full ${!map.mode && 'hidden'}`} style={{ width: '100%' }}>
-                <LeafletMap housingData={saveHousingData} />
+      <ClientLayout title={`آگهی های مورد علاقه`}>
+        {favoritesData?.items.length > 0 ? (
+          <main className="py-[87px] relative">
+            <div className="px-4 space-y-4">
+              {favoritesData &&
+                favoritesData?.items.length > 0 &&
+                [...favoritesData?.items]
+                  .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .map((housing) => {
+                    return (
+                      <div
+                        key={housing.id}
+                        className="bg-white rounded-lg p-4 pb-3 shadow w-full"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex flex-col">
+                          <Link href={`/housing/${housing.id}`} className="flex gap-2">
+                            {housing.primary_image ? (
+                              <div className=" bg-gray-200 rounded-[10px] mb-4">
+                                <Image
+                                  width={104}
+                                  height={100}
+                                  className="rounded-[10px] h-[104px] object-cover"
+                                  src={`${
+                                    housing.primary_image.startsWith('/')
+                                      ? housing.primary_image
+                                      : `/${housing.primary_image}`
+                                  }`}
+                                  alt={housing.title}
+                                />
+                              </div>
+                            ) : (
+                              <div className=" bg-gray-200 rounded-[10px] mb-4">
+                                <img
+                                  width={104}
+                                  height={100}
+                                  className="rounded-[10px] h-[104px] object-cover"
+                                  src="/static/R.png"
+                                  alt={housing.title}
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1 flex flex-col">
+                              <div className="flex justify-between">
+                                <div className="flex items-center gap-1.5">
+                                  <LocationSmIcon width="16px" height="16px" />
+                                  <div className="text-xs font-normal">
+                                    {housing.full_address && housing.full_address.province
+                                      ? typeof housing.full_address.province === 'object' &&
+                                        housing.full_address.province !== null
+                                        ? (housing.full_address.province as { name: string }).name
+                                        : String(housing.full_address.province)
+                                      : 'نامشخص'}
+                                  </div>
+                                </div>
+                                <div className="cursor-pointer" onClick={(event) => handleUnAddFavoriteClick(event, housing)}>
+                                  <HeartWithSlashFavIcon width="16px" height="16px" />
+                                </div>
+                              </div>
+
+                              <div className="line-clamp-1 overflow-hidden text-ellipsis text-base font-normal mt-1">
+                                {housing.title}
+                              </div>
+                              <div className="mt-2 space-y-2">
+                                {/* نمایش قیمت */}
+                                {housing.price && (
+                                  <>
+                                    {housing.price.deposit > 0 && (
+                                      <div className="text-xs flex gap-1 text-[#5A5A5A] font-normal">
+                                        رهن:{' '}
+                                        <div className="font-normal">
+                                          {formatPriceLoc(Number(housing.price.deposit))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {housing.price.rent > 0 && (
+                                      <div className="text-xs flex gap-1 text-[#5A5A5A] font-normal">
+                                        اجاره:{' '}
+                                        <div className="font-normal">{formatPriceLoc(Number(housing.price.rent))}</div>
+                                      </div>
+                                    )}
+                                    {housing.price.amount > 0 && (
+                                      <div className="text-xs flex gap-1 text-[#5A5A5A] font-normal">
+                                        قیمت فروش:{' '}
+                                        <div className="font-normal">
+                                          {formatPriceLoc(Number(housing.price.amount))}
+                                        </div>
+                                      </div>
+                                    )}
+                                    {housing.price.discount_amount > 0 && (
+                                      <div className="text-xs flex gap-1 text-[#5A5A5A] font-normal">
+                                        تخفیف:{' '}
+                                        <div className="font-normal">
+                                          {formatPriceLoc(Number(housing.price.discount_amount))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+
+                                {/* نمایش درصد سود مالک و سازنده */}
+                                {housing.attributes &&
+                                  housing.attributes
+                                    .filter(
+                                      (item) =>
+                                        item.key === 'text_owner_profit_percentage' ||
+                                        item.key === 'text_producer_profit_percentage'
+                                    )
+                                    .map((item) => {
+                                      return (
+                                        <div key={item.key} className="text-[13px] space-y-1">
+                                          {item.key === 'text_owner_profit_percentage' && (
+                                            <p className="text-[#5A5A5A]">سود مالک: {item.value as string}%</p>
+                                          )}
+                                          {item.key === 'text_producer_profit_percentage' && (
+                                            <p className="text-[#5A5A5A]">سود سازنده: {item.value as string}%</p>
+                                          )}
+                                        </div>
+                                      )
+                                    })}
+                              </div>
+                            </div>
+                          </Link>
+
+                          <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-start gap-6">
+                            {/* {housing.highlight_features &&
+                              housing.highlight_features.map((feature) => {
+                                return (
+                                  <div key={feature.id} className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                                    {' '}
+                                    <img className="w-[16px]" src={feature.image} alt="" /> {feature.value as string}{' '}
+                                    <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
+                                  </div>
+                                )
+                              })} */}
+                            {/* org  */}
+                            <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                              {' '}
+                              <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                              <div className="font-bold text-[#7A7A7A] text-xs text-ellipsis overflow-hidden whitespace-nowrap">
+                                بزودی قابل نمایش میشود
+                              </div>
+                            </div>
+                            <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                              {' '}
+                              <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                              <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
+                            </div>
+                            <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
+                              {' '}
+                              <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
+                              <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+            </div>
+
+            {/* Add pagination controls */}
+            {paginationMeta && paginationMeta.pages > 1 && (
+              <div className="mt-6 flex justify-center">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={!paginationMeta.has_prev}
+                    className={`px-3 py-1 rounded-md ${
+                      !paginationMeta.has_prev
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#2C3E50] text-white hover:bg-[#22303e]'
+                    }`}
+                  >
+                    قبلی
+                  </button>
+
+                  <div className="flex gap-2">
+                    {(() => {
+                      const pageNumbers = []
+                      const maxVisiblePages = 3 // Reduced number of visible pages
+
+                      if (paginationMeta.pages <= maxVisiblePages) {
+                        // Show all pages if total pages are less than or equal to maxVisiblePages
+                        for (let i = 1; i <= paginationMeta.pages; i++) {
+                          pageNumbers.push(i)
+                        }
+                      } else {
+                        // Always show first page
+                        pageNumbers.push(1)
+
+                        // If current page is not first or last
+                        if (currentPage > 1 && currentPage < paginationMeta.pages) {
+                          // Add ellipsis after first page if needed
+                          if (currentPage > 2) {
+                            pageNumbers.push('...')
+                          }
+
+                          // Add current page
+                          pageNumbers.push(currentPage)
+
+                          // Add ellipsis before last page if needed
+                          if (currentPage < paginationMeta.pages - 1) {
+                            pageNumbers.push('...')
+                          }
+                        } else if (currentPage === 1 && paginationMeta.pages > 2) {
+                          // If on first page, show page 2 and ellipsis
+                          pageNumbers.push(2)
+                          pageNumbers.push('...')
+                        } else if (currentPage === paginationMeta.pages && paginationMeta.pages > 2) {
+                          // If on last page, show ellipsis and second-to-last page
+                          pageNumbers.push('...')
+                          pageNumbers.push(paginationMeta.pages - 1)
+                        }
+
+                        // Always show last page
+                        pageNumbers.push(paginationMeta.pages)
+                      }
+
+                      return pageNumbers.map((page, index) => {
+                        if (page === '...') {
+                          return (
+                            <span key={`ellipsis-${index}`} className="px-3 py-1">
+                              ...
+                            </span>
+                          )
+                        }
+
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`px-3 py-1 rounded-md ${
+                              currentPage === page
+                                ? 'bg-[#2C3E50] text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      })
+                    })()}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={!paginationMeta.has_next}
+                    className={`px-3 py-1 rounded-md ${
+                      !paginationMeta.has_next
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#2C3E50] text-white hover:bg-[#22303e]'
+                    }`}
+                  >
+                    بعدی
+                  </button>
+                </div>
               </div>
             )}
-
-            <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length > 0 && 'hidden'}`}>
-              <div
-                onClick={handleClearSavedHouses}
-                className="flex -mt-1.5 items-center h-[33px] mb-2 cursor-pointer w-fit relative overflow-hidden px-2 rounded-full"
-              >
-                <TrashGrayIcon width="20px" height="21px" />
-                <div className="text-[#1A1E25] border-[#7A7A7A] mr-1 pr-1.5 font-normal text-sm">
-                  پاک کردن همه آگهی‌های مورد علاقه
-                </div>
-                <span className="absolute inset-0 bg-gray-300 opacity-0 transition-opacity duration-500 hover:opacity-30"></span>
-              </div>
-
-              {saveHousingData && saveHousingData.length > 0 && (
-                <section className="flex flex-wrap justify-center gap-3">
-                  {saveHousingData.map((item) => (
-                    <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
-                  ))}
-                </section>
-              )}
-            </div>
-
-            <div className={`pt-[147px] pb-36 px-4 ${map.mode && 'hidden'} ${housingMap.length === 0 && 'hidden'}`}>
-              <div className="flex items-center mb-6">
-                <ArchiveTickIcon />
-                <div className="border-r-[1.5px] text-[#1A1E25] border-[#7A7A7A] mr-1 pr-1.5 font-normal text-sm">
-                  {housingMap.length} مورد پیدا شد
-                </div>
-              </div>
-
-              {housingMap && (
-                <section className="flex flex-wrap justify-center gap-3">
-                  {housingMap.map((item) => (
-                    <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
-                  ))}
-                </section>
-              )}
-            </div>
           </main>
         ) : (
           <main className="pt-[87px] relative">
@@ -118,7 +364,7 @@ const Lists: NextPage = () => {
                 <img className="w-[180px] h-[180px]" src="/static/Document_empty.png" alt="" />
               </div>
               <div className="mt-8 flex flex-col justify-center items-center gap-2">
-                <h1 className="font-medium text-sm">شما تاکنون آگهی ذخیره نکرده اید..</h1>
+                <h1 className="font-medium text-sm">شما تاکنون آگهی اضافه نکرده اید..</h1>
               </div>
               <div className="mx-4 mt-8 mb-7 flex gap-3">
                 <Button

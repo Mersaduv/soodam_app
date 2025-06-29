@@ -120,6 +120,51 @@ const productionApiSlice = createApi({
           : ['Housing'],
     }),
 
+    getFavorites: builder.query<any, QueryParams>({
+      query: ({ ...params }) => {
+        const queryParams = generateQueryParams(params)
+        return {
+          url: `/api/advertisements/favorites?${queryParams}`,
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      },
+      providesTags: (result) =>
+        result?.items
+          ? [
+              ...result.items.map(({ id }) => ({
+                type: 'Housing' as const,
+                id,
+              })),
+              'Housing',
+            ]
+          : ['Housing'],
+    }),
+
+    addFavorite: builder.mutation<any, IdQuery>({
+      query: ({ id }) => ({
+        url: `/api/advertisements/${id}/favorite`,
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }),
+      invalidatesTags: ['Housing'],
+    }),
+
+    viewAdvertisement: builder.mutation<any, IdQuery>({
+      query: ({ id }) => ({
+        url: `/api/advertisements/${id}/view`,
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      }),
+      invalidatesTags: ['Housing'],
+    }),
+
     getMyAdv: builder.query<{ items: Housing[]; total: number }, void>({
       query: () => ({
         url: `/api/advertisements/my_adv`,
@@ -210,5 +255,8 @@ export const {
   useGetAdvByAdminQuery,
   useDeleteAdvMutation,
   useUpdateAdvMutation,
+  useGetFavoritesQuery,
+  useAddFavoriteMutation,
+  useViewAdvertisementMutation,
 } = productionApiSlice
 export default productionApiSlice

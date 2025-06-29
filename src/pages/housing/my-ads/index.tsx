@@ -75,7 +75,7 @@ const MyAds: NextPage = () => {
   return (
     <>
       <ClientLayout title="آگهی های من">
-        <main className="py-[87px] relative">
+        <main className="py-[87px] pb-[200px] relative">
 
           {/* Delete Confirmation Modal */}
           <Modal isShow={isDeleteModalOpen} onClose={closeDeleteModal} effect="ease-out">

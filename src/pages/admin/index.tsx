@@ -70,7 +70,7 @@ const AdminPage: NextPage = () => {
                     }
                   >
                     <GuardUserOrgIcon width="40px" height="40px" />
-                    <div className="text-[#2C3E50] text-sm font-medium">سازمان ها</div>
+                    <div className="text-[#2C3E50] text-sm font-medium">ادمین ها</div>
                   </div>
                 </div>
 
@@ -81,7 +81,7 @@ const AdminPage: NextPage = () => {
                     }
                   >
                     <DocsPurpleIcon width="40px" height="40px" />
-                    <div className="text-[#2C3E50] text-sm font-medium">مدارک</div>
+                    <div className="text-[#2C3E50] text-sm font-medium">خبر ها</div>
                   </div>
                 </div>
 
@@ -92,7 +92,7 @@ const AdminPage: NextPage = () => {
                     }
                   >
                     <CircleGreenIcon width="40px" height="40px" />
-                    <div className="text-[#2C3E50] text-sm font-medium">تایید شده</div>
+                    <div className="text-[#2C3E50] text-sm font-medium">بازاریاب ها</div>
                   </div>
                 </div>
 
@@ -103,7 +103,7 @@ const AdminPage: NextPage = () => {
                     }
                   >
                     <OrangeLocationIcon width="40px" height="40px" />
-                    <div className="text-[#2C3E50] text-sm font-medium">موقعیت ها</div>
+                    <div className="text-[#2C3E50] text-sm font-medium">استان ها</div>
                   </div>
                 </div>
 
@@ -125,7 +125,7 @@ const AdminPage: NextPage = () => {
                     }
                   >
                     <BlueUsersIcon width="40px" height="40px" />
-                    <div className="text-[#2C3E50] text-sm font-medium">گروه ها</div>
+                    <div className="text-[#2C3E50] text-sm font-medium">تخلفات</div>
                   </div>
                 </div>
 

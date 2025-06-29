@@ -6,7 +6,7 @@ import { HousingSkeleton } from '@/components/skeleton'
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { ArchiveTickIcon } from '@/icons'
 import { useGetHousingQuery } from '@/services'
-import { useGetAdvByGeolocationQuery } from '@/services/productionBaseApi'
+import { useGetAdvByGeolocationQuery, useGetFavoritesQuery } from '@/services/productionBaseApi'
 import { setIsVisible, setRefetchMap } from '@/store'
 import { Housing, ServiceResponse } from '@/types'
 import { userTypes } from '@/utils'
@@ -27,6 +27,8 @@ export default function Home() {
   const zoom = useAppSelector((state) => state.statesData.zoom)
   const shouldFetch = bounds && zoom >= 11
   const { housingMap, refetchMap, isVisible } = useAppSelector((state) => state.statesData)
+  const { data: favoritesData } = useGetFavoritesQuery({})
+
   // dispatch(setRefetchMap(false))
   const leafletMapRef = useRef<any>(null)
 
@@ -119,6 +121,8 @@ export default function Home() {
       dispatch(setIsVisible(true))
     }
   }, [])
+  console.log(favoritesData, 'favoritesData');
+  
   
   const housingList = housingData?.items || []
 
@@ -152,7 +156,7 @@ export default function Home() {
             {housingData?.items && housingData.items.length > 0 && (
               <section className="flex flex-wrap justify-center gap-3">
                 {housingData.items.map((item) => (
-                  <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
+                  <HousingCard isSaved={favoritesData?.items.some(fav => fav.id === item.id)} housing={item} key={item.id} onCardClick={handleHousingCardClick} />
                 ))}
               </section>
             )}
@@ -170,7 +174,7 @@ export default function Home() {
           {housingMap && (
             <section className="flex flex-wrap justify-center gap-3">
               {housingMap.map((item) => (
-                <HousingCard housing={item} key={item.id} onCardClick={handleHousingCardClick} />
+                <HousingCard isSaved={favoritesData?.items.some(fav => fav.id === item.id)} housing={item} key={item.id} onCardClick={handleHousingCardClick} />
               ))}
             </section>
           )}

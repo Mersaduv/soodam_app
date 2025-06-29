@@ -218,4 +218,5 @@ export { default as HomeAdmIcon } from './svgs/home (2) 2.svg'
 export { default as SearchAdmIcon } from './svgs/sadmin.svg'
 export { default as EmailAdmIcon } from './svgs/emailadmin.svg'
 export { default as SettingAdmIcon } from './svgs/settingAdmin.svg'
-
+export { default as HeartWithOutSlashRedFavIcon } from './svgs/heart-slash copy.svg'
+export { default as HeartWithSlashFavIcon } from './svgs/heart-slash.svg'

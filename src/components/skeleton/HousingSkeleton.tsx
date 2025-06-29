@@ -6,7 +6,7 @@ export default function HousingSkeleton() {
       <Skeleton count={10}>
         <Skeleton.Items className="flex items-center gap-4 border-b border-gray-100 pb-3 pt-2 sm:h-[540px] sm:flex-col sm:px-3 xl:h-[470px]">
           <Skeleton.Item
-            height="h-[216px]"
+            height="h-[110px]"
             width="w-[26vw] sm:w-56"
             animated="background"
             className="rounded-md sm:mb-8"

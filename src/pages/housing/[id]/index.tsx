@@ -35,7 +35,7 @@ import dynamic from 'next/dynamic'
 import { Button, Modal } from '@/components/ui'
 import { BiShare } from 'react-icons/bi'
 import { IoShareSocialOutline } from 'react-icons/io5'
-import { useGetAdvByIdQuery } from '@/services/productionBaseApi'
+import { useGetAdvByIdQuery, useGetFavoritesQuery, useViewAdvertisementMutation } from '@/services/productionBaseApi'
 
 interface Props {
   //   housing: Housing
@@ -63,7 +63,8 @@ const SingleHousing: NextPage = () => {
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null
   // ? Queries
   const { refetch, data: housingData, isLoading } = useGetAdvByIdQuery(idQuery as string)
-  const hasValidSubscription = user && user.subscription && user.subscription.status === 'ACTIVE'
+  const { data: favoritesData } = useGetFavoritesQuery({})
+  const [viewAdvertisement] = useViewAdvertisementMutation()
 
   const handleSaveClick = (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
     event.preventDefault()
@@ -122,7 +123,15 @@ const SingleHousing: NextPage = () => {
   if (housingData) {
     console.log(housingData, 'housingData')
   }
-  const isSaved = useAppSelector((state) => state.saveHouse.savedHouses.some((item) => item.id === housingData?.id))
+
+  // Register view on component mount - early, before any conditional returns
+  useEffect(() => {
+    if (typeof idQuery === 'string') {
+      viewAdvertisement({ id: idQuery })
+    }
+  }, [idQuery, viewAdvertisement])
+
+  const isSaved = favoritesData?.items.some(fav => fav.id === housingData?.id)
   if (isLoading) return <div>loading...</div>
   if (!housingData) return <div>not found</div>
 

@@ -39,7 +39,7 @@ import dynamic from 'next/dynamic'
 import { Button, InlineLoading, Modal } from '@/components/ui'
 import { BiShare } from 'react-icons/bi'
 import { IoShareSocialOutline } from 'react-icons/io5'
-import { useGetAdvByIdQuery } from '@/services/productionBaseApi'
+import { useGetAdvByIdQuery, useViewAdvertisementMutation } from '@/services/productionBaseApi'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
@@ -73,6 +73,7 @@ const SingleAdminAdv: NextPage = () => {
   const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null
   // ? Queries
   const { refetch, data: housingData, isLoading } = useGetAdvByIdQuery(idQuery as string)
+  const [viewAdvertisement] = useViewAdvertisementMutation()
   const hasValidSubscription = user && user.subscription && user.subscription.status === 'ACTIVE'
 
   const handleSaveClick = (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
@@ -176,6 +177,13 @@ const SingleAdminAdv: NextPage = () => {
       modalHandlers.close()
     }
   }
+
+  // Register view on component mount - early before conditional returns
+  useEffect(() => {
+    if (typeof idQuery === 'string') {
+      viewAdvertisement({ id: idQuery })
+    }
+  }, [idQuery, viewAdvertisement])
 
   if (housingData) {
     console.log(housingData, 'housingData')

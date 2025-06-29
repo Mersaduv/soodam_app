@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { FrameIcon, HearthIcon, BedIcon, Grid2Icon, BulidingIcon, LocationRedSmIcon, ArrowRedIcon } from '@/icons'
+import { useAddFavoriteMutation, useGetFavoritesQuery } from '@/services/productionBaseApi'
 import { toggleSaveHouse } from '@/store'
 import { Housing } from '@/types'
 import { formatPriceLoc, getProvinceFromCoordinates, NEXT_PUBLIC_API_URL } from '@/utils'
@@ -7,14 +8,16 @@ import jalaali from 'jalaali-js'
 import Image from 'next/image'
 
 interface Props {
+  isSaved?: boolean
   housing: Housing
   onCardClick: (housing: Housing) => void
   inEstate?: boolean
 }
 
 const HousingCard: React.FC<Props> = (props) => {
-  const { housing, onCardClick, inEstate } = props
+  const { housing, onCardClick, inEstate, isSaved } = props
   const dispatch = useAppDispatch()
+  const [addFavorite, { isLoading: isAddingFavorite, isSuccess: isAddedFavorite }] = useAddFavoriteMutation()
 
   const isNew = (() => {
     const shamsiStr = housing.created_at.split(' ')[0]
@@ -32,10 +35,11 @@ const HousingCard: React.FC<Props> = (props) => {
   const handleSaveClick = (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
     event.preventDefault()
     event.stopPropagation()
-    dispatch(toggleSaveHouse({ id: housing.id, savedTime: new Date().toISOString() }))
+    addFavorite({ id: housing.id })
   }
 
-  const isSaved = useAppSelector((state) => state.saveHouse.savedHouses.some((item) => item.id === housing.id))
+  console.log(isSaved, 'isSaved');
+
   return (
     <>
       {inEstate ? (
@@ -66,7 +70,7 @@ const HousingCard: React.FC<Props> = (props) => {
                 )}
               </>
               <div className="w-full">
-                <div className="flex items-center gap-1.5 text-[#D52133]">
+                  <div className="flex items-center gap-1.5 text-[#D52133]">
                   <LocationRedSmIcon width="16px" height="16px" />
                   <div className="text-xs font-normal">
                     {typeof housing.full_address.province === 'string'
@@ -146,7 +150,7 @@ const HousingCard: React.FC<Props> = (props) => {
             <hr className="border-[1px] border-[#E3E3E7] my-4 w-full" />
             <div className="flex w-full gap-4">
               <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-                {housing.highlight_features && 
+                {housing.highlight_features &&
                   housing.highlight_features.map((feature) => {
                     return (
                       <div
@@ -210,7 +214,7 @@ const HousingCard: React.FC<Props> = (props) => {
                 <div
                   id="saveHouse"
                   className={`border-[1.5px] p-2 pt-[9.5px] rounded-full flex-center ${
-                    isSaved ? 'text-[#D52133]' : 'text-white'
+                    isSaved ? 'text-[#D52133] border-[#D52133]' : 'text-white'
                   }`}
                   onClick={(event) => handleSaveClick(event, housing)}
                 >

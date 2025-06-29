@@ -1,4 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { Housing } from '@/types';
+import productionApiSlice from '@/services/productionBaseApi';
 
 export interface SavedHousing {
   id: string;
@@ -7,6 +9,8 @@ export interface SavedHousing {
 
 interface HousingState {
   savedHouses: SavedHousing[];
+  apiFavorites: string[]; // IDs de favoritos desde la API
+  isInitialized: boolean;
 }
 
 const getSavedHouses = (): SavedHousing[] => {
@@ -17,7 +21,11 @@ const getSavedHouses = (): SavedHousing[] => {
   return [];
 };
 
-const initialState: HousingState = { savedHouses: getSavedHouses() };
+const initialState: HousingState = { 
+  savedHouses: getSavedHouses(),
+  apiFavorites: [],
+  isInitialized: false,
+};
 
 const savedHousesSlice = createSlice({
   name: 'savedHouses',
@@ -46,9 +54,41 @@ const savedHousesSlice = createSlice({
       state.savedHouses = [];
       localStorage.removeItem('savedHouses');
     },
+    setApiFavorites: (state, action: PayloadAction<string[]>) => {
+      state.apiFavorites = action.payload;
+      state.isInitialized = true;
+    },
+  },
+  extraReducers: (builder) => {
+    // Integración con RTK Query para mantener lista de favoritos actualizada
+    builder.addMatcher(
+      productionApiSlice.endpoints.getFavorites.matchFulfilled,
+      (state, { payload }) => {
+        if (payload?.items) {
+          // Extraer IDs de los favoritos de la API
+          state.apiFavorites = payload.items.map((item: Housing) => item.id);
+          state.isInitialized = true;
+        }
+      }
+    );
+    builder.addMatcher(
+      productionApiSlice.endpoints.addFavorite.matchFulfilled,
+      (state, { payload, meta }) => {
+        // Añadir el ID a la lista si la operación fue exitosa
+        if (payload && meta.arg.originalArgs && meta.arg.originalArgs.id) {
+          const id = meta.arg.originalArgs.id;
+          if (!state.apiFavorites.includes(id)) {
+            state.apiFavorites.push(id);
+          } else {
+            // Si ya existe, lo quitamos (toggle)
+            state.apiFavorites = state.apiFavorites.filter(itemId => itemId !== id);
+          }
+        }
+      }
+    );
   },
 });
 
-export const { toggleSaveHouse, clearSavedHouses } = savedHousesSlice.actions
+export const { toggleSaveHouse, clearSavedHouses, setApiFavorites } = savedHousesSlice.actions
 
 export default savedHousesSlice.reducer;

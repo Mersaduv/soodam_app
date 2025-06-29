@@ -118,6 +118,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
   // Add loading states for media uploads
   const [isUploadingMedia, setIsUploadingMedia] = useState(false)
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false) 
+  
   const [loadingImages, setLoadingImages] = useState<{ [key: string]: boolean }>({})
 
   // Add isLoadingAddressSuggestions state
@@ -2745,7 +2747,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                     ))}
 
                     {/* Show loading placeholder for videos */}
-                    {isUploadingMedia && videoFields.length < maxVideos && (
+                    {isUploadingVideo && videoFields.length < maxVideos && (
                       <div className="h-[58px] w-full custom-dashed rounded-[4px] bg-gray-100 animate-pulse flex items-center justify-center">
                         <div className="w-6 h-6 border-2 border-gray-300 border-t-[#D52133] rounded-full animate-spin"></div>
                       </div>
@@ -2753,7 +2755,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
                     {/* Empty video slots */}
                     {Array.from({
-                      length: maxVideos - videoFields.length - (isUploadingMedia ? 1 : 0),
+                      length: maxVideos - videoFields.length - (isUploadingVideo ? 1 : 0),
                     }).map((_, index) => (
                       <div
                         key={`empty-${index}`}
