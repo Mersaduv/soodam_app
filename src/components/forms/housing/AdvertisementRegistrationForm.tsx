@@ -383,7 +383,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           'accept-language': 'fa',
         },
         headers: {
-          'User-Agent': 'Soodam-App2',
+          'User-Agent': 'Soodam-App3',
         },
       })
 
@@ -418,7 +418,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           'accept-language': 'fa',
         },
         headers: {
-          'User-Agent': 'Soodam-App2',
+          'User-Agent': 'Soodam-App3',
         },
       })
 
