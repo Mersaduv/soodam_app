@@ -2485,86 +2485,87 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                     name="title"
                     control={control}
                     render={({ field }) => {
-                      // Generate suggested title based on category, area and location
+                      // Get form values
+                      const address = watch('address');
+                      const formFeatures = watch('features');
+                      
+                      // Generate title when selected category, address or features change
                       useEffect(() => {
-                        if (selectedCategory && features?.features) {
-                          // Watch all feature values to respond to changes
-                          const allValues = watch()
-
-                          // Try to find features in this order: متراژ (area) -> سال ساخت (year) -> any text feature
-                          let featureText = ''
-
-                          // 1. First try to find area feature
+                        // Don't generate title if user has manually edited it
+                        if (isTitleManuallyEdited || !selectedCategory || !features?.features) {
+                          return;
+                        }
+                        
+                        // Generate feature text based on available feature data
+                        let featureText = '';
+                        
+                        if (features?.features) {
+                          // Try to find area feature first
                           const areaFeature = features.features.find(
                             (f) => f.type === 'text' && (f.name.includes('متراژ') || (f.key && f.key.includes('area')))
-                          )
-
-                          if (areaFeature && allValues.features?.[areaFeature.id]) {
-                            featureText = ` ${allValues.features[areaFeature.id]} متری`
+                          );
+                          
+                          if (areaFeature && formFeatures?.[areaFeature.id]) {
+                            featureText = ` ${formFeatures[areaFeature.id]} متری`;
                           } else {
-                            // 2. Try to find year built feature
+                            // Try year feature next
                             const yearFeature = features.features.find(
                               (f) => f.type === 'text' && (f.name.includes('سال') || (f.key && f.key.includes('year')))
-                            )
-
-                            if (yearFeature && allValues.features?.[yearFeature.id]) {
-                              featureText = ` سال ${allValues.features[yearFeature.id]}`
+                            );
+                            
+                            if (yearFeature && formFeatures?.[yearFeature.id]) {
+                              featureText = ` سال ${formFeatures[yearFeature.id]}`;
                             } else {
-                              // 3. Try to find any text feature with value
+                              // Try any available text feature
                               const anyTextFeature = features.features.find(
                                 (f) =>
                                   f.type === 'text' &&
-                                  allValues.features?.[f.id] &&
-                                  // Exclude unrelated text features
+                                  formFeatures?.[f.id] &&
                                   !f.key?.includes('discount') &&
                                   !f.key?.includes('selling_price') &&
                                   !f.key?.includes('mortgage') &&
                                   !f.key?.includes('rent')
-                              )
-
-                              if (anyTextFeature && allValues.features?.[anyTextFeature.id]) {
-                                featureText = ` ${anyTextFeature.name}: ${allValues.features[anyTextFeature.id]}`
+                              );
+                              
+                              if (anyTextFeature && formFeatures?.[anyTextFeature.id]) {
+                                featureText = ` ${anyTextFeature.name}: ${formFeatures[anyTextFeature.id]}`;
                               }
                             }
                           }
-
-                          // Get location from address (extract district/neighborhood)
-                          const address = allValues.address || ''
-                          let location = ''
-                          if (address) {
-                            // Try to extract neighborhood or most specific part
-                            const addressParts = address.split('،').map((part) => part.trim())
-                            if (addressParts.length > 0) {
-                              // Use the most specific part (usually the last meaningful part)
-                              const meaningfulParts = addressParts.filter(
-                                (part) => part && !part.match(/^\d+$/) && part.length > 1
-                              )
-                              location =
-                                meaningfulParts.length > 0 ? ` ${meaningfulParts[meaningfulParts.length - 1]}` : ''
-                            }
-                          }
-
-                          const categoryName = selectedCategory.name
-                            .replace('خرید', 'فروش')
-                            .replace('پیش فروش', '')
-                            .replace('رهن و اجاره', '')
-                            .replace('اجاره کوتاه مدت', '')
-                            .trim()
-
-                          let suggestedTitle = categoryName
-                          if (featureText) {
-                            suggestedTitle += `، ${featureText.trim()}`
-                          }
-                          if (location) {
-                            suggestedTitle += `، ${location.trim()}`
-                          }
-
-                          // Update suggested title whenever user has not manually edited
-                          if (!isTitleManuallyEdited) {
-                            field.onChange(suggestedTitle)
+                        }
+                        
+                        // Generate location text from address
+                        let locationText = '';
+                        if (address) {
+                          const addressParts = address.split('،').map(part => part.trim());
+                          if (addressParts.length > 0) {
+                            const meaningfulParts = addressParts.filter(
+                              part => part && !part.match(/^\d+$/) && part.length > 1
+                            );
+                            locationText = meaningfulParts.length > 0 ? 
+                              ` ${meaningfulParts[meaningfulParts.length - 1]}` : '';
                           }
                         }
-                      }, [selectedCategory, features, watch(), isTitleManuallyEdited])
+                        
+                        // Build title
+                        const categoryName = selectedCategory.name
+                          .replace('خرید', 'فروش')
+                          .replace('پیش فروش', '')
+                          .replace('رهن و اجاره', '')
+                          .replace('اجاره کوتاه مدت', '')
+                          .trim();
+                        
+                        let suggestedTitle = categoryName;
+                        if (featureText) {
+                          suggestedTitle += `، ${featureText.trim()}`;
+                        }
+                        if (locationText) {
+                          suggestedTitle += `، ${locationText.trim()}`;
+                        }
+                        
+                        // Update field without causing more rerenders
+                        field.onChange(suggestedTitle);
+                      }, [selectedCategory, address, formFeatures, features, isTitleManuallyEdited, field]);
 
                       return (
                         <TextField
@@ -2575,14 +2576,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                           errors={errors.title}
                           placeholder="مثال: خانه ویلایی 300 متری خیابان جمهوری"
                           onChange={(e) => {
-                            const value = e?.target?.value ?? ''
+                            const value = e?.target?.value ?? '';
                             if (!isTitleManuallyEdited && value !== '') {
-                              setIsTitleManuallyEdited(true)
+                              setIsTitleManuallyEdited(true);
                             }
-                            field.onChange(e)
+                            field.onChange(e);
                           }}
                         />
-                      )
+                      );
                     }}
                   />
                   <div className="w-fit" dir={'ltr'}>
