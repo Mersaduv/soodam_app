@@ -1869,21 +1869,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                 >
                   آدرس نوشتاری دقیق ملک را مشخص کنید
                 </label>
-                {isLoadingAddressSuggestions ? (
-                  <div className="h-24 border border-[#E3E3E7] rounded-[8px] bg-white p-2">
-                    <Skeleton count={1}>
-                      <Skeleton.Items className="space-y-2 w-full">
-                        <Skeleton.Item height="h-4" width="w-3/4" animated="background" />
-                        <Skeleton.Item height="h-4" width="w-full" animated="background" />
-                        <Skeleton.Item height="h-4" width="w-1/2" animated="background" />
-                      </Skeleton.Items>
-                    </Skeleton>
-                  </div>
-                ) : (
+                <div className="relative">
                   <textarea
                     ref={addressInputRef}
                     placeholder="آدرس کامل را وارد کنید"
-                    className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs pr-2"
+                    className="input h-24 resize-none border-[#E3E3E7] rounded-[8px] bg-white placeholder:text-xs pr-2 w-full"
                     id="address"
                     {...register('address')}
                     onChange={(e) => {
@@ -1891,7 +1881,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                       debouncedSearchAddress(e.target.value)
                     }}
                   />
-                )}
+                  {isLoadingAddressSuggestions && (
+                    <div className="absolute bottom-3 left-3 z-10">
+                      <div className="w-5 h-5 border-2 border-gray-300 border-t-[#D52133] rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
                 {showSuggestions && addressSuggestions.length > 0 && (
                   <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg max-h-60 overflow-y-auto">
                     {addressSuggestions.map((suggestion, index) => (

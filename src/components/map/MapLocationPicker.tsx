@@ -623,6 +623,11 @@ const MapLocationPicker = (props: Props) => {
           if (mapRef.current) {
             mapRef.current.flyTo([latitude, longitude], 15)
           }
+
+          // تنظیم موقعیت انتخاب‌شده به موقعیت کاربر
+          if (ads) {
+            handleLocationChange([latitude, longitude])
+          }
         },
         (error) => {
           console.error('خطا در دریافت موقعیت:', error)
