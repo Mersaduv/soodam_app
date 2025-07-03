@@ -16,47 +16,84 @@ interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   formatPrice?: boolean
 }
 
+// Helper function to format numbers with appropriate unit
+const formatNumberWithUnit = (num: number): { value: string; unit: string } => {
+  if (num >= 1000000000) {
+    return {
+      value: (num / 1000000000).toLocaleString(undefined, { maximumFractionDigits: 2 }),
+      unit: 'میلیارد تومن'
+    }
+  } else if (num >= 1000000) {
+    return {
+      value: (num / 1000000).toLocaleString(undefined, { maximumFractionDigits: 2 }),
+      unit: 'میلیون تومن'
+    }
+  } else {
+    return {
+      value: num.toLocaleString(),
+      unit: 'تومن'
+    }
+  }
+}
+
 const TextFiledPrice: React.FC<TextFieldProps> = (props) => {
   const { label, errors, name, adForm, isDarker, isFromTo, isMarketerForm, formatPrice, value, onChange, ...rest } =
     props
 
-  // state نگهدارنده مقدار نمایش داده شده (با یا بدون کاما)
-  const [displayValue, setDisplayValue] = useState<string>('')
+  // State for raw input value (without commas)
+  const [inputValue, setInputValue] = useState<string>('')
+  // State for formatted value (with commas) to display below input
+  const [formattedValue, setFormattedValue] = useState<{ value: string; unit: string } | null>(null)
 
-  // هماهنگ‌سازی displayValue با مقدار دریافتی از props.value
+  // Sync inputValue with props.value
   useEffect(() => {
     if (value !== undefined && value !== null && value !== '') {
+      setInputValue(value.toString())
       if (formatPrice) {
         const numericValue = Number(value)
-        setDisplayValue(numericValue.toLocaleString())
-      } else {
-        setDisplayValue(value.toString())
+        setFormattedValue(formatNumberWithUnit(numericValue))
       }
     } else {
-      setDisplayValue('')
+      setInputValue('')
+      setFormattedValue(null)
     }
   }, [value, formatPrice])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // حذف کاما در صورت وجود اگر formatPrice فعال است
-    let rawValue = formatPrice ? e.target.value.replace(/,/g, '') : e.target.value
+    // Remove any non-numeric characters
+    const rawValue = e.target.value.replace(/[^0-9]/g, '')
+    
     if (rawValue === '') {
-      setDisplayValue('')
-      if (onChange) onChange(e)
+      setInputValue('')
+      setFormattedValue(null)
+      if (onChange) {
+        const syntheticEvent = {
+          ...e,
+          target: {
+            ...e.target,
+            value: '',
+          },
+        }
+        onChange(syntheticEvent as any)
+      }
       return
     }
-    // تنها اجازه ورود اعداد (عدد صحیح) را می‌دهد
+
+    // Only allow numeric input
     if (!/^\d+$/.test(rawValue)) return
 
     const numberValue = parseInt(rawValue, 10)
-    // بروزرسانی displayValue بر اساس مقدار formatPrice
+    
+    // Update input with raw value
+    setInputValue(rawValue)
+    
+    // Update formatted value for display
     if (formatPrice) {
-      setDisplayValue(numberValue.toLocaleString())
-    } else {
-      setDisplayValue(rawValue)
+      setFormattedValue(formatNumberWithUnit(numberValue))
     }
+    
     if (onChange) {
-      // ایجاد یک رویداد سینتتیک که مقدار عددی (بدون کاما) را به onChange ارسال کند
+      // Pass the numeric value to the form controller
       const syntheticEvent = {
         ...e,
         target: {
@@ -82,19 +119,27 @@ const TextFiledPrice: React.FC<TextFieldProps> = (props) => {
           {label !== 'isTo' && label}
         </label>
       )}
-      <input
-        className={`block ${isDarker ? 'bg-[#FCFCFCCC]' : ''} farsi-digits w-full border ${
-          adForm
-            ? 'h-[40px] placeholder:text-xs font-normal px-2 border-[#E3E3E7] rounded-[8px]'
-            : 'h-[48px] px-4 border-[#767372] rounded-[10px]'
-        } outline-none transition-colors placeholder:text-start focus:border-blue-600 text-sm`}
-        id={name}
-        type="text" // از text استفاده می‌کنیم تا امکان فرمت کردن مقدار فراهم شود
-        name={name}
-        value={displayValue}
-        onChange={handleChange}
-        {...rest}
-      />
+      <div className="relative">
+        <input
+          className={`block ${isDarker ? 'bg-[#FCFCFCCC]' : ''} farsi-digits w-full border ${
+            adForm
+              ? 'h-[40px] placeholder:text-xs font-normal px-2 border-[#E3E3E7] rounded-[8px]'
+              : 'h-[48px] px-4 border-[#767372] rounded-[10px]'
+          } outline-none transition-colors placeholder:text-start focus:border-blue-600 text-sm pr-4`}
+          id={name}
+          type="text"
+          name={name}
+          value={inputValue}
+          onChange={handleChange}
+          {...rest}
+        />
+        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-sm">تومن</span>
+      </div>
+      {formattedValue && (
+        <div className="text-xs text-gray-600 mt-1 px-2 farsi-digits">
+          {formattedValue.value} {formattedValue.unit}
+        </div>
+      )}
       <div dir="ltr" className="w-fit">
         <DisplayError adForm errors={errors} />
       </div>

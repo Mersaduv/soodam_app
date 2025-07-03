@@ -116,9 +116,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   const [showSuggestions, setShowSuggestions] = useState(false)
   const addressInputRef = useRef(null)
 
+  // Add state to prevent double submission
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   // Add loading states for media uploads
   const [isUploadingMedia, setIsUploadingMedia] = useState(false)
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false) 
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false)
   
   const [loadingImages, setLoadingImages] = useState<{ [key: string]: boolean }>({})
 
@@ -703,9 +706,20 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
   //? submit final step
   const onSubmit = async (data: AdFormValues) => {
+    // Prevent double submission
+    if (isSubmitting) {
+      return;
+    }
+
+    // Set submission state to true immediately
+    setIsSubmitting(true);
+
     const valid = await trigger()
     if (!valid && formRef.current) {
       formRef.current.scrollIntoView({ behavior: 'smooth' })
+      // Reset submission state if validation fails
+      setIsSubmitting(false);
+      return;
     }
     console.log(data.features, 'F....data.features', featureData, 'featureData')
 
@@ -905,7 +919,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
         }))
       )
 
-      updateHousing({ id: adId, data: updatedData })
+      try {
+        await updateHousing({ id: adId, data: updatedData })
+      } catch (error) {
+        console.error('Error submitting form:', error)
+        // Reset submission state on error
+        setIsSubmitting(false)
+        return
+      }
     } else {
       // تبدیل نهایی تمام مقادیر متنی به string
       advData.attributes = advData.attributes.map((attr) => {
@@ -930,7 +951,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
         }))
       )
 
-      addHousing(advData)
+      try {
+        await addHousing(advData)
+      } catch (error) {
+        console.error('Error submitting form:', error)
+        // Reset submission state on error
+        setIsSubmitting(false)
+        return
+      }
     }
   }
 
@@ -944,8 +972,17 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
         address: '',
       })
       dispatch(setIsSuccess(true))
+      // Reset submission state after success
+      setIsSubmitting(false)
     }
   }, [isSuccessCreate, isSuccessUpdate])
+
+  useEffect(() => {
+    // Reset submission state on error
+    if (isErrorCreate) {
+      setIsSubmitting(false)
+    }
+  }, [isErrorCreate])
 
   const validateCurrentStep = async () => {
     let fieldsToValidate: string[] = []
@@ -1092,13 +1129,198 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
     setOpenDropdowns((prev) => ({ ...prev, [id]: !prev[id] }))
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files
     if (!fileList) return
 
-    const files = Array.from(fileList)
     setIsUploadingMedia(true)
-    createUrl(files)
+    const files = Array.from(fileList)
+    
+    // Process each file for potential compression
+    const processedFiles = await Promise.all(
+      files.map(async (file) => {
+        // Only process image files
+        if (!file.type.startsWith('image/')) {
+          return file
+        }
+
+        // Skip compression if file is already less than 1MB
+        const ONE_MB = 1024 * 1024
+        if (file.size <= ONE_MB) {
+          return file
+        }
+
+        try {
+          // Compress the image
+          const compressedFile = await compressImage(file, ONE_MB)
+          console.log(`Compressed image from ${(file.size / ONE_MB).toFixed(2)}MB to ${(compressedFile.size / ONE_MB).toFixed(2)}MB`)
+          return compressedFile
+        } catch (error) {
+          console.error('Error compressing image:', error)
+          // Return original file if compression fails
+          return file
+        }
+      })
+    )
+
+    // Upload the processed files
+    createUrl(processedFiles)
+  }
+
+  // Function to compress images using canvas
+  const compressImage = (file: File, maxSizeBytes: number): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      
+      reader.onload = (event) => {
+        const img = new Image()
+        img.src = event.target?.result as string
+        
+        img.onload = () => {
+          // Create canvas
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+          
+          // Calculate initial scale based on image size
+          // For larger images, start with more aggressive scaling
+          const originalSize = file.size
+          let scale = 1
+          
+          if (originalSize > maxSizeBytes * 5) {
+            scale = 0.4 // Very large image - start with 40% of original size
+          } else if (originalSize > maxSizeBytes * 3) {
+            scale = 0.6 // Large image - start with 60% of original size
+          } else if (originalSize > maxSizeBytes * 2) {
+            scale = 0.8 // Moderately large image - start with 80% of original size
+          }
+          
+          // Apply initial scaling
+          width = Math.floor(width * scale)
+          height = Math.floor(height * scale)
+          
+          // Maximum dimensions check
+          const MAX_DIMENSION = 1920
+          if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+            const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height)
+            width = Math.floor(width * ratio)
+            height = Math.floor(height * ratio)
+          }
+          
+          // Set canvas dimensions
+          canvas.width = width
+          canvas.height = height
+          
+          // Draw image on canvas
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+          
+          // Create compressed image using a binary search approach for optimal quality
+          let minQuality = 0.1  // Minimum acceptable quality
+          let maxQuality = 0.95 // Maximum quality to try
+          let bestQuality = null
+          let bestFile = null
+          
+          const attemptCompression = (quality: number): Promise<{ file: File, size: number }> => {
+            return new Promise((resolveAttempt) => {
+              const dataUrl = canvas.toDataURL(file.type, quality)
+              
+              fetch(dataUrl)
+                .then(res => res.blob())
+                .then(blob => {
+                  const newFile = new File([blob], file.name, { type: file.type })
+                  resolveAttempt({ file: newFile, size: newFile.size })
+                })
+            })
+          }
+          
+          // Try initial high and low quality to establish boundaries
+          const tryCompressionLevel = async () => {
+            try {
+              // First try highest quality
+              let result = await attemptCompression(maxQuality)
+              
+              // If even highest quality is under target size, use it
+              if (result.size <= maxSizeBytes) {
+                console.log(`Compressed to ${(result.size / maxSizeBytes * 100).toFixed(1)}% of target size at quality ${maxQuality}`)
+                resolve(result.file)
+                return
+              }
+              
+              // If lowest quality is still too large, we need to reduce dimensions
+              result = await attemptCompression(minQuality)
+              if (result.size > maxSizeBytes) {
+                // Further reduce dimensions and try again
+                width = Math.floor(width * 0.7)
+                height = Math.floor(height * 0.7)
+                canvas.width = width
+                canvas.height = height
+                ctx?.drawImage(img, 0, 0, width, height)
+                
+                result = await attemptCompression(minQuality)
+                if (result.size > maxSizeBytes) {
+                  // Last resort: keep reducing dimensions until we meet target
+                  let reductionFactor = 0.7
+                  while (result.size > maxSizeBytes && reductionFactor > 0.1) {
+                    width = Math.floor(width * reductionFactor)
+                    height = Math.floor(height * reductionFactor)
+                    canvas.width = width
+                    canvas.height = height
+                    ctx?.drawImage(img, 0, 0, width, height)
+                    result = await attemptCompression(minQuality)
+                    reductionFactor -= 0.1
+                  }
+                }
+              }
+              
+              // Binary search to find optimal quality between min and max
+              let currentMin = minQuality
+              let currentMax = maxQuality
+              let attempts = 0
+              const MAX_ATTEMPTS = 8
+              
+              while (currentMax - currentMin > 0.05 && attempts < MAX_ATTEMPTS) {
+                attempts++
+                const midQuality = (currentMin + currentMax) / 2
+                result = await attemptCompression(midQuality)
+                
+                if (result.size <= maxSizeBytes) {
+                  // This quality works, try higher quality
+                  bestQuality = midQuality
+                  bestFile = result.file
+                  currentMin = midQuality
+                } else {
+                  // Too large, try lower quality
+                  currentMax = midQuality
+                }
+              }
+              
+              // Use the best result we found, or the last result if none met criteria
+              if (bestFile) {
+                console.log(`Optimal compression found at quality ${bestQuality!.toFixed(2)}, size: ${(bestFile.size / 1024).toFixed(0)}KB`)
+                resolve(bestFile)
+              } else {
+                console.log(`Compressed to ${(result.size / 1024).toFixed(0)}KB (target: ${(maxSizeBytes / 1024).toFixed(0)}KB)`)
+                resolve(result.file)
+              }
+            } catch (err) {
+              reject(err)
+            }
+          }
+          
+          tryCompressionLevel()
+        }
+        
+        img.onerror = (error) => {
+          reject(error)
+        }
+      }
+      
+      reader.onerror = (error) => {
+        reject(error)
+      }
+    })
   }
 
   useEffect(() => {
@@ -1123,7 +1345,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
         }
       })
 
+      // Reset upload states
       setIsUploadingMedia(false)
+      setIsUploadingVideo(false)
     }
   }, [isSuccessUpload, dataUpload, append, appendVideo])
 
@@ -1139,7 +1363,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
     if (selectedVideos.length + fileList.length > maxVideos) return
 
     // Set uploading state
-    setIsUploadingMedia(true)
+    setIsUploadingVideo(true)
 
     // Upload the videos through the API
     createUrl(Array.from(fileList))
@@ -1970,8 +2194,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                 errors={errors.features?.[field.id]}
                                 placeholder={`مثال : ${
                                   field.key === 'text_selling_price'
-                                    ? 'مثال : 100 میلیون تومان'
-                                    : 'مثال : 10 میلیون(اختیاری)'
+                                    ? '100 تومن'
+                                    : '10 تومن (اختیاری)'
                                 }`}
                                 formatPrice={true}
                                 inputMode="numeric"
@@ -2012,7 +2236,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                 onBlur={controllerField.onBlur}
                                 errors={errors.features?.[field.id]}
                                 placeholder={`مثال : ${
-                                  field.key === 'text_mortgage_deposit' ? '100 میلیون تومان' : '10 میلیون تومان'
+                                  field.key === 'text_mortgage_deposit' ? '100 تومن' : '10 تومن'
                                 }`}
                                 formatPrice={true}
                                 inputMode="numeric"
@@ -2811,9 +3035,10 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
             ) : (
               <Button
                 type="submit"
-                isLoading={isLoadingCreate || isLoadingUpdate}
+                disabled={isLoadingCreate || isLoadingUpdate || isSubmitting}
+                isLoading={isLoadingCreate || isLoadingUpdate || isSubmitting}
                 className={` ${
-                  isLoadingCreate || isLoadingUpdate ? 'w-auto' : 'w-[120px]'
+                  isLoadingCreate || isLoadingUpdate || isSubmitting ? 'w-auto' : 'w-[120px]'
                 } whitespace-nowrap float-left h-[48px] text-white rounded-lg font-bold text-sm hover:bg-[#f75263]`}
               >
                 {isEditMode ? 'بروزرسانی نهایی' : 'ثبت نهایی'}{' '}

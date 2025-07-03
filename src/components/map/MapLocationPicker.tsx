@@ -10,6 +10,9 @@ import { setIsSatelliteView, setIsSatelliteViewMapPicker, setStateData } from '@
 import { useRouter } from 'next/router'
 import { CustomCheckbox, Modal } from '../ui'
 import { GrClear } from 'react-icons/gr'
+import { FiZoomIn } from 'react-icons/fi'
+import { MdOutlineFullscreen, MdOutlineFullscreenExit } from 'react-icons/md'
+
 interface Props {
   selectedLocation: [number, number]
   handleLocationChange: (location: [number, number]) => void
@@ -415,31 +418,31 @@ function throttle(func, limit) {
   }
 }
 
-const LocationPicker: React.FC<LocationPickerProps & {initialPosition?: [number, number]}> = ({ 
-  onLocationChange, 
-  initialPosition = [35.6892, 51.389] // مقدار پیش‌فرض تهران
+const LocationPicker: React.FC<LocationPickerProps & { initialPosition?: [number, number] }> = ({
+  onLocationChange,
+  initialPosition = [35.6892, 51.389], // مقدار پیش‌فرض تهران
 }) => {
   const [position, setPosition] = useState<[number, number]>(initialPosition)
 
   // وقتی initialPosition تغییر کند، position را به‌روز کنیم
   useEffect(() => {
     if (initialPosition && Array.isArray(initialPosition) && (initialPosition[0] !== 0 || initialPosition[1] !== 0)) {
-      setPosition(initialPosition);
-      
+      setPosition(initialPosition)
+
       // اگر مختصات معتبر باشد، نقشه را به آن موقعیت حرکت دهیم
       try {
-        const mapElement = document.querySelector('.leaflet-container');
+        const mapElement = document.querySelector('.leaflet-container')
         // @ts-ignore - _leaflet_map یک خاصیت داخلی Leaflet است که TypeScript آن را نمی‌شناسد
-        const leafletMap = mapElement ? mapElement['_leaflet_map'] : null;
-        
+        const leafletMap = mapElement ? mapElement['_leaflet_map'] : null
+
         if (leafletMap) {
-          leafletMap.setView(initialPosition, leafletMap.getZoom());
+          leafletMap.setView(initialPosition, leafletMap.getZoom())
         }
       } catch (error) {
-        console.error('Error setting map view:', error);
+        console.error('Error setting map view:', error)
       }
     }
-  }, [initialPosition]);
+  }, [initialPosition])
 
   const customIcon = L.divIcon({
     html: renderToStaticMarkup(
@@ -447,7 +450,7 @@ const LocationPicker: React.FC<LocationPickerProps & {initialPosition?: [number,
         <HiOutlineLocationMarker size={24} color="white" />
       </div>
     ),
-    className: "custom-marker-icon",
+    className: 'custom-marker-icon',
     iconSize: [24, 24], // اندازه آیکون
     iconAnchor: [12, 24], // نقطه‌ای که روی موقعیت تنظیم می‌شود
   })
@@ -481,6 +484,7 @@ const MapLocationPicker = (props: Props) => {
   const [isDrawing, setIsDrawing] = useState(false)
   const [selectedArea, setSelectedArea] = useState(null)
   const mapRef = useRef(null)
+  const mapContainerRef = useRef(null)
   const polylineRef = useRef(null)
   const [mode, setMode] = useState('none')
   const [viewedProperties, setViewedProperties] = useState<string[]>([])
@@ -488,6 +492,7 @@ const MapLocationPicker = (props: Props) => {
   const [userLocation, setUserLocation] = useState(null)
   const completedPolygonsRef = useRef<L.Polygon[]>([])
   const overlayRef = useRef(null)
+  const [isMapExpanded, setIsMapExpanded] = useState(false)
   const clearDrawings = () => {
     // پاکسازی نقاط رسم جاری
     setDrawnPoints([])
@@ -639,6 +644,44 @@ const MapLocationPicker = (props: Props) => {
     }
   }
 
+  const toggleMapSize = () => {
+    setIsMapExpanded((prev) => !prev)
+  }
+
+  // اندازه مپ را بر اساس وضعیت گسترش تنظیم می‌کنیم
+  const mapHeight = isMapExpanded ? '550px' : '175px'
+
+  // این تابع را به‌روزرسانی کردیم تا به‌درستی نقشه را بازسازی کند
+  useEffect(() => {
+    if (isMapExpanded) {
+      // کمی صبر کنیم تا DOM به‌روز شود
+      setTimeout(() => {
+        // جستجوی نمونه نقشه Leaflet در DOM
+        const mapElements = document.querySelectorAll('.leaflet-container')
+        mapElements.forEach((el) => {
+          // @ts-ignore - دسترسی به نمونه نقشه Leaflet
+          const leafletMap = el['_leaflet_map']
+          if (leafletMap) {
+            console.log('Resizing map...')
+            leafletMap.invalidateSize()
+          }
+        })
+      }, 300)
+    } else {
+      // برای حالت کوچک شدن نقشه هم باید بازسازی انجام شود
+      setTimeout(() => {
+        const mapElements = document.querySelectorAll('.leaflet-container')
+        mapElements.forEach((el) => {
+          // @ts-ignore
+          const leafletMap = el['_leaflet_map']
+          if (leafletMap) {
+            leafletMap.invalidateSize()
+          }
+        })
+      }, 300)
+    }
+  }, [isMapExpanded])
+
   return (
     <div>
       <label className="block text-sm font-normal text-gray-700 mb-2">{label}</label>
@@ -676,8 +719,16 @@ const MapLocationPicker = (props: Props) => {
           )}
         </div>
 
-        {!ads && (
-          <div className="absolute flex flex-col gap-y-2.5 bottom-[9px] left-3 z-[999]">
+        <div className="absolute flex flex-col gap-y-2.5 bottom-[9px] left-3 z-[999]">
+          <button
+            type="button"
+            onClick={toggleMapSize}
+            className="bg-white w-[32px] h-[32px] rounded-lg flex-center shadow-icon"
+          >
+            {isMapExpanded ? <MdOutlineFullscreenExit size="22px" /> : <MdOutlineFullscreen size="22px" />}
+          </button>
+
+          {!ads && (
             <button
               type="button"
               className="bg-white hover:bg-slate-100 w-[32px] h-[32px] rounded-lg flex-center shadow-icon"
@@ -685,8 +736,8 @@ const MapLocationPicker = (props: Props) => {
             >
               <GrClear width="16px" height="16px" />
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
           <Modal.Content
@@ -716,36 +767,47 @@ const MapLocationPicker = (props: Props) => {
             </Modal.Body>
           </Modal.Content>
         </Modal>
-        <MapContainer
-          center={selectedLocation && Array.isArray(selectedLocation) ? selectedLocation : [35.6892, 51.389]}
-          zoom={12}
-          style={{ height: '175px', width: '100%', borderRadius: '8px' }}
-          ref={mapRef}
+        <div
+          ref={mapContainerRef}
+          className="map-container-wrapper"
+          style={{ height: mapHeight, transition: 'height 0.3s ease-in-out' }}
         >
-          <DrawingControl
-            isDrawing={isDrawing}
-            drawnPoints={drawnPoints}
-            setDrawnPoints={setDrawnPoints}
-            polylineRef={polylineRef}
-            overlayRef={overlayRef}
-            completedPolygonsRef={completedPolygonsRef}
-            housingData={[]}
-            onDrawingComplete={handleDrawingComplete}
-            setItemFiles={setItemFiles}
-            mode={mode}
-            setMode={setMode}
-          />
-          <TileLayer
-            url={tileLayerUrl}
-            attribution={
-              tileLayerUrl.includes('arcgisonline')
-                ? '&copy; <a href="https://www.esri.com/en-us/home">ESRI</a> contributors'
-                : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }
-          />
-          {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
-          {ads && <LocationPicker onLocationChange={handleLocationChange} initialPosition={Array.isArray(selectedLocation) ? selectedLocation : [35.6892, 51.389]} />}
-        </MapContainer>
+          <MapContainer
+            center={selectedLocation && Array.isArray(selectedLocation) ? selectedLocation : [35.6892, 51.389]}
+            zoom={12}
+            style={{ height: '100%', width: '100%', borderRadius: '8px' }}
+            ref={mapRef}
+          >
+            <DrawingControl
+              isDrawing={isDrawing}
+              drawnPoints={drawnPoints}
+              setDrawnPoints={setDrawnPoints}
+              polylineRef={polylineRef}
+              overlayRef={overlayRef}
+              completedPolygonsRef={completedPolygonsRef}
+              housingData={[]}
+              onDrawingComplete={handleDrawingComplete}
+              setItemFiles={setItemFiles}
+              mode={mode}
+              setMode={setMode}
+            />
+            <TileLayer
+              url={tileLayerUrl}
+              attribution={
+                tileLayerUrl.includes('arcgisonline')
+                  ? '&copy; <a href="https://www.esri.com/en-us/home">ESRI</a> contributors'
+                  : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              }
+            />
+            {userLocation && <Marker position={userLocation} icon={userLocationIcon} />}
+            {ads && (
+              <LocationPicker
+                onLocationChange={handleLocationChange}
+                initialPosition={Array.isArray(selectedLocation) ? selectedLocation : [35.6892, 51.389]}
+              />
+            )}
+          </MapContainer>
+        </div>
       </div>
     </div>
   )

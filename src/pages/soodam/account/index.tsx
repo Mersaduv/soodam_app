@@ -277,7 +277,7 @@ const Account: NextPage = () => {
         const formData = new FormData()
         formData.append('file', files[0])
 
-        const response = await axios.post('http://194.5.193.119:8000/api/user/avatar', formData, {
+        const response = await axios.post('http://194.5.193.119:4000/api/user/avatar', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${getToken()}`,
@@ -344,7 +344,7 @@ const Account: NextPage = () => {
                     ) : avatarUrl && avatarUrl.url ? (
                       <div className="">
                         <img
-                          src={`http://194.5.193.119:8000${avatarUrl.url}`}
+                          src={`http://194.5.193.119:4000${avatarUrl.url}`}
                           alt="user-avatar"
                           className="object-cover w-[76px] h-[76px] rounded-full"
                         />
