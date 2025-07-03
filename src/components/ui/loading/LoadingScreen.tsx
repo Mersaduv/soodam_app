@@ -7,9 +7,9 @@ const LoadingScreen: React.FC = () => {
       <img
         src="/logo/logo.png"
         alt="Logo"
-        className="w-32 mb-4" 
+        className="w-2/3" 
       />
-      <h1 className="text-2xl font-bold text-center text-white">
+      <h1 className="text-2xl font-bold text-center text-[#ebebeb]">
         با سودم همیشه تو سود باش
       </h1>
     </div>
