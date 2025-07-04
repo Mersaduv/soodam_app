@@ -43,7 +43,7 @@ const MyAds: NextPage = () => {
     localStorage.removeItem('addAdv')
     // setHousingAdd([])
   }
-  
+
   const handleDeleteAd = (id: string) => {
     setSelectedAdId(id)
     setIsDeleteModalOpen(true)
@@ -76,10 +76,12 @@ const MyAds: NextPage = () => {
     <>
       <ClientLayout title="آگهی های من">
         <main className="py-[87px] pb-[200px] relative">
-
           {/* Delete Confirmation Modal */}
           <Modal isShow={isDeleteModalOpen} onClose={closeDeleteModal} effect="ease-out">
-            <Modal.Content onClose={closeDeleteModal} className="flex h-full flex-col gap-y-5 bg-white p-4 rounded-2xl mx-4">
+            <Modal.Content
+              onClose={closeDeleteModal}
+              className="flex h-full flex-col gap-y-5 bg-white p-4 rounded-2xl mx-4"
+            >
               <Modal.Header onClose={closeDeleteModal}>
                 <div className="text-base font-medium">حذف آگهی</div>
               </Modal.Header>
@@ -89,9 +91,7 @@ const MyAds: NextPage = () => {
                     <div>
                       <InfoCircleMdIcon width="18px" height="18px" />
                     </div>
-                    <span className="text-[#5A5A5A] font-normal">
-                      آیا از حذف این آگهی مطمئنی؟
-                    </span>
+                    <span className="text-[#5A5A5A] font-normal">آیا از حذف این آگهی مطمئنی؟</span>
                   </div>
                 </div>
                 <div className="flex gap-2.5">
@@ -257,17 +257,22 @@ const MyAds: NextPage = () => {
                             </Link>
 
                             <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-start gap-6">
-                              {/* {housing.highlight_features &&
-                              housing.highlight_features.map((feature) => {
-                                return (
-                                  <div key={feature.id} className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
-                                    {' '}
-                                    <img className="w-[16px]" src={feature.image} alt="" /> {feature.value as string}{' '}
-                                    <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
-                                  </div>
-                                )
-                              })} */}
-                              {/* org  */}
+                              {housing.highlight_attributes &&
+                                housing.highlight_attributes.length > 0 &&
+                                housing.highlight_attributes.map((feature) => {
+                                  return (
+                                    <div
+                                      key={feature.id}
+                                      className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap"
+                                    >
+                                      {' '}
+                                      <img className="w-[16px]" src={feature.icon} alt="" />{' '}
+                                      {typeof feature.value === 'object' ? feature.value.value : feature.value}{' '}
+                                      <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
+                                    </div>
+                                  )
+                                })}
+                              {/* 
                               <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
                                 {' '}
                                 <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
@@ -285,39 +290,47 @@ const MyAds: NextPage = () => {
                                 <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
                                 <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
                               </div>
+                              */}
                             </div>
-                            <hr className='my-3'/>
+                            <hr className="my-3" />
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <div className={`text-sm font-medium ${
-                                  housing.status === 0 ? 'text-yellow-600' : 
-                                  housing.status === 1 ? 'text-green-600' : 
-                                  housing.status === 2 ? 'text-red-600' : ''
-                                }`}>
-                                  {housing.status === 0 ? 'در انتظار تایید' : 
-                                   housing.status === 1 ? 'تایید شده' : 
-                                   housing.status === 2 ? 'رد شده' : 'نامشخص'}
+                                <div
+                                  className={`text-sm font-medium ${
+                                    housing.status === 0
+                                      ? 'text-yellow-600'
+                                      : housing.status === 1
+                                      ? 'text-green-600'
+                                      : housing.status === 2
+                                      ? 'text-red-600'
+                                      : ''
+                                  }`}
+                                >
+                                  {housing.status === 0
+                                    ? 'در انتظار تایید'
+                                    : housing.status === 1
+                                    ? 'تایید شده'
+                                    : housing.status === 2
+                                    ? 'رد شده'
+                                    : 'نامشخص'}
                                 </div>
                               </div>
-                              <div className='relative'>
-                                <div 
-                                  className='rounded-full p-1 cursor-pointer hover:bg-gray-100 transition-all duration-500'
+                              <div className="relative">
+                                <div
+                                  className="rounded-full p-1 cursor-pointer hover:bg-gray-100 transition-all duration-500"
                                   onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenMenuId(openMenuId === housing.id ? null : housing.id);
+                                    e.stopPropagation()
+                                    setOpenMenuId(openMenuId === housing.id ? null : housing.id)
                                   }}
                                 >
-                                  <BiDotsVerticalRounded className='text-2xl text-gray-500' />
+                                  <BiDotsVerticalRounded className="text-2xl text-gray-500" />
                                 </div>
                                 {openMenuId === housing.id && (
                                   <>
-                                    <div 
-                                      className="fixed inset-0 z-10"
-                                      onClick={() => setOpenMenuId(null)}
-                                    />
+                                    <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
                                     <div className="absolute left-0 mt-1 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-20">
                                       <div className="py-1">
-                                        <Link 
+                                        <Link
                                           href={`/housing/ad/edit?id=${housing.id}`}
                                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                           onClick={(e) => e.stopPropagation()}
@@ -327,8 +340,8 @@ const MyAds: NextPage = () => {
                                         <button
                                           className="block w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                                           onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteAd(housing.id);
+                                            e.stopPropagation()
+                                            handleDeleteAd(housing.id)
                                           }}
                                         >
                                           حذف آگهی

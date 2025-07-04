@@ -223,8 +223,8 @@ const Lists: NextPage = () => {
                           </Link>
 
                           <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-start gap-6">
-                            {/* {housing.highlight_features &&
-                              housing.highlight_features.map((feature) => {
+                            {/* {housing.highlight_attributes &&
+                              housing.highlight_attributes.map((feature) => {
                                 return (
                                   <div key={feature.id} className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
                                     {' '}

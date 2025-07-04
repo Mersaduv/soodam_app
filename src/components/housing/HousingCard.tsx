@@ -150,15 +150,15 @@ const HousingCard: React.FC<Props> = (props) => {
             <hr className="border-[1px] border-[#E3E3E7] my-4 w-full" />
             <div className="flex w-full gap-4">
               <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-                {housing.highlight_features &&
-                  housing.highlight_features.map((feature) => {
+                {housing.highlight_attributes &&
+                  housing.highlight_attributes.map((feature) => {
                     return (
                       <div
                         key={feature.id}
                         className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap"
                       >
                         {' '}
-                        <img className="w-[16px]" src={feature.image} alt="" /> {feature.value as string}{' '}
+                        <img className="w-[16px]" src={feature.image} alt="" /> {typeof feature.value === 'object' ? feature.value.value : feature.value}{' '}
                         <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
                       </div>
                     )
@@ -319,20 +319,21 @@ const HousingCard: React.FC<Props> = (props) => {
               <hr className="border-[1px] border-[#E3E3E7] my-4" />
             </div>
             <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-between">
-              {/* {housing.highlight_features &&
-                housing.highlight_features.map((feature) => {
+              {housing.highlight_attributes &&
+                housing.highlight_attributes.length > 0 &&
+                housing.highlight_attributes.map((feature) => {
                   return (
                     <div
                       key={feature.id}
                       className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap"
                     >
-                      {' '}
-                      <img className="w-[16px]" src={feature.image} alt="" /> {feature.value as string}{' '}
+                      <img className="w-[16px]" src={feature.icon} alt="" />
+                      <span className="font-medium text-[#7A7A7A] text-xs">{typeof feature.value === 'object' ? feature.value.value : feature.value}</span>
                       <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
                     </div>
                   )
-                })} */}
-              <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                })}
+              {/* <div className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
                 {' '}
                 <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />{' '}
                 <span className="font-medium text-[#7A7A7A] text-xs">بزودی نمایش داده میشود</span>
@@ -346,7 +347,7 @@ const HousingCard: React.FC<Props> = (props) => {
                 {' '}
                 <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />{' '}
                 <span className="font-medium text-[#7A7A7A] text-xs">بزودی </span>
-              </div>
+              </div> */}
               {/* <div className="flex-center gap-1.5 text-xs font-medium farsi-digits">
             <BedIcon width="21px" height="19px" /> {housing.bedrooms}{' '}
             <span className="font-medium text-[#7A7A7A] text-xs">اتاق خواب</span>

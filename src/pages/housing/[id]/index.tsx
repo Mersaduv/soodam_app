@@ -84,7 +84,7 @@ const SingleHousing: NextPage = () => {
       push('/authentication/login?role=memberUser')
       return
     }
-    
+
     // باز کردن مودال و ذخیره شماره تلفن
     setSelectedPhoneNumber(housingData.user?.phone_number || '')
     modalHandlers.open()
@@ -131,15 +131,15 @@ const SingleHousing: NextPage = () => {
     }
   }, [idQuery, viewAdvertisement])
 
-  const isSaved = favoritesData?.items.some(fav => fav.id === housingData?.id)
+  const isSaved = favoritesData?.items.some((fav) => fav.id === housingData?.id)
   if (isLoading) return <div>loading...</div>
   if (!housingData) return <div>not found</div>
 
   // Add this function to determine if current user is the ad owner
   const isAdOwner = () => {
-    if (!user || !housingData || !housingData.user) return false;
-    return user.id === housingData.user.id;
-  };
+    if (!user || !housingData || !housingData.user) return false
+    return user.id === housingData.user.id
+  }
 
   // ? Render(s)
   return (
@@ -166,13 +166,24 @@ const SingleHousing: NextPage = () => {
 
                   {/* Edit Button - Only visible to ad owner */}
                   {isAdOwner() && (
-                    <div 
-                      id="editHouse" 
+                    <div
+                      id="editHouse"
                       className="rounded-full cursor-pointer flex-center"
                       onClick={() => push(`/housing/ad/edit?id=${housingData.id}`)}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
                       </svg>
                     </div>
                   )}
@@ -183,6 +194,24 @@ const SingleHousing: NextPage = () => {
                 </div>
               </div>
               <div className="grid grid-cols-2 p-4 pt-0 gap-3.5 gap-x-20">
+                {housingData.highlight_attributes &&
+                  housingData.highlight_attributes.length > 0 &&
+                  housingData.highlight_attributes.map((feature) => {
+                    return (
+                      <div
+                        key={feature.id}
+                        className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs"
+                      >
+                        {' '}
+                        <img className="w-[16px]" src={feature.icon} alt="" />
+                        <span className="font-medium text-[#7A7A7A] text-xs">
+                          {typeof feature.value === 'object' ? feature.value.value : feature.value}
+                        </span>
+                        <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
+                      </div>
+                    )
+                  })}
+                {/* 
                 <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
                   {' '}
                   <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
@@ -198,19 +227,7 @@ const SingleHousing: NextPage = () => {
                   <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
                   <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
                 </div>
-                {/* {housingData.attributes &&
-                  housingData.attributes.filter((item) => item.type === 'text').map((feature) => {
-                    return (
-                      <div key={feature.id} className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
-                        {' '}
-                        <img className="w-[16px]" src={feature.icon} alt="" /> 
-                        {typeof feature.value === 'object' && feature.value !== null ? String(feature.value.value) : 
-                         typeof feature.value === 'boolean' ? (feature.value ? 'دارد' : 'ندارد') : 
-                         String(feature.value)}{' '}
-                        <div className="font-bold text-[#7A7A7A] text-xs">{feature.name}</div>
-                      </div>
-                    )
-                  })} */}
+                */}
               </div>
             </div>
 

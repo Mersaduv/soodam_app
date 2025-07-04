@@ -864,6 +864,23 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
 
           {/* Property Details */}
           <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-start gap-4">
+            {housing.highlight_attributes &&
+              housing.highlight_attributes.length > 0 &&
+              housing.highlight_attributes.map((feature) => {
+                return (
+                  <div
+                    key={feature.id}
+                    className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap"
+                  >
+                    <img className="w-[16px]" src={feature.icon} alt="" />
+                    <span className="font-medium text-[#7A7A7A] text-xs">
+                      {typeof feature.value === 'object' ? feature.value.value : feature.value}
+                    </span>
+                    <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
+                  </div>
+                )
+              })}
+            {/* 
             <div className="flex-center gap-1 text-xs font-medium farsi-digits whitespace-nowrap">
               {' '}
               <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
@@ -881,6 +898,7 @@ const PropertyModal: React.FC<ModalSelectHousing> = (props) => {
               <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
               <span className="font-medium text-[#7A7A7A] text-xs"> بزودی </span>
             </div>
+            */}
           </div>
         </div>
       </div>

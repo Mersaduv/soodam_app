@@ -419,8 +419,8 @@ const Advertisements: NextPage = () => {
 
                             {/* Property Details */}
                             <div className="w-full flex gap-2.5">
-                              {/* {housing.highlight_features &&
-                              housing.highlight_features.map((feature) => {
+                              {/* {housing.highlight_attributes &&
+                              housing.highlight_attributes.map((feature) => {
                                 return (
                                   <div key={feature.id} className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
                                     {' '}

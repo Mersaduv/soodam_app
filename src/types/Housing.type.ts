@@ -31,7 +31,7 @@ export interface Housing {
     shares: number
     last_viewed_at: string | null
   }
-  highlight_features?: Feature[]
+  highlight_attributes?: Feature[]
   created_at: string
   updated_at: string
   expiry_date: string
