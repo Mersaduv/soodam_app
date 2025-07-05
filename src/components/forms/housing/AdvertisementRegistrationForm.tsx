@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import {
   ArrowLeftIcon,
   CheckIcon,
+  Close,
   HouseIcon,
   InfoCircleIcon,
   RepeatIcon,
@@ -133,6 +134,10 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
   // Track if the title has been manually edited by the user
   const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false)
+
+  // Inside the component, add these states near other state declarations
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState('');
 
   const dispatch = useAppDispatch()
   const formRef = useRef<HTMLDivElement | null>(null)
@@ -1825,6 +1830,13 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   if (errors) {
     console.log(errors, 'errors--errors')
   }
+
+  // Function to handle image click and show in modal
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setIsImageModalOpen(true);
+  };
+
   return (
     <div ref={formRef} className="relative mb-44">
       <Modal isShow={isShow} onClose={handleModalClose} effect="buttom-to-fit">
@@ -2864,7 +2876,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                         <img
                           src={`${file.url}`}
                           alt={`file-${index}`}
-                          className="h-[58px] w-full object-cover rounded-[4px]"
+                          className="h-[58px] w-full object-cover rounded-[4px] cursor-pointer"
+                          onClick={() => handleImageClick(file.url)}
                         />
                         <button
                           type="button"
@@ -3047,6 +3060,45 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           </div>
         </form>
       </div>
+
+      {/* Image Preview Modal */}
+{isImageModalOpen && (
+  <Modal 
+    isShow={isImageModalOpen} 
+    onClose={() => setIsImageModalOpen(false)}
+    effect="ease-out"
+  >
+    <div className="bg-white rounded-lg p-4">
+      <div className="flex relative items-center justify-center pb-2">
+        <h2 className="font-medium">نمایش تصویر</h2>
+        <button
+          type="button"
+          onClick={() => setIsImageModalOpen(false)}
+          className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full"
+        >
+          <Close className="h-3 w-3" />
+        </button>
+      </div>
+      <div>
+        <div className="flex justify-center items-center p-4">
+          <img 
+            src={selectedImageUrl} 
+            alt="تصویر بزرگ" 
+            className="max-w-full max-h-[70vh] object-contain rounded-lg"
+          />
+        </div>
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setIsImageModalOpen(false)}
+            className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90"
+          >
+            بستن
+          </button>
+        </div>
+      </div>
+    </div>
+  </Modal>
+)}
     </div>
   )
 }

@@ -25,21 +25,6 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
     onClose()
   }
 
-  const handleClickEstateConsultant = () => {
-    const user = JSON.parse(localStorage.getItem('user'))
-    const role = localStorage.getItem('role')
-
-    if (role === 'user' || !role) {
-      push(`/authentication/register?role=${roles.EstateConsultant}`)
-      return
-    }
-    if (user && user.role !== roles.EstateConsultant) {
-      push(`/authentication/register?role=${roles.EstateConsultant}`)
-    } else {
-      push('/estate-consultant')
-    }
-    onClose()
-  }
 
   return (
     <Modal isShow={isShow} onClose={onClose} effect="ease-out">
