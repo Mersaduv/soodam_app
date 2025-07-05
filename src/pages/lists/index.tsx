@@ -50,10 +50,13 @@ const Lists: NextPage = () => {
   const [pageSize, setPageSize] = useState<number>(2)
   const [paginationMeta, setPaginationMeta] = useState<FavoritesPaginationMetadata | null>(null)
   const [isPaginationLoading, setIsPaginationLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   const { data: favoritesData, isFetching: isFetchingFavorites } = useGetFavoritesQuery({
     page: currentPage,
     limit: pageSize,
+  }, {
+    refetchOnMountOrArgChange: true
   })
 
   useEffect(() => {
@@ -62,6 +65,7 @@ const Lists: NextPage = () => {
       const { items, ...metadata } = favoritesData
       setPaginationMeta(metadata as FavoritesPaginationMetadata)
       setIsPaginationLoading(false)
+      setInitialLoading(false)
     }
   }, [favoritesData])
 
@@ -89,7 +93,8 @@ const Lists: NextPage = () => {
   }
   console.log(favoritesData, 'favoritesData')
 
-  if (isFetchingFavorites || isPaginationLoading)
+  // Only show loading skeleton on initial load, not during refetching after unfavorite action
+  if (initialLoading)
     return (
       <div className="p-10">
         <HousingSkeleton />
@@ -153,7 +158,10 @@ const Lists: NextPage = () => {
                                       : 'نامشخص'}
                                   </div>
                                 </div>
-                                <div className="cursor-pointer" onClick={(event) => handleUnAddFavoriteClick(event, housing)}>
+                                <div
+                                  className={`cursor-pointer ${isAddingFavorite ? 'opacity-50' : ''}`}
+                                  onClick={(event) => handleUnAddFavoriteClick(event, housing)}
+                                >
                                   <HeartWithSlashFavIcon width="16px" height="16px" />
                                 </div>
                               </div>
@@ -223,40 +231,34 @@ const Lists: NextPage = () => {
                           </Link>
 
                           <div className="w-full text-right text-[#7A7A7A] text-sm flex justify-start gap-6">
-                            {/* {housing.highlight_attributes &&
+                            {housing.highlight_attributes &&
+                              housing.highlight_attributes.length > 0 &&
                               housing.highlight_attributes.map((feature) => {
                                 return (
-                                  <div key={feature.id} className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap">
+                                  <div
+                                    key={feature.id}
+                                    className="flex-center gap-0.5 text-xs font-medium farsi-digits whitespace-nowrap"
+                                  >
                                     {' '}
-                                    <img className="w-[16px]" src={feature.image} alt="" /> {feature.value as string}{' '}
+                                    <img className="w-[16px]" src={feature.icon} alt="" />{' '}
+                                    {typeof feature.value === 'object' ? feature.value.value : feature.value}{' '}
                                     <span className="font-medium text-[#7A7A7A] text-xs">{feature.name}</span>
                                   </div>
                                 )
-                              })} */}
-                            {/* org  */}
-                            <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
-                              {' '}
-                              <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
-                              <div className="font-bold text-[#7A7A7A] text-xs text-ellipsis overflow-hidden whitespace-nowrap">
-                                بزودی قابل نمایش میشود
-                              </div>
-                            </div>
-                            <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
-                              {' '}
-                              <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
-                              <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
-                            </div>
-                            <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
-                              {' '}
-                              <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
-                              <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
-                            </div>
+                              })}
                           </div>
                         </div>
                       </div>
                     )
                   })}
             </div>
+
+            {/* Pagination loading indicator */}
+            {isPaginationLoading && (
+              <div className="mt-4 flex justify-center">
+                <div className="w-6 h-6 border-2 border-gray-300 border-t-[#2C3E50] rounded-full animate-spin"></div>
+              </div>
+            )}
 
             {/* Add pagination controls */}
             {paginationMeta && paginationMeta.pages > 1 && (
