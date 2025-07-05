@@ -17,7 +17,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
   const dispatch = useAppDispatch()
   const { push } = useRouter()
 
-  const handleClick = (pathname: string, query: { role: number }) => {
+  const handleClick = (pathname: string, query: { role: string }) => {
     push({
       pathname,
       query,
@@ -33,7 +33,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
         <Modal.Body>
           <div className="space-y-4">
             <div
-              onClick={() => handleClick('/admin/authentication/register', { role: roles.Admin })}
+              onClick={() => handleClick('/admin/authentication/register', { role: 'admin_city' })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
@@ -43,7 +43,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
             </div>
 
             <div
-              onClick={() => handleClick('/admin/authentication/register', { role: roles.Admin })}
+              onClick={() => handleClick('/admin/authentication/register', { role: 'admin_ad' })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
@@ -53,7 +53,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
             </div>
 
             <div
-              onClick={() => handleClick('/admin/authentication/register', { role: roles.Admin })}
+              onClick={() => handleClick('/admin/authentication/register', { role: 'admin_news' })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">
@@ -63,7 +63,7 @@ const AdminFirstLoginModal: React.FC<AdminFirstLoginModalProps> = ({ isShow, onC
             </div>
 
             <div
-              onClick={() => handleClick('/admin/authentication/register', { role: roles.Admin })}
+              onClick={() => handleClick('/admin/authentication/register', { role: 'marketer' })}
               className="hover:bg-[#FFF0F2] border hover:border-[#D52133] cursor-pointer p-4 rounded-lg flex justify-between items-center"
             >
               <div className="w-[200px] max-w-[160px] space-y-6 flex flex-col justify-between h-full items-center">

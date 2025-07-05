@@ -353,14 +353,20 @@ export const adminFormValidationSchema = Yup.object().shape({
   full_name: Yup.string().required('نام و نام خانوادگی الزامی است'),
   phone_number: Yup.string()
     .required('شماره موبایل الزامی است')
-    .matches(/^(09[0-9]{9})$/, 'شماره موبایل معتبر نیست'),
-  email: Yup.string().required('ایمیل الزامی است').email('ایمیل معتبر نیست'),
-  password: Yup.string().required('رمز عبور الزامی است').min(8, 'رمز عبور باید حداقل 8 کاراکتر باشد'),
+    .matches(/^09[0-9]{9}$/, 'شماره موبایل نامعتبر است'),
+  email: Yup.string().email('ایمیل نامعتبر است').required('ایمیل الزامی است'),
+  password: Yup.string().required('رمز عبور الزامی است').min(6, 'رمز عبور باید حداقل 6 کاراکتر باشد'),
   confirm_password: Yup.string()
-    .oneOf([Yup.ref('password')], 'رمز عبور مطابقت ندارد')
+    .oneOf([Yup.ref('password'), null], 'رمز عبور مطابقت ندارد')
     .required('تکرار رمز عبور الزامی است'),
-  city: Yup.object().shape({
-    id: Yup.number().required('شهر الزامی است'),
+  province: Yup.object().shape({
+    name: Yup.string().required('انتخاب استان الزامی است'),
   }),
-  security_number: Yup.string().required('کد امنیتی الزامی است'),
+  city: Yup.object().shape({
+    name: Yup.string().required('انتخاب شهر الزامی است'),
+  }),
+  security_number: Yup.string()
+    .required('کد ملی الزامی است')
+    .matches(/^\d{10}$/, 'کد ملی باید 10 رقم باشد'),
+  // Profile image is optional in form validation
 })

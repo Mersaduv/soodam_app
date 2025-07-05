@@ -2133,6 +2133,108 @@ const estates = [
   },
 ]
 
+// Admin registration mock handlers
+export const adminHandlers = [
+  rest.post('/api/admin/register', (req, res, ctx) => {
+    const { role_type, full_name, phone_number, email, province, city, security_number, profile_image } = req.body;
+    
+    // Store the request in sessionStorage instead of localStorage to avoid persisting data across sessions
+    // This helps ensure mock data doesn't interfere with the real system
+    try {
+      const requests = JSON.parse(sessionStorage.getItem('adminRequests') || '[]');
+      const newRequest = {
+        id: Date.now(),
+        full_name,
+        phone_number,
+        email,
+        province: province?.name || '',
+        city: city?.name || '',
+        role_type,
+        security_number,
+        status: 'pending', // 'pending', 'approved', 'rejected'
+        created_at: new Date().toISOString(),
+        profile_image: profile_image || null
+      };
+      
+      requests.push(newRequest);
+      sessionStorage.setItem('adminRequests', JSON.stringify(requests));
+      
+      // Return a successful response
+      return res(
+        ctx.status(201),
+        ctx.json({
+          success: true,
+          message: 'درخواست شما با موفقیت ثبت شد.',
+          data: newRequest
+        })
+      );
+    } catch (error) {
+      console.error('Error storing admin request:', error);
+      return res(
+        ctx.status(500),
+        ctx.json({
+          success: false,
+          message: 'خطا در ثبت درخواست'
+        })
+      );
+    }
+  }),
+
+  rest.get('/api/admin/requests', (req, res, ctx) => {
+    try {
+      const requests = JSON.parse(sessionStorage.getItem('adminRequests') || '[]');
+      
+      return res(
+        ctx.status(200),
+        ctx.json({
+          success: true,
+          data: requests
+        })
+      );
+    } catch (error) {
+      console.error('Error retrieving admin requests:', error);
+      return res(
+        ctx.status(500),
+        ctx.json({
+          success: false,
+          message: 'خطا در دریافت درخواست‌ها'
+        })
+      );
+    }
+  }),
+
+  rest.put('/api/admin/request/:id', (req, res, ctx) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    try {
+      const requests = JSON.parse(sessionStorage.getItem('adminRequests') || '[]');
+      const updatedRequests = requests.map(request => 
+        request.id === Number(id) ? { ...request, status } : request
+      );
+      
+      sessionStorage.setItem('adminRequests', JSON.stringify(updatedRequests));
+      
+      return res(
+        ctx.status(200),
+        ctx.json({
+          success: true,
+          message: status === 'approved' ? 'درخواست با موفقیت تایید شد.' : 'درخواست رد شد.'
+        })
+      );
+    } catch (error) {
+      console.error('Error updating admin request:', error);
+      return res(
+        ctx.status(500),
+        ctx.json({
+          success: false,
+          message: 'خطا در بروزرسانی درخواست'
+        })
+      );
+    }
+  })
+];
+
 export const handlers = [
   rest.post('/api/auth/send-code', async (req, res, ctx) => {
     const { phoneNumber } = await req.json<{ phoneNumber: string }>()
@@ -2820,6 +2922,7 @@ export const handlers = [
 
     return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
   }),
+  ...adminHandlers
 ]
 
 // {

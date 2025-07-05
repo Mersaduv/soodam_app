@@ -44,6 +44,20 @@ export default function App({ Component, pageProps }: AppProps) {
 
     startMocking()
 
+    // Initialize MSW only in development mode and for admin registration-related pages
+    if (typeof window !== 'undefined' && 
+        process.env.NODE_ENV === 'development' && 
+        window.location.pathname.includes('/admin/authentication/register')) {
+      // Initialize MSW
+      import('../mocks/browser')
+        .then(({ worker }) => {
+          // Start is now handled in browser.ts
+        })
+        .catch(error => {
+          console.error('Error importing MSW worker:', error)
+        })
+    }
+
     return () => clearTimeout(timer)
   }, [])
 

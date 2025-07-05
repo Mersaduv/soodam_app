@@ -7,9 +7,10 @@ import { ArrowLeftIcon, Close } from '@/icons'
 import { useAppDispatch, useAppSelector } from '@/hooks'
 import { roles } from '@/utils'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 const AdminHeader = ({ title, isDashboard }: { title: string; isDashboard?: boolean }) => {
-  const { replace, query, back } = useRouter()
+  const { replace, query, back, pathname } = useRouter()
   const userLocalStorage = localStorage.getItem('user')
   const user = userLocalStorage ? JSON.parse(userLocalStorage)  : null
   const handleBack = () => {
@@ -33,16 +34,27 @@ const AdminHeader = ({ title, isDashboard }: { title: string; isDashboard?: bool
             </div>
           </div>
 
-          <div>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/requests">
+              <span className="text-white text-sm">ثبت نام ها</span>
+            </Link>
             <img className="w-[26px] h-[26px]" src="/static/Group 273.png" alt="notification" />
           </div>
         </div>
       ) : (
-        <div className="flex items-center py-6  gap-2.5 px-4">
-          <button onClick={handleBack} className={`text-white rounded-full w-fit -rotate-90 font-bold`}>
-            <ArrowLeftIcon width="24px" height="24px" />
-          </button>
-          <h1 className="text-white font-medium">{title}</h1>
+        <div className="flex items-center justify-between py-6 px-4">
+          <div className="flex items-center gap-2.5">
+            <button onClick={handleBack} className={`text-white rounded-full w-fit -rotate-90 font-bold`}>
+              <ArrowLeftIcon width="24px" height="24px" />
+            </button>
+            <h1 className="text-white font-medium">{title}</h1>
+          </div>
+          
+          {!pathname.includes('/admin/requests') && (
+            <Link href="/admin/requests">
+              <span className="text-white text-sm">ثبت نام ها</span>
+            </Link>
+          )}
         </div>
       )}
     </header>

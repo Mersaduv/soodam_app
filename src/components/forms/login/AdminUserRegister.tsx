@@ -3,17 +3,21 @@ import { useForm, Controller, Resolver } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useRouter } from 'next/router'
 import { Button, DisplayError, Combobox, TextField } from '@/components/ui'
-import { ArrowLeftIcon } from '@/icons'
+import { ArrowLeftIcon, CameraIcon } from '@/icons'
 import { AdminRegisterForm } from '@/types'
 import { adminFormValidationSchema } from '@/utils/validation'
 import { getToken, NEXT_PUBLIC_API_URL } from '@/utils'
 import axios from 'axios'
 import Link from 'next/link'
+import Image from 'next/image'
 
 const AdminUserRegister: React.FC = () => {
-  const { push, back } = useRouter()
+  const { push, back, query } = useRouter()
   const [provinces, setProvinces] = useState([])
   const [cities, setCities] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [profileImage, setProfileImage] = useState<string | null>(null)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   const {
     handleSubmit,
@@ -28,59 +32,147 @@ const AdminUserRegister: React.FC = () => {
   const selectedProvince = watch('province')
 
   useEffect(() => {
-    axios
-      .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getToken()}`,
-        },
-      })
-      .then((res) => {
-        setProvinces(res.data)
-      })
-      .catch((err) => {
-        console.error('Error fetching provinces:', err)
-      })
+    // For demo purposes, use mock data for provinces
+    const mockProvinces = [
+      { id: 1, name: 'تهران' },
+      { id: 2, name: 'اصفهان' },
+      { id: 3, name: 'خراسان رضوی' },
+      { id: 4, name: 'فارس' },
+      { id: 5, name: 'مازندران' },
+    ]
+    setProvinces(mockProvinces)
   }, [])
 
   useEffect(() => {
     if (selectedProvince?.id) {
-      axios
-        .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getToken()}`,
-          },
-        })
-        .then((res) => {
-          setCities(res.data)
-          setValue('city', { name: '', id: 0 })
-        })
-        .catch((err) => {
-          console.error('Error fetching cities:', err)
-          setCities([])
-        })
+      // For demo purposes, use mock data for cities
+      const mockCities = {
+        1: [
+          { id: 101, name: 'تهران', province_id: 1 },
+          { id: 102, name: 'شهریار', province_id: 1 },
+          { id: 103, name: 'اسلامشهر', province_id: 1 },
+        ],
+        2: [
+          { id: 201, name: 'اصفهان', province_id: 2 },
+          { id: 202, name: 'کاشان', province_id: 2 },
+          { id: 203, name: 'نجف‌آباد', province_id: 2 },
+        ],
+        3: [
+          { id: 301, name: 'مشهد', province_id: 3 },
+          { id: 302, name: 'نیشابور', province_id: 3 },
+          { id: 303, name: 'سبزوار', province_id: 3 },
+        ],
+        4: [
+          { id: 401, name: 'شیراز', province_id: 4 },
+          { id: 402, name: 'مرودشت', province_id: 4 },
+          { id: 403, name: 'کازرون', province_id: 4 },
+        ],
+        5: [
+          { id: 501, name: 'ساری', province_id: 5 },
+          { id: 502, name: 'بابل', province_id: 5 },
+          { id: 503, name: 'آمل', province_id: 5 },
+        ],
+      }
+      
+      setCities(mockCities[selectedProvince.id] || [])
+      setValue('city', { name: '', id: 0 })
     } else {
       setCities([])
       setValue('city', { name: '', id: 0 })
     }
   }, [selectedProvince, setValue])
-  const onSubmit = (data: AdminRegisterForm) => {
-    console.log('Form submitted:', data)
-    // Handle form submission
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('image', file)
+    
+    try {
+      setIsLoading(true)
+      
+      // Create a local preview of the image without making an API call
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const imageUrl = reader.result as string
+        setProfileImage(imageUrl)
+        localStorage.setItem('tempProfileImage', imageUrl)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Error uploading image:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const onSubmit = async (data: AdminRegisterForm) => {
+    try {
+      setIsLoading(true)
+      
+      const requestData = {
+        ...data,
+        role_type: query.role || 'admin_city', // Default to admin_city if no role is provided
+        profile_image: profileImage,
+      }
+      
+      const response = await fetch('/api/admin/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        push('/admin/authentication/register/success')
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleBack = () => {
     back()
   }
-  console.log(selectedProvince, 'selectedProvince')
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="">
+    <form onSubmit={handleSubmit(onSubmit)} className="pb-10">
       <div className="m-4 pt-7 px-1">
         <div className="space-y-2">
           <h1 className="font-bold text-lg">خوش آمدید!</h1>
           <p className="text-sm">برای درخواست ثبت نام اطلاعات خود را وارد کنید.</p>
+        </div>
+
+        {/* Profile Image Upload */}
+        <div className="flex justify-center mt-6 mb-4">
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="relative w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-[#2C3E50]"
+          >
+            {profileImage ? (
+              <div className="w-full h-full relative">
+                <Image src={profileImage} alt="Profile" layout="fill" objectFit="cover" />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <CameraIcon className="w-8 h-8 text-gray-400" />
+                <span className="text-xs text-gray-500 mt-1">آپلود تصویر</span>
+              </div>
+            )}
+          </div>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleImageUpload} 
+            accept="image/*" 
+            className="hidden" 
+          />
         </div>
 
         <div className=" mt-5 space-y-4">
@@ -192,13 +284,17 @@ const AdminUserRegister: React.FC = () => {
       </div>
 
       <div className="px-4 mt-10">
-        <Button type="submit" className="w-full py-[14px] font-bold text-sm rounded-lg bg-[#2C3E50]">
-          ثبت نام درخواست
+        <Button 
+          type="submit" 
+          className="w-full py-[14px] font-bold text-sm rounded-lg bg-[#2C3E50]"
+          disabled={isLoading}
+        >
+          {isLoading ? 'در حال ثبت...' : 'ثبت نام درخواست'}
         </Button>
       </div>
       <div className="px-4 mt-6 pb-10 flex justify-center items-center gap-1">
         <p className="text-sm">قبلا حساب ساخته اید؟</p>
-        <Link href="/login" className="text-blue-600 text-[13px] font-semibold">
+        <Link href="/admin/authentication/login" className="text-blue-600 text-[13px] font-semibold">
           وارد شوید
         </Link>
       </div>

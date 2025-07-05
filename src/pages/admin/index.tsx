@@ -41,14 +41,15 @@ const AdminPage: NextPage = () => {
             <div className="px-4">
               <div className="grid grid-cols-3 gap-[12px] justify-center w-full">
                 <div className="flex justify-center items-center">
-                  <div
+                  <Link
+                    href="/admin/requests"
                     className={
                       'gap-3 bg-white min-w-[100px] xxss:min-w-[112px] h-[106px] rounded-[15px] flex flex-col items-center justify-center'
                     }
                   >
                     <UserBlueTickIcon width="40px" height="40px" />
                     <div className="text-[#2C3E50] text-sm font-medium">ثبت نام ها</div>
-                  </div>
+                  </Link>
                 </div>
 
                 <div className="flex justify-center items-center">

@@ -225,4 +225,5 @@ export interface AdminRegisterForm {
     province_id?: number
   }
   security_number?: string
+  profile_image?: string | null
 }

@@ -24,6 +24,21 @@ import AdminHeader from '@/components/shared/AdminHeader'
 import AdminUserLogin from '@/components/forms/login/AdminUserRegister'
 import { NextPage } from 'next'
 
+const getRoleDisplayName = (role: string | string[] | undefined): string => {
+  switch (role) {
+    case 'admin_city':
+      return 'ادمین شهر'
+    case 'admin_news':
+      return 'ادمین خبر'
+    case 'admin_ad':
+      return 'ادمین آگهی'
+    case 'marketer':
+      return 'بازاریاب'
+    default:
+      return 'ادمین'
+  }
+}
+
 const RegisterPage: NextPage = () => {
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
@@ -32,20 +47,18 @@ const RegisterPage: NextPage = () => {
   const [phoneNumber, setPhoneNumber] = useState('')
   // ? Assets
   const { replace, query, push, back } = useRouter()
-  const role = query.role as unknown as number
-  const roleName= role === roles.Admin ? 'ادمین' : 'ادمین سودم'
+  const roleParam = query.role as string
+  const roleName = getRoleDisplayName(roleParam)
   const dispatch = useAppDispatch()
   // ? Login User
   const [login, { data, isSuccess, isError, isLoading, error }] = useLoginMutation()
 
   // ? Handlers
   const submitHandler: SubmitHandler<PhoneFormValues> = (data) => {
-
+    // Not needed for this mock implementation
   }
-  // const onSuccess = () => replace(query?.redirectTo?.toString() || "/");
+  
   const onSuccess = () => {
-    // Dispatch an alert
-    // dispatch(showAlert({ title: `کد تایید : ${data?.code}`, status: 'success' }))
     setStep(2)
   }
 
@@ -53,9 +66,12 @@ const RegisterPage: NextPage = () => {
     back()
   }
 
-  // if (query) {
-  //   console.log(query, 'query')
-  // }
+  useEffect(() => {
+    if (!roleParam) {
+      modalHandlers.open()
+    }
+  }, [roleParam])
+
   // ? Render(s)
   return (
     <>
@@ -69,18 +85,22 @@ const RegisterPage: NextPage = () => {
           onSuccess={onSuccess}
         />
       )}
-      <main className="">
+      <div className="flex flex-col min-h-screen">
         <Head>
-          <title>سودم | ثبت نام</title>
+          <title>سودم | ثبت نام {roleName}</title>
         </Head>
-        <div className="bg-[#2C3E50] h-screen">
+        <div className="bg-[#2C3E50]">
           <AdminHeader title={`ثبت نام ${roleName}`} />
-
-          <div className="bg-[#F6F7FB] rounded-t-[40px] h-full">
-            <AdminUserLogin />
-          </div>
         </div>
-      </main>
+
+        <div className="bg-[#F6F7FB] rounded-t-[40px] flex-grow overflow-y-auto pb-6">
+          {!roleParam ? (
+            <AdminFirstLoginModal isShow={isShow} onClose={modalHandlers.close} />
+          ) : (
+            <AdminUserLogin />
+          )}
+        </div>
+      </div>
     </>
   )
 }
