@@ -2136,7 +2136,7 @@ const estates = [
 // Admin registration mock handlers
 export const adminHandlers = [
   rest.post('/api/admin/register', (req, res, ctx) => {
-    const { role_type, full_name, phone_number, email, province, city, security_number, profile_image } = req.body;
+    const { role_type, full_name, phone_number, email, province, city, security_number, profile_image } = req.body as { role_type: string, full_name: string, phone_number: string, email: string, province: string, city: string, security_number: string, profile_image: string }; // eslint-disable-line
     
     // Store the request in sessionStorage instead of localStorage to avoid persisting data across sessions
     // This helps ensure mock data doesn't interfere with the real system
@@ -2147,8 +2147,8 @@ export const adminHandlers = [
         full_name,
         phone_number,
         email,
-        province: province?.name || '',
-        city: city?.name || '',
+        province: province || '',
+        city: city || '',
         role_type,
         security_number,
         status: 'pending', // 'pending', 'approved', 'rejected'
@@ -2205,7 +2205,7 @@ export const adminHandlers = [
 
   rest.put('/api/admin/request/:id', (req, res, ctx) => {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status } = req.body as { status: string }; // eslint-disable-line
     
     try {
       const requests = JSON.parse(sessionStorage.getItem('adminRequests') || '[]');

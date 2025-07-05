@@ -92,12 +92,11 @@ const AdminUserRegister: React.FC = () => {
     try {
       setIsLoading(true)
       
-      // Create a local preview of the image without making an API call
+      // Create a local preview of the image as base64
       const reader = new FileReader()
       reader.onloadend = () => {
         const imageUrl = reader.result as string
-        setProfileImage(imageUrl)
-        localStorage.setItem('tempProfileImage', imageUrl)
+        setProfileImage(imageUrl) // Store base64 image directly
       }
       reader.readAsDataURL(file)
     } catch (error) {
@@ -107,33 +106,78 @@ const AdminUserRegister: React.FC = () => {
     }
   }
 
+  // Helper function to safely save to localStorage
+  const safeSetItem = (key: string, value: string): boolean => {
+    try {
+      // Clear localStorage if it's getting too large (over 4MB)
+      if (JSON.stringify(localStorage).length > 4000000) {
+        // Only clear adminRequests, not everything
+        localStorage.removeItem('adminRequests');
+      }
+      localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      console.error('LocalStorage error:', e);
+      // Show an alert instead of throwing error
+      alert('حافظه محلی پر شده است. برخی داده‌های قدیمی پاک می‌شوند.');
+      try {
+        // Try again after clearing
+        localStorage.removeItem('adminRequests');
+        localStorage.setItem(key, value);
+        return true;
+      } catch (e2) {
+        console.error('Failed after cleanup:', e2);
+        return false;
+      }
+    }
+  }
+
   const onSubmit = async (data: AdminRegisterForm) => {
     try {
       setIsLoading(true)
       
       const requestData = {
-        ...data,
-        role_type: query.role || 'admin_city', // Default to admin_city if no role is provided
+        id: Date.now(), // Use timestamp as ID
+        full_name: data.full_name || '',
+        phone_number: data.phone_number || '',
+        email: data.email || '',
+        province: data.province?.name || '',
+        city: data.city?.name || '',
+        role_type: query.role || 'admin_city',
+        status: 'pending',
+        created_at: new Date().toISOString(),
         profile_image: profileImage,
+        security_number: data.security_number || ''
       }
       
-      const response = await fetch('/api/admin/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      })
-      
-      const result = await response.json()
-      
-      if (result.success) {
-        push('/admin/authentication/register/success')
+      // Save to mock storage in localStorage
+      try {
+        // Get existing requests
+        let adminRequests = [];
+        try {
+          adminRequests = JSON.parse(localStorage.getItem('adminRequests') || '[]');
+        } catch (e) {
+          console.error('Error parsing existing requests:', e);
+          adminRequests = [];
+        }
+        
+        // Add new request
+        adminRequests.push(requestData);
+        
+        // Save back to localStorage with error handling
+        if (safeSetItem('adminRequests', JSON.stringify(adminRequests))) {
+          push('/admin/authentication/register/success');
+        } else {
+          alert('ثبت درخواست با خطا مواجه شد. لطفاً مجدداً تلاش نمایید.');
+        }
+      } catch (error) {
+        console.error('Error storing data in localStorage:', error);
+        alert('مشکلی در ذخیره‌سازی اطلاعات رخ داده است.');
       }
     } catch (error) {
-      console.error('Error submitting form:', error)
+      console.error('Error submitting form:', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 

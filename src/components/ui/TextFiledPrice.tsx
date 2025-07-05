@@ -21,19 +21,35 @@ const formatNumberWithUnit = (num: number): { value: string; unit: string } => {
   if (num >= 1000000000) {
     return {
       value: (num / 1000000000).toLocaleString(undefined, { maximumFractionDigits: 2 }),
-      unit: 'میلیارد تومن'
+      unit: 'میلیارد تومان'
     }
   } else if (num >= 1000000) {
     return {
       value: (num / 1000000).toLocaleString(undefined, { maximumFractionDigits: 2 }),
-      unit: 'میلیون تومن'
+      unit: 'میلیون تومان'
     }
   } else {
     return {
       value: num.toLocaleString(),
-      unit: 'تومن'
+      unit: 'تومان'
     }
   }
+}
+
+// Function to add commas to number
+const addCommas = (num: string): string => {
+  if (!num) return '';
+  
+  // Remove existing commas first
+  const withoutCommas = num.replace(/,/g, '');
+  
+  // Add commas for thousands separator
+  return withoutCommas.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Function to remove commas
+const removeCommas = (num: string): string => {
+  return num.replace(/,/g, '');
 }
 
 const TextFiledPrice: React.FC<TextFieldProps> = (props) => {
@@ -41,31 +57,45 @@ const TextFiledPrice: React.FC<TextFieldProps> = (props) => {
     props
 
   // State for raw input value (without commas)
-  const [inputValue, setInputValue] = useState<string>('')
-  // State for formatted value (with commas) to display below input
+  const [rawValue, setRawValue] = useState<string>('')
+  // State for formatted value (with commas) to display in input
+  const [displayValue, setDisplayValue] = useState<string>('')
+  // State for formatted value (with unit) to display below input
   const [formattedValue, setFormattedValue] = useState<{ value: string; unit: string } | null>(null)
 
-  // Sync inputValue with props.value
+  // Sync rawValue with props.value
   useEffect(() => {
     if (value !== undefined && value !== null && value !== '') {
-      setInputValue(value.toString())
+      const valueString = value.toString();
+      setRawValue(valueString);
+      setDisplayValue(addCommas(valueString));
+      
       if (formatPrice) {
-        const numericValue = Number(value)
-        setFormattedValue(formatNumberWithUnit(numericValue))
+        const numericValue = Number(valueString);
+        if (!isNaN(numericValue)) {
+          setFormattedValue(formatNumberWithUnit(numericValue));
+        }
       }
     } else {
-      setInputValue('')
-      setFormattedValue(null)
+      setRawValue('');
+      setDisplayValue('');
+      setFormattedValue(null);
     }
   }, [value, formatPrice])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove any non-numeric characters
-    const rawValue = e.target.value.replace(/[^0-9]/g, '')
+    // Get the current cursor position
+    const cursorPosition = e.target.selectionStart || 0;
     
-    if (rawValue === '') {
-      setInputValue('')
-      setFormattedValue(null)
+    // Get the current value and remove all non-numeric characters
+    const inputVal = e.target.value;
+    const strippedValue = inputVal.replace(/[^0-9]/g, '');
+    
+    if (strippedValue === '') {
+      setRawValue('');
+      setDisplayValue('');
+      setFormattedValue(null);
+      
       if (onChange) {
         const syntheticEvent = {
           ...e,
@@ -74,22 +104,26 @@ const TextFiledPrice: React.FC<TextFieldProps> = (props) => {
             value: '',
           },
         }
-        onChange(syntheticEvent as any)
+        onChange(syntheticEvent as any);
       }
-      return
+      return;
     }
 
-    // Only allow numeric input
-    if (!/^\d+$/.test(rawValue)) return
-
-    const numberValue = parseInt(rawValue, 10)
+    // Update raw value (without commas)
+    setRawValue(strippedValue);
     
-    // Update input with raw value
-    setInputValue(rawValue)
+    // Format with commas for display
+    const withCommas = addCommas(strippedValue);
+    setDisplayValue(withCommas);
     
-    // Update formatted value for display
+    // Calculate new cursor position (accounting for added commas)
+    const addedCommas = (withCommas.match(/,/g) || []).length - (inputVal.slice(0, cursorPosition).match(/,/g) || []).length;
+    const newPosition = cursorPosition + addedCommas;
+    
+    // Update formatted value for unit display if needed
     if (formatPrice) {
-      setFormattedValue(formatNumberWithUnit(numberValue))
+      const numberValue = parseInt(strippedValue, 10);
+      setFormattedValue(formatNumberWithUnit(numberValue));
     }
     
     if (onChange) {
@@ -98,11 +132,18 @@ const TextFiledPrice: React.FC<TextFieldProps> = (props) => {
         ...e,
         target: {
           ...e.target,
-          value: numberValue,
+          value: strippedValue,  // Pass raw numeric value to form
         },
-      }
-      onChange(syntheticEvent as any)
+      };
+      onChange(syntheticEvent as any);
     }
+    
+    // Set cursor position after state update
+    setTimeout(() => {
+      if (e.target) {
+        e.target.setSelectionRange(newPosition, newPosition);
+      }
+    }, 0);
   }
 
   return (
@@ -129,11 +170,11 @@ const TextFiledPrice: React.FC<TextFieldProps> = (props) => {
           id={name}
           type="text"
           name={name}
-          value={inputValue}
+          value={displayValue}
           onChange={handleChange}
           {...rest}
         />
-        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-sm">تومن</span>
+        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-sm">تومان</span>
       </div>
       {formattedValue && (
         <div className="text-xs text-gray-600 mt-1 px-2 farsi-digits">

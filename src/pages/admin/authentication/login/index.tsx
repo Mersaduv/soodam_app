@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Image from 'next/image'
-import { useGetVerifyCodeMutation, useLoginMutation, useVerifyLoginMutation } from '@/services'
 import { AdminPhoneFormValues, CodeFormValues, PhoneFormValues } from '@/types'
 import { SubmitHandler } from 'react-hook-form'
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
@@ -22,59 +21,116 @@ import { FetchBaseQueryError } from '@reduxjs/toolkit/query'
 import { SerializedError } from '@reduxjs/toolkit'
 import AdminHeader from '@/components/shared/AdminHeader'
 
+// Mock verification code
+const MOCK_VERIFICATION_CODE = "123456";
+
+// Mock API response types
+interface MockSuccessResponse {
+  code?: string;
+  data?: any;
+}
+
+interface MockErrorResponse {
+  status: number;
+  data: {
+    message: string;
+  }
+}
+
 function LoginPage() {
   // ? States
   const [isShow, modalHandlers] = useDisclosure()
   const { isShowLogin, isMemberUserLogin } = useAppSelector((state) => state.isShowLogin)
   const [step, setStep] = useState(1)
   const [phoneNumber, setPhoneNumber] = useState('')
+  
+  // ? Mock API states
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [isError, setIsError] = useState(false)
+  const [error, setError] = useState<MockErrorResponse | null>(null)
+  const [data, setData] = useState<MockSuccessResponse | null>(null)
+  
+  const [isLoadingVerification, setIsLoadingVerification] = useState(false)
+  const [isSuccessVerification, setIsSuccessVerification] = useState(false)
+  const [isErrorVerification, setIsErrorVerification] = useState(false)
+  const [errorVerification, setErrorVerification] = useState<MockErrorResponse | null>(null)
+  const [verificationData, setVerificationData] = useState<MockSuccessResponse | null>(null)
+  
+  const [isSuccessVerifyCode, setIsSuccessVerifyCode] = useState(false)
+  const [isErrorVerifyCode, setIsErrorVerifyCode] = useState(false)
+  const [dataCode, setDataCode] = useState<MockSuccessResponse | null>(null)
+
   // ? Assets
   const { replace, query, push, back } = useRouter()
   const dispatch = useAppDispatch()
-  // ? Login User
-  const [login, { data, isSuccess, isError, isLoading, error }] = useLoginMutation()
 
-  // ? get verification code
-  // const {
-  //   data: dataCode,
-  //   isSuccess: isSuccessVerifyCode,
-  //   isError: isErrorVerifyCode,
-  // } = useGetVerifyCodeMutation(
-  //   { phoneNumber },
-  //   {
-  //     skip: !isSuccess,
-  //   }
-  // )
-  const [getVerifyCode, { data: dataCode, isSuccess: isSuccessVerifyCode, isError: isErrorVerifyCode }] =
-    useGetVerifyCodeMutation()
-  // ? VerificationLogin User
-  const [
-    verificationCode,
-    {
-      data: verificationData,
-      isSuccess: isSuccessVerification,
-      isError: isErrorVerification,
-      isLoading: isLoadingVerification,
-      error: errorVerification,
-    },
-  ] = useVerifyLoginMutation()
+  // ? Mock API functions
+  const mockLogin = (data: { phoneNumber: string }) => {
+    setIsLoading(true)
+    
+    // Simulate API delay
+    setTimeout(() => {
+      if (data.phoneNumber && data.phoneNumber.length >= 10) {
+        setIsSuccess(true)
+        setIsError(false)
+        setData({ code: MOCK_VERIFICATION_CODE })
+      } else {
+        setIsError(true)
+        setIsSuccess(false)
+        setError({
+          status: 400,
+          data: {
+            message: 'شماره موبایل نامعتبر است'
+          }
+        })
+      }
+      setIsLoading(false)
+    }, 1000)
+  }
+  
+  const mockGetVerifyCode = (data: { phoneNumber: string }) => {
+    // Simulate API delay
+    setTimeout(() => {
+      setIsSuccessVerifyCode(true)
+      setIsErrorVerifyCode(false)
+      setDataCode({ code: MOCK_VERIFICATION_CODE })
+    }, 500)
+  }
+  
+  const mockVerificationCode = (data: { code: string, phoneNumber: string }) => {
+    setIsLoadingVerification(true)
+    
+    // Simulate API delay
+    setTimeout(() => {
+      if (data.code === MOCK_VERIFICATION_CODE) {
+        setIsSuccessVerification(true)
+        setIsErrorVerification(false)
+        setVerificationData({ data: { token: 'mock-token' } })
+      } else {
+        setIsErrorVerification(true)
+        setIsSuccessVerification(false)
+        setErrorVerification({
+          status: 400,
+          data: {
+            message: 'کد تایید نادرست می‌باشد!'
+          }
+        })
+      }
+      setIsLoadingVerification(false)
+    }, 1000)
+  }
+
   // ? Effects
   useEffect(() => {
-    let hasSeenModal = localStorage.getItem('hasSeenAdminModal')
-
-    if (hasSeenModal === null) {
-      localStorage.setItem('hasSeenAdminModal', 'false')
-      hasSeenModal = 'false'
-    }
-
-    if (hasSeenModal === 'false') {
-      modalHandlers.open()
-      dispatch(setIsShowLogin(true))
-    }
+    // Mock modal display without local storage dependency
+    modalHandlers.open()
+    dispatch(setIsShowLogin(true))
   }, [modalHandlers])
+  
   useEffect(() => {
     if (isSuccess) {
-      getVerifyCode({
+      mockGetVerifyCode({
         phoneNumber,
       })
     }
@@ -82,62 +138,51 @@ function LoginPage() {
 
   // ? Handlers
   const submitHandler: SubmitHandler<PhoneFormValues> = ({ phoneNumber }) => {
-    login({
+    mockLogin({
       phoneNumber,
     })
     setPhoneNumber(phoneNumber)
   }
 
   const submitVerificationCodeHandler: SubmitHandler<CodeFormValues> = ({ code }) => {
-    verificationCode({
+    mockVerificationCode({
       code,
       phoneNumber,
     })
   }
-  // const onSuccess = () => replace(query?.redirectTo?.toString() || "/");
+  
   const onSuccess = () => {
-    // Dispatch an alert
-    // dispatch(showAlert({ title: `کد تایید : ${data?.code}`, status: 'success' }))
     setStep(2)
   }
+  
   useEffect(() => {
     if (isSuccessVerifyCode) {
       dispatch(showAlert({ title: `کد تایید : ${dataCode?.code}`, status: 'success' }))
     }
   }, [isSuccessVerifyCode])
+  
   const onSuccessVerificationCode = () => {
     setTimeout(() => {
       replace(query?.redirectTo?.toString() || '/')
-      localStorage.setItem('hasSeenModal', 'true')
       dispatch(setIsShowLogin(false))
-      push('/admin/adv')
-      // if (query?.role === roles.Marketer) {
-      //   push('/marketer')
-      // }
-      // if (query?.role === roles.MemberUser) {
-      //   dispatch(setIsMemberUserLogin(true))
-      // }
-      // if (query?.role === roles.EstateConsultant) {
-      //   push('/estate-consultant')
-      // }
+      push('/admin')
     }, 50)
   }
+  
   const handleBack = () => {
     back()
   }
+  
   const handleModalClose = (): void => {
     dispatch(setIsShowLogin(false))
-    localStorage.setItem('hasSeenAdminModal', 'true')
     modalHandlers.close()
   }
+  
   const handleModalOpen = (): void => {
     modalHandlers.open()
     dispatch(setIsShowLogin(true))
   }
 
-  // if (query) {
-  //   console.log(query, 'query')
-  // }
   // ? Render(s)
   return (
     <>
@@ -209,8 +254,6 @@ const LoginForm: React.FC<Props> = (props) => {
   } = useForm<AdminPhoneFormValues>({
     resolver: yupResolver(adminPhoneSchema),
   })
-  // ? Focus On Mount
-
 
   return (
     <form className="" onSubmit={handlePhoneSubmit(onSubmit)}>
@@ -283,7 +326,7 @@ interface VerificationCodeProps {
   phoneNumber: string
   setPhoneNumber: Dispatch<SetStateAction<string>>
   setStep: Dispatch<SetStateAction<number>>
-  errorVerification: FetchBaseQueryError | SerializedError | undefined
+  errorVerification: MockErrorResponse | null | undefined
   isSuccess: boolean
 }
 interface CodeFormArray {

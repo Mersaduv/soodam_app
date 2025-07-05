@@ -23,6 +23,7 @@ import { SerializedError } from '@reduxjs/toolkit'
 import AdminHeader from '@/components/shared/AdminHeader'
 import AdminUserLogin from '@/components/forms/login/AdminUserRegister'
 import { NextPage } from 'next'
+import DashboardLayout from '@/components/layouts/DashboardLayout'
 
 const getRoleDisplayName = (role: string | string[] | undefined): string => {
   switch (role) {
@@ -57,7 +58,7 @@ const RegisterPage: NextPage = () => {
   const submitHandler: SubmitHandler<PhoneFormValues> = (data) => {
     // Not needed for this mock implementation
   }
-  
+
   const onSuccess = () => {
     setStep(2)
   }
@@ -74,34 +75,29 @@ const RegisterPage: NextPage = () => {
 
   // ? Render(s)
   return (
-    <>
-      {/*  Handle Login Response */}
-      {(isSuccess || isError) && (
-        <HandleResponse
-          isError={isError}
-          isSuccess={isSuccess}
-          error={error}
-          message={isError ? 'شماره موبایل نامعتبر است' : 'کد تایید ارسال شد'}
-          onSuccess={onSuccess}
-        />
-      )}
-      <div className="flex flex-col min-h-screen">
-        <Head>
-          <title>سودم | ثبت نام {roleName}</title>
-        </Head>
-        <div className="bg-[#2C3E50]">
-          <AdminHeader title={`ثبت نام ${roleName}`} />
-        </div>
+    <DashboardLayout>
+      <>
+        {/*  Handle Login Response */}
+        {(isSuccess || isError) && (
+          <HandleResponse
+            isError={isError}
+            isSuccess={isSuccess}
+            error={error}
+            message={isError ? 'شماره موبایل نامعتبر است' : 'کد تایید ارسال شد'}
+            onSuccess={onSuccess}
+          />
+        )}
+        <div className="flex flex-col min-h-screen">
+          <Head>
+            <title>سودم | ثبت نام {roleName}</title>
+          </Head>
 
-        <div className="bg-[#F6F7FB] rounded-t-[40px] flex-grow overflow-y-auto pb-6">
-          {!roleParam ? (
-            <AdminFirstLoginModal isShow={isShow} onClose={modalHandlers.close} />
-          ) : (
-            <AdminUserLogin />
-          )}
+          <div className="bg-[#F6F7FB] rounded-t-[40px] flex-grow overflow-y-auto pb-6">
+            {!roleParam ? <AdminFirstLoginModal isShow={isShow} onClose={modalHandlers.close} /> : <AdminUserLogin />}
+          </div>
         </div>
-      </div>
-    </>
+      </>
+    </DashboardLayout>
   )
 }
 export default RegisterPage

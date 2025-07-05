@@ -12,7 +12,7 @@ import Link from 'next/link'
 const AdminHeader = ({ title, isDashboard }: { title: string; isDashboard?: boolean }) => {
   const { replace, query, back, pathname } = useRouter()
   const userLocalStorage = localStorage.getItem('user')
-  const user = userLocalStorage ? JSON.parse(userLocalStorage)  : null
+  const user = userLocalStorage ? JSON.parse(userLocalStorage) : null
   const handleBack = () => {
     back()
   }
@@ -30,14 +30,13 @@ const AdminHeader = ({ title, isDashboard }: { title: string; isDashboard?: bool
               />
             </div>
             <div>
-              <h1 className="text-white font-medium farsi-digits">سلام, {user?.first_name && user.first_name.trim() !== '' ? user.first_name : user.phone_number}</h1>
+              <h1 className="text-white font-medium farsi-digits">
+                سلام, {user?.first_name && user.first_name.trim() !== '' ? user.first_name : user.phone_number}
+              </h1>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/admin/requests">
-              <span className="text-white text-sm">ثبت نام ها</span>
-            </Link>
             <img className="w-[26px] h-[26px]" src="/static/Group 273.png" alt="notification" />
           </div>
         </div>
@@ -49,7 +48,7 @@ const AdminHeader = ({ title, isDashboard }: { title: string; isDashboard?: bool
             </button>
             <h1 className="text-white font-medium">{title}</h1>
           </div>
-          
+
           {!pathname.includes('/admin/requests') && (
             <Link href="/admin/requests">
               <span className="text-white text-sm">ثبت نام ها</span>
