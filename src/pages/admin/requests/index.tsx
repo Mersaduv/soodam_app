@@ -24,6 +24,9 @@ type AdminRequest = {
   created_at: string
   profile_image: string | null
   security_number?: string
+  rejection_reason?: string[]
+  rejection_comments?: string
+  interview_time?: string
 }
 
 const getRoleTypeText = (roleType: string): string => {
@@ -82,10 +85,13 @@ const AdminRequestsPage = () => {
   const [isPaginationLoading, setIsPaginationLoading] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [modalType, setModalType] = useState<'approve' | 'reject'>('approve')
+  const [modalType, setModalType] = useState<'interview' | 'reject'>('interview')
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null)
   const [isShow, modalHandlers] = useDisclosure()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [rejectionReasons, setRejectionReasons] = useState<string[]>([])
+  const [rejectionComments, setRejectionComments] = useState('')
+  const [interviewTime, setInterviewTime] = useState('')
   const dispatch = useAppDispatch()
 
   const fetchRequests = () => {
@@ -118,18 +124,6 @@ const AdminRequestsPage = () => {
             status: 'pending',
             created_at: new Date(2023, 7, 13).toISOString(),
             profile_image: sampleBase64Image,
-          },
-          {
-            id: 3,
-            full_name: 'نقی حسینی',
-            phone_number: '09128116523',
-            email: 'naghi@example.com',
-            province: 'مازندران',
-            city: 'ساری',
-            role_type: 'marketer',
-            status: 'rejected',
-            created_at: new Date(2023, 7, 14).toISOString(),
-            profile_image: null,
           },
         ]
         safeSetItem('adminRequests', JSON.stringify(mockRequests))
@@ -179,9 +173,16 @@ const AdminRequestsPage = () => {
       // Get current requests
       const currentRequests = [...requests]
 
-      // Update the request status
+      // Update the request status with rejection reasons and comments
       const updatedRequests = currentRequests.map((request) =>
-        request.id === selectedRequest.id ? { ...request, status: 'rejected' as 'rejected' } : request
+        request.id === selectedRequest.id
+          ? {
+              ...request,
+              status: 'rejected' as 'rejected',
+              rejection_reason: rejectionReasons,
+              rejection_comments: rejectionComments,
+            }
+          : request
       )
 
       // Save back to localStorage
@@ -189,6 +190,9 @@ const AdminRequestsPage = () => {
         setRequests(updatedRequests)
         dispatch(showAlert({ title: 'درخواست با موفقیت رد شد', status: 'success' }))
         rejectModalHandlers.close()
+        // Reset rejection form
+        setRejectionReasons([])
+        setRejectionComments('')
       } else {
         dispatch(showAlert({ title: 'خطا در رد درخواست', status: 'error' }))
       }
@@ -200,7 +204,18 @@ const AdminRequestsPage = () => {
 
   const handleOpenRejectModal = (request: AdminRequest) => {
     setSelectedRequest(request)
+    // Reset rejection form
+    setRejectionReasons([])
+    setRejectionComments('')
     rejectModalHandlers.open()
+  }
+
+  const handleReasonChange = (reason: string) => {
+    if (rejectionReasons.includes(reason)) {
+      setRejectionReasons(rejectionReasons.filter((item) => item !== reason))
+    } else {
+      setRejectionReasons([...rejectionReasons, reason])
+    }
   }
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -226,11 +241,15 @@ const AdminRequestsPage = () => {
   const handleModalClose = (): void => {
     modalHandlers.close()
     setIsProcessing(false)
+    // Reset forms when closing modal
+    setRejectionReasons([])
+    setRejectionComments('')
+    setInterviewTime('')
   }
 
-  const openApproveModal = (id: string): void => {
+  const openInterviewModal = (id: string): void => {
     setSelectedAdId(id)
-    setModalType('approve')
+    setModalType('interview')
     modalHandlers.open()
   }
 
@@ -240,20 +259,53 @@ const AdminRequestsPage = () => {
     modalHandlers.open()
   }
 
-  const handleApproveAd = async (): Promise<void> => {
+  const handleScheduleInterview = async (): Promise<void> => {
     try {
       // Get current requests
       const currentRequests = [...requests]
+      const requestId = parseInt(selectedAdId || '0')
+
+      // Update the request with interview time
+      const updatedRequests = currentRequests.map((request) =>
+        request.id === requestId
+          ? {
+              ...request,
+              status: 'approved' as 'approved',
+              interview_time: interviewTime,
+            }
+          : request
+      )
+
+      // Save back to localStorage
+      if (safeSetItem('adminRequests', JSON.stringify(updatedRequests))) {
+        setRequests(updatedRequests)
+        dispatch(showAlert({ title: 'زمان مصاحبه با موفقیت تعیین شد', status: 'success' }))
+        handleModalClose()
+      } else {
+        dispatch(showAlert({ title: 'خطا در تعیین زمان مصاحبه', status: 'error' }))
+      }
+    } catch (error) {
+      console.error('Error scheduling interview:', error)
+      dispatch(showAlert({ title: 'خطا در تعیین زمان مصاحبه', status: 'error' }))
+    }
+  }
+
+  const handleImmediateApproval = async (): Promise<void> => {
+    try {
+      // Get current requests
+      const currentRequests = [...requests]
+      const requestId = parseInt(selectedAdId || '0')
 
       // Update the request status
       const updatedRequests = currentRequests.map((request) =>
-        request.id === selectedRequest.id ? { ...request, status: 'approved' as 'approved' } : request
+        request.id === requestId ? { ...request, status: 'approved' as 'approved' } : request
       )
 
       // Save back to localStorage
       if (safeSetItem('adminRequests', JSON.stringify(updatedRequests))) {
         setRequests(updatedRequests)
         dispatch(showAlert({ title: 'درخواست با موفقیت تایید شد', status: 'success' }))
+        handleModalClose()
       } else {
         dispatch(showAlert({ title: 'خطا در تایید درخواست', status: 'error' }))
       }
@@ -264,22 +316,28 @@ const AdminRequestsPage = () => {
   }
 
   const handleRejectAd = async (): Promise<void> => {
-    if (!selectedRequest) return
-
     try {
       // Get current requests
       const currentRequests = [...requests]
+      const requestId = parseInt(selectedAdId || '0')
 
-      // Update the request status
+      // Update the request status with rejection reasons and comments
       const updatedRequests = currentRequests.map((request) =>
-        request.id === selectedRequest.id ? { ...request, status: 'rejected' as 'rejected' } : request
+        request.id === requestId
+          ? {
+              ...request,
+              status: 'rejected' as 'rejected',
+              rejection_reason: rejectionReasons,
+              rejection_comments: rejectionComments,
+            }
+          : request
       )
 
       // Save back to localStorage
       if (safeSetItem('adminRequests', JSON.stringify(updatedRequests))) {
         setRequests(updatedRequests)
         dispatch(showAlert({ title: 'درخواست با موفقیت رد شد', status: 'success' }))
-        rejectModalHandlers.close()
+        handleModalClose()
       } else {
         dispatch(showAlert({ title: 'خطا در رد درخواست', status: 'error' }))
       }
@@ -312,31 +370,32 @@ const AdminRequestsPage = () => {
 
   return (
     <>
+      {/* Interview & Reject Modal */}
       <Modal isShow={isShow} onClose={handleModalClose} effect="ease-out" isAdmin>
         <Modal.Content onClose={handleModalClose} className="flex h-full flex-col gap-y-5 bg-white p-4 rounded-2xl">
           <Modal.Header onClose={handleModalClose}>
-            <div className="text-base font-medium">{modalType === 'approve' ? 'تایید درخواست' : 'رد درخواست'}</div>
+            <div className="text-base font-medium">
+              {modalType === 'interview' ? 'تعیین زمان مصاحبه' : 'رد درخواست'}
+            </div>
           </Modal.Header>
           <Modal.Body>
-            <div className="space-y-4">
-              <div className="flex justify-center items-center gap-2 w-full mb-3">
-                <div>
-                  <InfoCircleMdIcon width="18px" height="18px" />
-                </div>
-                <span className="text-[#5A5A5A] font-normal">
-                  {modalType === 'approve' ? 'آیا از تایید این درخواست مطمئنی؟' : 'آیا از رد این درخواست مطمئنی؟'}
-                </span>
-              </div>
-            </div>
-            <div className="flex gap-2.5">
-              {modalType === 'approve' ? (
-                <>
+            {modalType === 'interview' ? (
+              <div className="space-y-4">
+                <p className="text-sm text-right text-[#5A5A5A] font-semibold">
+                  تعیین زمان مصاحبه حضوری برای ادمین شهر
+                </p>
+                <textarea
+                  value={interviewTime}
+                  onChange={(e) => setInterviewTime(e.target.value)}
+                  className="w-full resize-none bg-[#F6F6F6] border border-gray-200 rounded-xl p-3 min-h-[120px] focus:outline-none focus:ring-1 focus:ring-[#2C3E50]"
+                />
+                <div className="flex gap-2.5">
                   <button
-                    onClick={handleApproveAd}
+                    onClick={handleScheduleInterview}
                     disabled={isProcessing}
                     className="bg-[#2C3E50] hover:bg-[#22303e] w-full text-white h-[40px] rounded-lg text-[12.5px] flex justify-center items-center"
                   >
-                    {isProcessing ? <InlineLoading /> : 'تایید درخواست'}
+                    {isProcessing ? <InlineLoading /> : 'ارسال پیام'}
                   </button>
                   <button
                     onClick={handleModalClose}
@@ -344,25 +403,131 @@ const AdminRequestsPage = () => {
                   >
                     بازگشت
                   </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={handleRejectAd}
-                    disabled={isProcessing}
-                    className="border border-[#D52133] text-[#D52133] hover:bg-[#FFF0F2] w-full h-[40px] rounded-lg text-[12.5px]"
-                  >
-                    {isProcessing ? <InlineLoading /> : 'رد درخواست'}
-                  </button>
-                  <button
-                    onClick={handleModalClose}
-                    className="bg-[#F0F3F6] hover:bg-[#DDE2E6] w-full text-[#2C3E50] h-[40px] rounded-lg text-[12.5px] border border-[#DDE2E6]"
-                  >
-                    بازگشت
-                  </button>
-                </>
-              )}
-            </div>
+                </div>
+                <button
+                  onClick={handleImmediateApproval}
+                  disabled={isProcessing}
+                  className="bg-[#1c3851] hover:bg-[#22303e] w-full text-white h-[40px] rounded-lg text-[12.5px] flex justify-center items-center"
+                >
+                  {isProcessing ? <InlineLoading /> : 'تایید آنی درخواست'}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-right text-[#5A5A5A] font-semibold">لطفا دلیل رد درخواست را بنویسید.</p>
+                <div className="space-y-2">
+                  <label className="flex items-center cursor-pointer">
+                    <div className="flex items-center cursor-pointer relative">
+                      <input
+                        type="checkbox"
+                        className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#9D9D9D] checked:bg-[#17A586] checked:border-[#17A586]"
+                        checked={rejectionReasons.includes('اطلاعات ناکافی')}
+                        onChange={() => handleReasonChange('اطلاعات ناکافی')}
+                      />
+                      <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3.5 w-3.5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          stroke="currentColor"
+                          strokeWidth="1"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          ></path>
+                        </svg>
+                      </span>
+                    </div>
+                    <span className="font-normal text-xs text-[#5A5A5A] mr-2">اطلاعات ناکافی 1</span>
+                  </label>
+
+                  <label className="flex items-center cursor-pointer">
+                    <div className="flex items-center cursor-pointer relative">
+                      <input
+                        type="checkbox"
+                        className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#9D9D9D] checked:bg-[#17A586] checked:border-[#17A586]"
+                        checked={rejectionReasons.includes('اطلاعات ناکافی 1')}
+                        onChange={() => handleReasonChange('اطلاعات ناکافی 1')}
+                      />
+                      <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3.5 w-3.5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          stroke="currentColor"
+                          strokeWidth="1"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          ></path>
+                        </svg>
+                      </span>
+                    </div>
+                    <span className="font-normal text-xs text-[#5A5A5A] mr-2">اطلاعات ناکافی 2</span>
+                  </label>
+
+                  <label className="flex items-center cursor-pointer">
+                    <div className="flex items-center cursor-pointer relative">
+                      <input
+                        type="checkbox"
+                        className="peer h-[18px] w-[18px] cursor-pointer transition-all appearance-none rounded border-[1.5px] border-[#9D9D9D] checked:bg-[#17A586] checked:border-[#17A586]"
+                        checked={rejectionReasons.includes('اطلاعات ناکافی 3')}
+                        onChange={() => handleReasonChange('اطلاعات ناکافی 3')}
+                      />
+                      <span className="absolute text-white opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3.5 w-3.5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          stroke="currentColor"
+                          strokeWidth="1"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          ></path>
+                        </svg>
+                      </span>
+                    </div>
+                    <span className="font-normal text-xs text-[#5A5A5A] mr-2">اطلاعات ناکافی 3</span>
+                  </label>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm text-right text-[#5A5A5A] font-semibold">توضیحات تکمیلی خود را بنویسید</p>
+                  <textarea
+                    value={rejectionComments}
+                    onChange={(e) => setRejectionComments(e.target.value)}
+                    className="w-full resize-none bg-[#F6F6F6] border border-gray-200 rounded-xl p-3 min-h-[150px] focus:outline-none focus:ring-1 focus:ring-[#2C3E50]"
+                  />
+                </div>
+              </div>
+            )}
+            {modalType === 'reject' && (
+              <div className="flex gap-2.5 mt-4">
+                <button
+                  onClick={handleRejectAd}
+                  disabled={isProcessing}
+                  className="border border-[#D52133] text-[#D52133] hover:bg-[#FFF0F2] w-full h-[40px] rounded-lg text-[12.5px]"
+                >
+                  {isProcessing ? <InlineLoading /> : 'رد درخواست'}
+                </button>
+                <button
+                  onClick={handleModalClose}
+                  className="bg-[#F0F3F6] hover:bg-[#DDE2E6] w-full text-[#2C3E50] h-[40px] rounded-lg text-[12.5px] border border-[#DDE2E6]"
+                >
+                  بازگشت
+                </button>
+              </div>
+            )}
           </Modal.Body>
         </Modal.Content>
       </Modal>
@@ -507,10 +672,10 @@ const AdminRequestsPage = () => {
                     {request.status === 'pending' && (
                       <div className="flex gap-2 mt-4">
                         <button
-                          onClick={() => openApproveModal(String(request.id))}
+                          onClick={() => openInterviewModal(String(request.id))}
                           className="bg-[#2C3E50] hover:bg-[#22303e] w-full text-white h-[40px] rounded-lg text-[12.5px] flex-1"
                         >
-                          تایید درخواست
+                          تعیین زمان مصاحبه
                         </button>
                         <button
                           onClick={() => openRejectModal(String(request.id))}
@@ -545,15 +710,6 @@ const AdminRequestsPage = () => {
           </div>
         </main>
       </DashboardLayout>
-      {/* Reject confirmation modal */}
-      <ConfirmDeleteModal
-        isShow={rejectModalOpen}
-        onClose={rejectModalHandlers.close}
-        onConfirm={handleReject}
-        onCancel={rejectModalHandlers.close}
-        title="رد درخواست"
-        isLoading={false}
-      />
     </>
   )
 }
