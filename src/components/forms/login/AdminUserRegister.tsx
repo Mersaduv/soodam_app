@@ -17,7 +17,9 @@ const AdminUserRegister: React.FC = () => {
   const [cities, setCities] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const [nationalIdImage, setNationalIdImage] = useState<string | null>(null)
+  const profileInputRef = React.useRef<HTMLInputElement>(null)
+  const nationalIdInputRef = React.useRef<HTMLInputElement>(null)
 
   const {
     handleSubmit,
@@ -82,7 +84,10 @@ const AdminUserRegister: React.FC = () => {
     }
   }, [selectedProvince, setValue])
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    setImageFunc: React.Dispatch<React.SetStateAction<string | null>>
+  ) => {
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -96,7 +101,7 @@ const AdminUserRegister: React.FC = () => {
       const reader = new FileReader()
       reader.onloadend = () => {
         const imageUrl = reader.result as string
-        setProfileImage(imageUrl) // Store base64 image directly
+        setImageFunc(imageUrl) // Store base64 image directly
       }
       reader.readAsDataURL(file)
     } catch (error) {
@@ -112,22 +117,22 @@ const AdminUserRegister: React.FC = () => {
       // Clear localStorage if it's getting too large (over 4MB)
       if (JSON.stringify(localStorage).length > 4000000) {
         // Only clear adminRequests, not everything
-        localStorage.removeItem('adminRequests');
+        localStorage.removeItem('adminRequests')
       }
-      localStorage.setItem(key, value);
-      return true;
+      localStorage.setItem(key, value)
+      return true
     } catch (e) {
-      console.error('LocalStorage error:', e);
+      console.error('LocalStorage error:', e)
       // Show an alert instead of throwing error
-      alert('حافظه محلی پر شده است. برخی داده‌های قدیمی پاک می‌شوند.');
+      alert('حافظه محلی پر شده است. برخی داده‌های قدیمی پاک می‌شوند.')
       try {
         // Try again after clearing
-        localStorage.removeItem('adminRequests');
-        localStorage.setItem(key, value);
-        return true;
+        localStorage.removeItem('adminRequests')
+        localStorage.setItem(key, value)
+        return true
       } catch (e2) {
-        console.error('Failed after cleanup:', e2);
-        return false;
+        console.error('Failed after cleanup:', e2)
+        return false
       }
     }
   }
@@ -147,37 +152,44 @@ const AdminUserRegister: React.FC = () => {
         status: 'pending',
         created_at: new Date().toISOString(),
         profile_image: profileImage,
-        security_number: data.security_number || ''
+        security_number: data.security_number || '',
+        birth_date: data.birth_date || '',
+        gender: data.gender?.name || '',
+        bank_card_number: data.bank_card_number || '',
+        iban: data.iban || '',
+        marital_status: data.marital_status?.name || '',
+        national_id_image: nationalIdImage,
+        address: data.address || '',
       }
       
       // Save to mock storage in localStorage
       try {
         // Get existing requests
-        let adminRequests = [];
+        let adminRequests = []
         try {
-          adminRequests = JSON.parse(localStorage.getItem('adminRequests') || '[]');
+          adminRequests = JSON.parse(localStorage.getItem('adminRequests') || '[]')
         } catch (e) {
-          console.error('Error parsing existing requests:', e);
-          adminRequests = [];
+          console.error('Error parsing existing requests:', e)
+          adminRequests = []
         }
         
         // Add new request
-        adminRequests.push(requestData);
+        adminRequests.push(requestData)
         
         // Save back to localStorage with error handling
         if (safeSetItem('adminRequests', JSON.stringify(adminRequests))) {
-          push('/admin/authentication/register/success');
+          push('/admin/authentication/register/success')
         } else {
-          alert('ثبت درخواست با خطا مواجه شد. لطفاً مجدداً تلاش نمایید.');
+          alert('ثبت درخواست با خطا مواجه شد. لطفاً مجدداً تلاش نمایید.')
         }
       } catch (error) {
-        console.error('Error storing data in localStorage:', error);
-        alert('مشکلی در ذخیره‌سازی اطلاعات رخ داده است.');
+        console.error('Error storing data in localStorage:', error)
+        alert('مشکلی در ذخیره‌سازی اطلاعات رخ داده است.')
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error submitting form:', error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -196,7 +208,7 @@ const AdminUserRegister: React.FC = () => {
         {/* Profile Image Upload */}
         <div className="flex justify-center mt-6 mb-4">
           <div 
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => profileInputRef.current?.click()}
             className="relative w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center cursor-pointer overflow-hidden border-2 border-[#2C3E50]"
           >
             {profileImage ? (
@@ -212,8 +224,8 @@ const AdminUserRegister: React.FC = () => {
           </div>
           <input 
             type="file" 
-            ref={fileInputRef} 
-            onChange={handleImageUpload} 
+            ref={profileInputRef} 
+            onChange={(e) => handleImageUpload(e, setProfileImage)} 
             accept="image/*" 
             className="hidden" 
           />
@@ -301,6 +313,79 @@ const AdminUserRegister: React.FC = () => {
             )}
           />
 
+          {/* Birth Date Field */}
+          <Controller
+            name="birth_date"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                adForm
+                adminHeight
+                type="date"
+                placeholder="تاریخ تولد"
+                {...field}
+                control={control}
+                errors={errors.birth_date}
+              />
+            )}
+          />
+
+          {/* Gender Selection */}
+          <div className="space-y-1">
+            <Combobox 
+              control={control} 
+              name="gender" 
+              list={[
+                { id: 1, name: 'مرد' },
+                { id: 2, name: 'زن' },
+                { id: 3, name: 'سایر' },
+              ]} 
+              placeholder="جنسیت" 
+              adminHeight 
+            />
+            {errors.gender?.name && <DisplayError errors={errors.gender?.name} />}
+          </div>
+
+          {/* Marital Status */}
+          <div className="space-y-1">
+            <Combobox 
+              control={control} 
+              name="marital_status" 
+              list={[
+                { id: 1, name: 'مجرد' },
+                { id: 2, name: 'متاهل' },
+              ]} 
+              placeholder="وضعیت تاهل" 
+              adminHeight 
+            />
+            {errors.marital_status?.name && <DisplayError errors={errors.marital_status?.name} />}
+          </div>
+
+          {/* Bank Card Number */}
+          <Controller
+            name="bank_card_number"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                adForm
+                adminHeight
+                placeholder="شماره کارت بانکی"
+                {...field}
+                control={control}
+                errors={errors.bank_card_number}
+              />
+            )}
+          />
+
+          {/* IBAN */}
+          <Controller
+            name="iban"
+            control={control}
+            render={({ field }) => (
+              <TextField adForm adminHeight placeholder="شماره شبا" {...field} control={control} errors={errors.iban} />
+            )}
+          />
+
           <div className="space-y-1">
             <Combobox control={control} name="province" list={provinces} placeholder="استان" adminHeight />
             {errors.province?.name && <DisplayError errors={errors.province?.name} />}
@@ -324,6 +409,50 @@ const AdminUserRegister: React.FC = () => {
               />
             )}
           />
+
+          {/* Address Field */}
+          <Controller
+            name="address"
+            control={control}
+            render={({ field }) => (
+              <div className="space-y-1">
+                <textarea
+                  id="address"
+                  className="w-full h-24 border border-gray-200 rounded-lg p-3 appearance-none resize-none"
+                  placeholder="آدرس"
+                  {...field}
+                />
+                {errors.address && <DisplayError errors={errors.address} />}
+              </div>
+            )}
+          />
+
+          {/* National ID Card Image Upload */}
+          <div className="mt-4">
+            <p className="text-sm mb-2">تصویر کارت ملی</p>
+            <div 
+              onClick={() => nationalIdInputRef.current?.click()}
+              className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer bg-gray-50"
+            >
+              {nationalIdImage ? (
+                <div className="w-full h-full relative">
+                  <Image src={nationalIdImage} alt="National ID Card" layout="fill" objectFit="contain" />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <CameraIcon className="w-8 h-8 text-gray-400" />
+                  <span className="text-xs text-gray-500 mt-1">آپلود تصویر کارت ملی</span>
+                </div>
+              )}
+            </div>
+            <input 
+              type="file" 
+              ref={nationalIdInputRef} 
+              onChange={(e) => handleImageUpload(e, setNationalIdImage)} 
+              accept="image/*" 
+              className="hidden" 
+            />
+          </div>
         </div>
       </div>
 

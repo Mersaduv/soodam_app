@@ -11,8 +11,10 @@ import { useAppDispatch } from '@/hooks'
 import { ArrowLeftIcon, InfoCircleMdIcon } from '@/icons'
 import { toast } from 'react-toastify'
 import axios from 'axios'
+import Link from 'next/link'
+import { NextPage } from 'next'
 
-type AdminRequest = {
+interface AdminRequest {
   id: number
   full_name: string
   phone_number: string
@@ -20,10 +22,17 @@ type AdminRequest = {
   province: string
   city: string
   role_type: string
-  status: 'pending' | 'approved' | 'rejected'
+  status: string
   created_at: string
   profile_image: string | null
-  security_number?: string
+  security_number: string
+  birth_date?: string
+  gender?: string
+  bank_card_number?: string
+  iban?: string
+  marital_status?: string
+  address?: string
+  national_id_image?: string | null
   rejection_reason?: string[]
   rejection_comments?: string
   interview_time?: string
@@ -74,9 +83,9 @@ const safeSetItem = (key: string, value: string): boolean => {
   }
 }
 
-const AdminRequestsPage = () => {
+const AdminRequestsPage: NextPage = () => {
   const [requests, setRequests] = useState<AdminRequest[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState<boolean>(true)
   const [selectedRequest, setSelectedRequest] = useState<AdminRequest | null>(null)
   const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending')
   const [rejectModalOpen, rejectModalHandlers] = useDisclosure()
@@ -94,53 +103,20 @@ const AdminRequestsPage = () => {
   const [interviewTime, setInterviewTime] = useState('')
   const dispatch = useAppDispatch()
 
-  const fetchRequests = () => {
-    try {
-      setIsLoading(true)
-      // Load from localStorage instead of sessionStorage and API
-      let storedRequests: AdminRequest[] = []
-      try {
-        storedRequests = JSON.parse(localStorage.getItem('adminRequests') || '[]')
-      } catch (e) {
-        console.error('Error parsing stored requests:', e)
-        storedRequests = []
-      }
-
-      // Check if we have no items, create some mock data for testing
-      if (storedRequests.length === 0) {
-        // Sample base64 image (a very small placeholder - in reality would be larger)
-        const sampleBase64Image =
-          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
-
-        const mockRequests: AdminRequest[] = [
-          {
-            id: 2,
-            full_name: 'محمد شادل',
-            phone_number: '09356716523',
-            email: 'mohammad@example.com',
-            province: 'اصفهان',
-            city: 'اصفهان',
-            role_type: 'admin_news',
-            status: 'pending',
-            created_at: new Date(2023, 7, 13).toISOString(),
-            profile_image: sampleBase64Image,
-          },
-        ]
-        safeSetItem('adminRequests', JSON.stringify(mockRequests))
-        setRequests(mockRequests)
-      } else {
-        setRequests(storedRequests)
-      }
-    } catch (error) {
-      console.error('Error fetching requests:', error)
-    } finally {
-      setIsLoading(false)
-      setTimeout(() => setIsPaginationLoading(false), 300)
-    }
-  }
-
   useEffect(() => {
-    fetchRequests()
+    setLoading(true)
+    try {
+      // Fetch from localStorage for demo
+      const requestsString = localStorage.getItem('adminRequests')
+      if (requestsString) {
+        const parsedRequests = JSON.parse(requestsString)
+        setRequests(parsedRequests)
+      }
+    } catch (err) {
+      console.error('Error fetching requests:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   const handleApprove = (id: number) => {
@@ -150,7 +126,7 @@ const AdminRequestsPage = () => {
 
       // Update the request status
       const updatedRequests = currentRequests.map((request) =>
-        request.id === id ? { ...request, status: 'approved' as 'approved' } : request
+        request.id === id ? { ...request, status: 'approved' as string } : request
       )
 
       // Save back to localStorage
@@ -178,7 +154,7 @@ const AdminRequestsPage = () => {
         request.id === selectedRequest.id
           ? {
               ...request,
-              status: 'rejected' as 'rejected',
+              status: 'rejected' as string,
               rejection_reason: rejectionReasons,
               rejection_comments: rejectionComments,
             }
@@ -270,7 +246,7 @@ const AdminRequestsPage = () => {
         request.id === requestId
           ? {
               ...request,
-              status: 'approved' as 'approved',
+              status: 'approved' as string,
               interview_time: interviewTime,
             }
           : request
@@ -298,7 +274,7 @@ const AdminRequestsPage = () => {
 
       // Update the request status
       const updatedRequests = currentRequests.map((request) =>
-        request.id === requestId ? { ...request, status: 'approved' as 'approved' } : request
+        request.id === requestId ? { ...request, status: 'approved' as string } : request
       )
 
       // Save back to localStorage
@@ -326,7 +302,7 @@ const AdminRequestsPage = () => {
         request.id === requestId
           ? {
               ...request,
-              status: 'rejected' as 'rejected',
+              status: 'rejected' as string,
               rejection_reason: rejectionReasons,
               rejection_comments: rejectionComments,
             }
@@ -588,71 +564,72 @@ const AdminRequestsPage = () => {
 
             {/* Request cards */}
             <div className="space-y-4">
-              {isLoading ? (
+              {loading ? (
                 <div className="bg-white p-10 rounded-xl flex items-center justify-center">
                   <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2C3E50]"></div>
                 </div>
               ) : filteredRequests.length > 0 ? (
                 filteredRequests.map((request) => (
                   <div key={request.id} className="bg-white p-4 rounded-[16px] border border-[#E3E3E7]">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center">
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden border border-gray-200 ml-3">
-                          {request.profile_image ? (
-                            <div className="w-full h-full relative">
-                              <Image
-                                src={request.profile_image}
-                                alt={request.full_name}
-                                layout="fill"
-                                objectFit="cover"
-                                unoptimized={true} // Required for base64 images
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-6 w-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    <Link href={`/admin/requests/details/${request.id}`} key={request.id}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                          <div className="relative w-12 h-12 rounded-full overflow-hidden border border-gray-200 ml-3">
+                            {request.profile_image ? (
+                              <div className="w-full h-full relative">
+                                <Image
+                                  src={request.profile_image}
+                                  alt={request.full_name}
+                                  layout="fill"
+                                  objectFit="cover"
+                                  unoptimized={true} // Required for base64 images
                                 />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{request.full_name}</h3>
-                          <div
-                            className={`text-xs font-semibold py-0.5 rounded-full inline-block ${
-                              request.status === 'pending'
-                                ? ' text-[#F0C330]'
+                              </div>
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-6 w-6"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                  />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{request.full_name}</h3>
+                            <div
+                              className={`text-xs font-semibold py-0.5 rounded-full inline-block ${
+                                request.status === 'pending'
+                                  ? ' text-[#F0C330]'
+                                  : request.status === 'approved'
+                                  ? ' text-green-500'
+                                  : ' text-red-500'
+                              }`}
+                            >
+                              {request.status === 'pending'
+                                ? 'در انتظار تایید'
                                 : request.status === 'approved'
-                                ? ' text-green-500'
-                                : ' text-red-500'
-                            }`}
-                          >
-                            {request.status === 'pending'
-                              ? 'در انتظار تایید'
-                              : request.status === 'approved'
-                              ? 'تایید شده'
-                              : 'رد شده'}
+                                ? 'تایید شده'
+                                : 'رد شده'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-500 flex items-center gap-1 pb-4">
+                          <div className="rotate-90 -ml-1">
+                            <ArrowLeftIcon width="30px" height="30px" />
                           </div>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500 flex items-center gap-1 pb-4">
-                        <div className="rotate-90 -ml-1">
-                          <ArrowLeftIcon width="30px" height="30px" />
-                        </div>
-                      </div>
-                    </div>
-
+                    </Link>
                     <div className="flex items-center justify-between mt-5">
                       <div className="flex flex-col items-center gap-1">
                         <p className="text-xs font-medium text-center text-gray-500">تاریخ درخواست</p>

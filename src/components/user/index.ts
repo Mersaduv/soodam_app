@@ -1,3 +1,5 @@
 export { default as SubscriptionCard } from './SubscriptionCard'
 export { default as LogoutButton } from './LogoutButton'
 export { default as AdminVisitStatistics } from './AdminVisitStatistics'
+export { default as ProtectedRouteWrapper } from './ProtectedRouteWrapper'
+export { default as AdminRequestDetails } from './AdminRequestDetails'

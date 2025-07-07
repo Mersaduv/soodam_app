@@ -369,4 +369,18 @@ export const adminFormValidationSchema = Yup.object().shape({
     .required('کد ملی الزامی است')
     .matches(/^\d{10}$/, 'کد ملی باید 10 رقم باشد'),
   // Profile image is optional in form validation
+  birth_date: Yup.string().required('تاریخ تولد الزامی است'),
+  gender: Yup.object().shape({
+    name: Yup.string().required('تعیین جنسیت الزامی است'),
+  }),
+  bank_card_number: Yup.string()
+    .required('شماره کارت بانکی الزامی است')
+    .matches(/^\d{16}$/, 'شماره کارت باید 16 رقم باشد'),
+  iban: Yup.string()
+    .required('شماره شبا الزامی است')
+    .matches(/^IR\d{24}$/, 'شماره شبا باید با IR شروع شده و 26 کاراکتر باشد'),
+  marital_status: Yup.object().shape({
+    name: Yup.string().required('وضعیت تاهل الزامی است'),
+  }),
+  address: Yup.string().required('آدرس الزامی است'),
 })

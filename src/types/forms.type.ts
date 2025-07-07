@@ -226,4 +226,16 @@ export interface AdminRegisterForm {
   }
   security_number?: string
   profile_image?: string | null
+  birth_date?: string
+  gender?: {
+    id?: number
+    name: string
+  }
+  bank_card_number?: string
+  iban?: string
+  marital_status?: {
+    id?: number
+    name: string
+  }
+  address?: string
 }

@@ -2136,7 +2136,39 @@ const estates = [
 // Admin registration mock handlers
 export const adminHandlers = [
   rest.post('/api/admin/register', (req, res, ctx) => {
-    const { role_type, full_name, phone_number, email, province, city, security_number, profile_image } = req.body as { role_type: string, full_name: string, phone_number: string, email: string, province: string, city: string, security_number: string, profile_image: string }; // eslint-disable-line
+    const { 
+      role_type, 
+      full_name, 
+      phone_number, 
+      email, 
+      province, 
+      city, 
+      security_number, 
+      profile_image,
+      birth_date,
+      gender,
+      bank_card_number,
+      iban,
+      marital_status,
+      address,
+      national_id_image
+    } = req.body as { 
+      role_type: string, 
+      full_name: string, 
+      phone_number: string, 
+      email: string, 
+      province: string | { name: string }, 
+      city: string | { name: string }, 
+      security_number: string, 
+      profile_image: string,
+      birth_date: string,
+      gender: string | { name: string },
+      bank_card_number: string,
+      iban: string,
+      marital_status: string | { name: string },
+      address: string,
+      national_id_image: string
+    }; // eslint-disable-line
     
     // Store the request in sessionStorage instead of localStorage to avoid persisting data across sessions
     // This helps ensure mock data doesn't interfere with the real system
@@ -2147,13 +2179,20 @@ export const adminHandlers = [
         full_name,
         phone_number,
         email,
-        province: province || '',
-        city: city || '',
+        province: typeof province === 'object' ? province.name : province || '',
+        city: typeof city === 'object' ? city.name : city || '',
         role_type,
         security_number,
         status: 'pending', // 'pending', 'approved', 'rejected'
         created_at: new Date().toISOString(),
-        profile_image: profile_image || null
+        profile_image: profile_image || null,
+        birth_date: birth_date || '',
+        gender: typeof gender === 'object' ? gender.name : gender || '',
+        bank_card_number: bank_card_number || '',
+        iban: iban || '',
+        marital_status: typeof marital_status === 'object' ? marital_status.name : marital_status || '',
+        address: address || '',
+        national_id_image: national_id_image || null
       };
       
       requests.push(newRequest);
