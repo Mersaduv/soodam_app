@@ -141,6 +141,7 @@ function LoginPage() {
               setPhoneNumber={setPhoneNumber}
               setStep={setStep}
               isSuccess={isSuccessVerification}
+              verificationCode={dataCode?.code}
             />
           )}
         </section>

@@ -19,6 +19,7 @@ interface Props {
   setStep: Dispatch<SetStateAction<number>>
   errorVerification: FetchBaseQueryError | SerializedError | undefined
   isSuccess: boolean
+  verificationCode?: string
 }
 interface CodeFormArray {
   code: string[]
@@ -32,12 +33,28 @@ const VerificationCode: React.FC<Props> = ({
   setStep,
   isSuccess,
   resendHandler,
+  verificationCode,
 }) => {
   const { control, handleSubmit, setValue, getValues } = useForm<CodeFormArray>({
     defaultValues: { code: ['', '', '', '', '', ''] },
   })
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  
+  // Auto-fill verification code when it becomes available
+  useEffect(() => {
+    if (verificationCode && verificationCode.length === 6) {
+      // Split the code into individual characters and set each input value
+      verificationCode.split('').forEach((char, index) => {
+        setValue(`code.${index}`, char);
+      });
+      
+      // Submit form after auto-filling
+      setTimeout(() => {
+        handleSubmit(onSubmitHandler)();
+      }, 500);
+    }
+  }, [verificationCode]);
 
   const handleChange = (value: string, index: number) => {
     const sanitizedValue = value.slice(0, 1);
