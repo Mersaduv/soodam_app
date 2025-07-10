@@ -48,12 +48,6 @@ const AdminHeader = ({ title, isDashboard }: { title: string; isDashboard?: bool
             </button>
             <h1 className="text-white font-medium">{title}</h1>
           </div>
-
-          {!pathname.includes('/admin/requests') && (
-            <Link href="/admin/requests">
-              <span className="text-white text-sm">ثبت نام ها</span>
-            </Link>
-          )}
         </div>
       )}
     </header>

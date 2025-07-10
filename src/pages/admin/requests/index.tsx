@@ -13,6 +13,7 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 import Link from 'next/link'
 import { NextPage } from 'next'
+import { useRouter } from 'next/router'
 
 interface AdminRequest {
   id: number
@@ -101,6 +102,7 @@ const AdminRequestsPage: NextPage = () => {
   const [rejectionReasons, setRejectionReasons] = useState<string[]>([])
   const [rejectionComments, setRejectionComments] = useState('')
   const [interviewTime, setInterviewTime] = useState('')
+  const { push } = useRouter()
   const dispatch = useAppDispatch()
 
   useEffect(() => {
@@ -511,7 +513,18 @@ const AdminRequestsPage: NextPage = () => {
         <title>سودم | درخواست های ثبت نام</title>
       </Head>
 
-      <DashboardLayout showDetail title="ثبت نام ها">
+      <DashboardLayout 
+        showDetail 
+        title="ثبت نام ها"
+        headerButton={
+          <button
+            onClick={() => push('/admin/authentication/role-select')}
+            className="bg-[#2C3E50] text-white px-4 py-2 rounded-lg text-sm flex items-center"
+          >
+            ایجاد ثبت کننده
+          </button>
+        }
+      >
         <main className="py-[87px] relative">
           <div className="px-4 mb-5 space-y-3">
             {/* Search Bar */}

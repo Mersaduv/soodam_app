@@ -9,15 +9,17 @@ interface Props {
   children: React.ReactNode
   showDetail?: boolean
   title?: string
+  headerButton?: React.ReactNode
 }
 
-const DashboardLayout: React.FC<Props> = ({ children, showDetail, title }) => {
+const DashboardLayout: React.FC<Props> = ({ children, showDetail, title, headerButton }) => {
   const [openRight, setOpenRight] = useState(false)
   return (
     <div className={`${!showDetail ? 'bg-[#2C3E50]' : 'bg-[#F6F7FB]'} h-screen`}>
       {showDetail ? (
         <div className="fixed top-0 z-[90]">
-          <FilterControlsHeader title={title} isAdmin />
+            <FilterControlsHeader title={title} isAdmin headerButton={headerButton} />
+            {/* {headerButton && <div className="ml-2">{headerButton}</div>} */}
         </div>
       ) : (
         <AdminHeader title="پیشخوان" isDashboard />

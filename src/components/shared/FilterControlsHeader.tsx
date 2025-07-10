@@ -9,8 +9,16 @@ interface Props {
   isAdConfirmExit?: boolean
   handleRemoveFilters?: () => void
   isAdmin?: boolean
+  headerButton?: React.ReactNode
 }
-const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmExit, handleRemoveFilters, isAdmin }) => {
+const FilterControlsHeader: React.FC<Props> = ({
+  title,
+  isProfile,
+  isAdConfirmExit,
+  handleRemoveFilters,
+  isAdmin,
+  headerButton,
+}) => {
   const { back, push } = useRouter()
   const dispatch = useAppDispatch()
   const { adConfirmExit } = useAppSelector((state) => state.statesData)
@@ -29,9 +37,9 @@ const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmEx
 
   return (
     <header
-      className={`${isProfile ? 'bg-[#D8DFF4] py-4' : `${isAdmin ? 'bg-[#F6F7FB]' : 'bg-white shadow-filter-control'} `} ${
-        isAdmin ? 'bg-[#F6F7FB]' : ''
-      } py-2 px-4 fixed z-[9999] w-full flex justify-between items-center`}
+      className={`${
+        isProfile ? 'bg-[#D8DFF4] py-4' : `${isAdmin ? 'bg-[#F6F7FB]' : 'bg-white shadow-filter-control'} `
+      } ${isAdmin ? 'bg-[#F6F7FB]' : ''} py-2 px-4 fixed z-[9999] w-full flex justify-between items-center`}
     >
       <div className="flex items-center gap-3 w-full text-lg font-medium">
         {adConfirmExit !== '0' && (
@@ -43,7 +51,14 @@ const FilterControlsHeader: React.FC<Props> = ({ title, isProfile, isAdConfirmEx
           </button>
         )}
 
-        {!isProfile && title}
+        {headerButton ? (
+          <div className="flex items-center justify-between w-full">
+            {!isProfile && title}
+            <div className="ml-2">{headerButton}</div>
+          </div>
+        ) : (
+          !isProfile && title
+        )}
       </div>
       {handleRemoveFilters ? (
         <button
