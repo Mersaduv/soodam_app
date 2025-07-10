@@ -35,7 +35,74 @@ import dynamic from 'next/dynamic'
 import { Button, Modal } from '@/components/ui'
 import { BiShare } from 'react-icons/bi'
 import { IoShareSocialOutline } from 'react-icons/io5'
-import { useGetAdvByIdQuery, useGetFavoritesQuery, useViewAdvertisementMutation } from '@/services/productionBaseApi'
+import { useGetAdvByIdQuery, useGetFavoritesQuery, useAddFavoriteMutation, useViewAdvertisementMutation } from '@/services/productionBaseApi'
+
+// Small inline loading for favorite button
+const SmallFavoriteLoading = () => {
+  return (
+    <div className="inline-flex items-center justify-center">
+      <div className="lds-heart">
+        <div></div>
+      </div>
+      <style jsx>{`
+        .lds-heart {
+          display: inline-block;
+          position: relative;
+          width: 19px;
+          height: 17px;
+          transform: rotate(45deg);
+          transform-origin: 10px 10px;
+        }
+        .lds-heart div {
+          top: 6px;
+          left: 6px;
+          position: absolute;
+          width: 8px;
+          height: 8px;
+          background: #D52133;
+          animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        .lds-heart div:after,
+        .lds-heart div:before {
+          content: " ";
+          position: absolute;
+          display: block;
+          width: 8px;
+          height: 8px;
+          background: #D52133;
+        }
+        .lds-heart div:before {
+          left: -6px;
+          border-radius: 50% 0 0 50%;
+        }
+        .lds-heart div:after {
+          top: -6px;
+          border-radius: 50% 50% 0 0;
+        }
+        @keyframes lds-heart {
+          0% {
+            transform: scale(0.8);
+          }
+          5% {
+            transform: scale(0.9);
+          }
+          10% {
+            transform: scale(0.8);
+          }
+          15% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(0.9);
+          }
+          100% {
+            transform: scale(0.8);
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 interface Props {
   //   housing: Housing
@@ -64,12 +131,13 @@ const SingleHousing: NextPage = () => {
   // ? Queries
   const { refetch, data: housingData, isLoading } = useGetAdvByIdQuery(idQuery as string)
   const { data: favoritesData } = useGetFavoritesQuery({})
+  const [addFavorite, { isLoading: isAddingFavorite }] = useAddFavoriteMutation()
   const [viewAdvertisement] = useViewAdvertisementMutation()
 
   const handleSaveClick = (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
     event.preventDefault()
     event.stopPropagation()
-    dispatch(toggleSaveHouse({ id: housing.id, savedTime: new Date().toISOString() }))
+    addFavorite({ id: housing.id })
   }
 
   // useEffect(() => {
@@ -161,7 +229,11 @@ const SingleHousing: NextPage = () => {
                     className={`rounded-full cursor-pointer flex-center ${isSaved ? 'text-[#D52133]' : 'text-white'}`}
                     onClick={(event) => handleSaveClick(event, housingData)}
                   >
-                    <HearthIcon width="19px" height="17px" />
+                    {isAddingFavorite ? (
+                      <SmallFavoriteLoading />
+                    ) : (
+                      <HearthIcon width="19px" height="17px" />
+                    )}
                   </div>
 
                   {/* Edit Button - Only visible to ad owner */}

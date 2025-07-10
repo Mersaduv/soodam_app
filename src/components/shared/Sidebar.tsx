@@ -47,7 +47,7 @@ export default function Sidebar() {
     if (!userType) {
       dispatch(setIsShowLogin(true))
     } else {
-      push('/housing/ad/new')
+      push('/housing/ad') 
     }
   }
 

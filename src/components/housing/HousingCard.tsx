@@ -14,6 +14,73 @@ interface Props {
   inEstate?: boolean
 }
 
+// Small inline loading for favorite button
+const SmallFavoriteLoading = () => {
+  return (
+    <div className="inline-flex items-center justify-center">
+      <div className="lds-heart">
+        <div></div>
+      </div>
+      <style jsx>{`
+        .lds-heart {
+          display: inline-block;
+          position: relative;
+          width: 15px;
+          height: 13px;
+          transform: rotate(45deg);
+          transform-origin: 8px 8px;
+        }
+        .lds-heart div {
+          top: 4px;
+          left: 4px;
+          position: absolute;
+          width: 7px;
+          height: 7px;
+          background: #D52133;
+          animation: lds-heart 1.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+        }
+        .lds-heart div:after,
+        .lds-heart div:before {
+          content: " ";
+          position: absolute;
+          display: block;
+          width: 7px;
+          height: 7px;
+          background: #D52133;
+        }
+        .lds-heart div:before {
+          left: -5px;
+          border-radius: 50% 0 0 50%;
+        }
+        .lds-heart div:after {
+          top: -5px;
+          border-radius: 50% 50% 0 0;
+        }
+        @keyframes lds-heart {
+          0% {
+            transform: scale(0.8);
+          }
+          5% {
+            transform: scale(0.9);
+          }
+          10% {
+            transform: scale(0.8);
+          }
+          15% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(0.9);
+          }
+          100% {
+            transform: scale(0.8);
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 const HousingCard: React.FC<Props> = (props) => {
   const { housing, onCardClick, inEstate, isSaved } = props
   const dispatch = useAppDispatch()
@@ -218,7 +285,11 @@ const HousingCard: React.FC<Props> = (props) => {
                   }`}
                   onClick={(event) => handleSaveClick(event, housing)}
                 >
-                  <HearthIcon width="15px" height="13px" />
+                  {isAddingFavorite ? (
+                    <SmallFavoriteLoading />
+                  ) : (
+                    <HearthIcon width="15px" height="13px" />
+                  )}
                 </div>
               </div>
             </div>
