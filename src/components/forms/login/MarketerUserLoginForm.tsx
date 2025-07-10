@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useForm, Controller, Resolver } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import {
@@ -25,10 +25,7 @@ import * as yup from 'yup'
 import dynamic from 'next/dynamic'
 import { useDisclosure } from '@/hooks'
 import { Disclosure } from '@headlessui/react'
-import {
-  useGetCategoriesQuery,
-  useGetFeaturesQuery,
-} from '@/services'
+import { useGetCategoriesQuery, useGetFeaturesQuery } from '@/services'
 import { useRouter } from 'next/router'
 import { AdFormValues, Category, Feature, MarketerUserForm, RequestFormValues } from '@/types'
 import { marketerUserFormValidationSchema, validationRequestSchema, validationSchema } from '@/utils'
@@ -66,6 +63,21 @@ const MarketerUserLoginForm: React.FC = () => {
   const [selectedNotionalCardBackFile, setSelectedNotionalCardBackFiles] = useState<any[]>([])
   const [selectedIdImageFile, setSelectedIdImageFiles] = useState<any[]>([])
   const [selectedVideos, setSelectedVideos] = useState<File[]>([])
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
+  
+  // New states for camera recording
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const [cameraPermission, setCameraPermission] = useState(false)
+  const [showCameraModal, setShowCameraModal] = useState(false)
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([])
+  
+  // Refs
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   const {
     handleSubmit,
@@ -180,6 +192,97 @@ const MarketerUserLoginForm: React.FC = () => {
       return updatedFiles
     })
   }
+
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setIsImageModalOpen(true);
+  };
+
+  // Camera handling functions
+  const requestCameraPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "user" }, 
+        audio: true 
+      });
+      
+      setCameraPermission(true);
+      setShowCameraModal(true);
+      
+      streamRef.current = stream;
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      alert("برای استفاده از این قابلیت لطفا دسترسی به دوربین را فعال کنید");
+    }
+  };
+
+  const startRecording = () => {
+    if (!streamRef.current) return;
+
+    const mediaRecorder = new MediaRecorder(streamRef.current);
+    mediaRecorderRef.current = mediaRecorder;
+    
+    const chunks: Blob[] = [];
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        chunks.push(e.data);
+      }
+    };
+    
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: "video/webm" });
+      setRecordedChunks([blob]);
+      
+      const file = new File([blob], "selfie-video.webm", { type: "video/webm" });
+      setSelectedVideos([file]);
+      setValue('scannedImage', file);
+    };
+    
+    mediaRecorder.start();
+    setIsRecording(true);
+    setRecordingTime(0);
+    
+    // Start the 5-second timer
+    timerRef.current = setInterval(() => {
+      setRecordingTime(prev => {
+        if (prev >= 5) {
+          stopRecording();
+          return 5;
+        }
+        return prev + 1;
+      });
+    }, 1000);
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    
+    setIsRecording(false);
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    
+    setShowCameraModal(false);
+  };
+  
+  const closeCameraModal = () => {
+    stopRecording();
+    setShowCameraModal(false);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+  };
 
   if (errors) {
     console.log(errors, 'errors--errors')
@@ -399,22 +502,26 @@ const MarketerUserLoginForm: React.FC = () => {
             <input
               type="file"
               className="hidden"
-              id="thumbnail-1"
-              onChange={handleNotionalCardBackFileChange}
+              id="thumbnail-2"
+              onChange={handleNotionalCardFrontFileChange}
               accept="image/jpeg"
             />
-            <label htmlFor="thumbnail-1" className="block cursor-pointer text-sm font-normal">
-              <h3 className="text-start mb-1.5 font-normal">تصویر کارت ملی (پشت)</h3>
-              {selectedNotionalCardBackFile.length > 0 ? (
-                selectedNotionalCardBackFile.map((file: any, index: number) => (
+            <label htmlFor="thumbnail-2" className="block cursor-pointer text-sm font-normal">
+              <h3 className="text-start mb-1.5 font-normal">تصویر کارت ملی (رو)</h3>
+              {selectedNotionalCardFrontFile.length > 0 ? (
+                selectedNotionalCardFrontFile.map((file: any, index: number) => (
                   <div
                     key={index}
                     className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleImageClick(URL.createObjectURL(file));
+                    }}
                   >
                     <img
                       src={URL.createObjectURL(file)}
                       alt={file.name}
-                      className="h-[190px] object-contain  rounded-md"
+                      className="h-[190px] object-contain rounded-md cursor-pointer"
                     />
                   </div>
                 ))
@@ -435,22 +542,26 @@ const MarketerUserLoginForm: React.FC = () => {
             <input
               type="file"
               className="hidden"
-              id="thumbnail-2"
-              onChange={handleNotionalCardFrontFileChange}
+              id="thumbnail-1"
+              onChange={handleNotionalCardBackFileChange}
               accept="image/jpeg"
             />
-            <label htmlFor="thumbnail-2" className="block cursor-pointer text-sm font-normal">
-              <h3 className="text-start mb-1.5 font-normal">تصویر کارت ملی (رو)</h3>
-              {selectedNotionalCardFrontFile.length > 0 ? (
-                selectedNotionalCardFrontFile.map((file: any, index: number) => (
+            <label htmlFor="thumbnail-1" className="block cursor-pointer text-sm font-normal">
+              <h3 className="text-start mb-1.5 font-normal">تصویر کارت ملی (پشت)</h3>
+              {selectedNotionalCardBackFile.length > 0 ? (
+                selectedNotionalCardBackFile.map((file: any, index: number) => (
                   <div
                     key={index}
                     className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleImageClick(URL.createObjectURL(file));
+                    }}
                   >
                     <img
                       src={URL.createObjectURL(file)}
                       alt={file.name}
-                      className="h-[190px] object-contain  rounded-md"
+                      className="h-[190px] object-contain rounded-md cursor-pointer"
                     />
                   </div>
                 ))
@@ -482,11 +593,15 @@ const MarketerUserLoginForm: React.FC = () => {
                   <div
                     key={index}
                     className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleImageClick(URL.createObjectURL(file));
+                    }}
                   >
                     <img
                       src={URL.createObjectURL(file)}
                       alt={file.name}
-                      className="h-[190px] object-contain  rounded-md"
+                      className="h-[190px] object-contain rounded-md cursor-pointer"
                     />
                   </div>
                 ))
@@ -563,18 +678,31 @@ const MarketerUserLoginForm: React.FC = () => {
                 </div>
               ))
             ) : (
-              <label htmlFor="VideoThumbnail" className="block cursor-pointer text-sm font-normal">
-                <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center">
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  type="button" 
+                  onClick={requestCameraPermission} 
+                  className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center"
+                >
                   <div className="flex flex-col gap-2 items-center">
-                    <UploadCloudIcon width="56px" height="48px" />
-                    <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">افزودن اسکن تصویر</h1>
+                    <CameraIcon width="50px" height="42px" />
+                    <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">فیلم سلفی 5 ثانیه</h1>
                   </div>
-                </div>
-              </label>
+                </button>
+
+                <label htmlFor="VideoThumbnail" className="block cursor-pointer text-sm font-normal">
+                  <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center">
+                    <div className="flex flex-col gap-2 items-center">
+                      <UploadCloudIcon width="56px" height="48px" />
+                      <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">آپلود ویدیو</h1>
+                    </div>
+                  </div>
+                </label>
+              </div>
             )}
           </div>
 
-          <div className=' pb-6'>
+          <div className=" pb-6">
             <Controller
               name={`agreeToTerms`}
               control={control}
@@ -606,7 +734,9 @@ const MarketerUserLoginForm: React.FC = () => {
                     </span>
                   </div>
                   <div className="font-medium text-xs text-[#5A5A5A] mr-2" style={{ lineHeight: '23px' }}>
-                    با ورود و ثبت‌نام در اپلیکیشن، با <span className='font-medium text-xs text-[#D52133] border-b border-[#D52133]'>قوانین سودم</span> موافقت می‌کنم.
+                    با ورود و ثبت‌نام در اپلیکیشن، با{' '}
+                    <span className="font-medium text-xs text-[#D52133] border-b border-[#D52133]">قوانین سودم</span>{' '}
+                    موافقت می‌کنم.
                   </div>
                 </label>
               )}
@@ -624,6 +754,94 @@ const MarketerUserLoginForm: React.FC = () => {
           ثبت نام به عنوان بازاریاب{' '}
         </Button>
       </div>
+
+      {/* Image Preview Modal */}
+      {isImageModalOpen && (
+        <Modal isShow={isImageModalOpen} onClose={() => setIsImageModalOpen(false)} effect="ease-out">
+          <div className="bg-white rounded-lg p-4">
+            <div className="flex relative items-center justify-center pb-2">
+              <h2 className="font-medium">نمایش تصویر</h2>
+              <button
+                type="button"
+                onClick={() => setIsImageModalOpen(false)}
+                className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full"
+              >
+                <IoMdClose className="h-3 w-3" />
+              </button>
+            </div>
+            <div>
+              <div className="flex justify-center items-center p-4">
+                <img
+                  src={selectedImageUrl}
+                  alt="تصویر بزرگ"
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                />
+              </div>
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={() => setIsImageModalOpen(false)}
+                  className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90"
+                >
+                  بستن
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Camera Modal */}
+      {showCameraModal && (
+        <Modal isShow={showCameraModal} onClose={closeCameraModal} effect="ease-out">
+          <div className="bg-white rounded-lg p-4">
+            <div className="flex relative items-center justify-center pb-2">
+              <h2 className="font-medium">ضبط ویدیوی سلفی</h2>
+              <button
+                type="button"
+                onClick={closeCameraModal}
+                className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full"
+              >
+                <IoMdClose className="h-3 w-3" />
+              </button>
+            </div>
+            <div>
+              <div className="flex justify-center items-center p-4 relative">
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-[50vh] object-cover rounded-lg"
+                />
+                {recordingTime > 0 && (
+                  <div className="absolute top-6 right-6 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full">
+                    {recordingTime} / 5
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-center mt-4">
+                {!isRecording ? (
+                  <button
+                    type="button"
+                    onClick={startRecording}
+                    className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90"
+                  >
+                    شروع ضبط (5 ثانیه)
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={stopRecording}
+                    className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90"
+                  >
+                    پایان ضبط
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </form>
   )
 }

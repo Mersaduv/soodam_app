@@ -123,7 +123,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   // Add loading states for media uploads
   const [isUploadingMedia, setIsUploadingMedia] = useState(false)
   const [isUploadingVideo, setIsUploadingVideo] = useState(false)
-  
+
   const [loadingImages, setLoadingImages] = useState<{ [key: string]: boolean }>({})
 
   // Add isLoadingAddressSuggestions state
@@ -136,8 +136,8 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   const [isTitleManuallyEdited, setIsTitleManuallyEdited] = useState(false)
 
   // Inside the component, add these states near other state declarations
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [selectedImageUrl, setSelectedImageUrl] = useState('');
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false)
+  const [selectedImageUrl, setSelectedImageUrl] = useState('')
 
   const dispatch = useAppDispatch()
   const formRef = useRef<HTMLDivElement | null>(null)
@@ -713,18 +713,18 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   const onSubmit = async (data: AdFormValues) => {
     // Prevent double submission
     if (isSubmitting) {
-      return;
+      return
     }
 
     // Set submission state to true immediately
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     const valid = await trigger()
     if (!valid && formRef.current) {
       formRef.current.scrollIntoView({ behavior: 'smooth' })
       // Reset submission state if validation fails
-      setIsSubmitting(false);
-      return;
+      setIsSubmitting(false)
+      return
     }
     console.log(data.features, 'F....data.features', featureData, 'featureData')
 
@@ -1140,7 +1140,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
     setIsUploadingMedia(true)
     const files = Array.from(fileList)
-    
+
     // Process each file for potential compression
     const processedFiles = await Promise.all(
       files.map(async (file) => {
@@ -1158,7 +1158,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
         try {
           // Compress the image
           const compressedFile = await compressImage(file, ONE_MB)
-          console.log(`Compressed image from ${(file.size / ONE_MB).toFixed(2)}MB to ${(compressedFile.size / ONE_MB).toFixed(2)}MB`)
+          console.log(
+            `Compressed image from ${(file.size / ONE_MB).toFixed(2)}MB to ${(compressedFile.size / ONE_MB).toFixed(
+              2
+            )}MB`
+          )
           return compressedFile
         } catch (error) {
           console.error('Error compressing image:', error)
@@ -1177,22 +1181,22 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
     return new Promise((resolve, reject) => {
       const reader = new FileReader()
       reader.readAsDataURL(file)
-      
+
       reader.onload = (event) => {
         const img = new Image()
         img.src = event.target?.result as string
-        
+
         img.onload = () => {
           // Create canvas
           const canvas = document.createElement('canvas')
           let width = img.width
           let height = img.height
-          
+
           // Calculate initial scale based on image size
           // For larger images, start with more aggressive scaling
           const originalSize = file.size
           let scale = 1
-          
+
           if (originalSize > maxSizeBytes * 5) {
             scale = 0.4 // Very large image - start with 40% of original size
           } else if (originalSize > maxSizeBytes * 3) {
@@ -1200,11 +1204,11 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           } else if (originalSize > maxSizeBytes * 2) {
             scale = 0.8 // Moderately large image - start with 80% of original size
           }
-          
+
           // Apply initial scaling
           width = Math.floor(width * scale)
           height = Math.floor(height * scale)
-          
+
           // Maximum dimensions check
           const MAX_DIMENSION = 1920
           if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
@@ -1212,47 +1216,51 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
             width = Math.floor(width * ratio)
             height = Math.floor(height * ratio)
           }
-          
+
           // Set canvas dimensions
           canvas.width = width
           canvas.height = height
-          
+
           // Draw image on canvas
           const ctx = canvas.getContext('2d')
           ctx?.drawImage(img, 0, 0, width, height)
-          
+
           // Create compressed image using a binary search approach for optimal quality
-          let minQuality = 0.1  // Minimum acceptable quality
+          let minQuality = 0.1 // Minimum acceptable quality
           let maxQuality = 0.95 // Maximum quality to try
           let bestQuality = null
           let bestFile = null
-          
-          const attemptCompression = (quality: number): Promise<{ file: File, size: number }> => {
+
+          const attemptCompression = (quality: number): Promise<{ file: File; size: number }> => {
             return new Promise((resolveAttempt) => {
               const dataUrl = canvas.toDataURL(file.type, quality)
-              
+
               fetch(dataUrl)
-                .then(res => res.blob())
-                .then(blob => {
+                .then((res) => res.blob())
+                .then((blob) => {
                   const newFile = new File([blob], file.name, { type: file.type })
                   resolveAttempt({ file: newFile, size: newFile.size })
                 })
             })
           }
-          
+
           // Try initial high and low quality to establish boundaries
           const tryCompressionLevel = async () => {
             try {
               // First try highest quality
               let result = await attemptCompression(maxQuality)
-              
+
               // If even highest quality is under target size, use it
               if (result.size <= maxSizeBytes) {
-                console.log(`Compressed to ${(result.size / maxSizeBytes * 100).toFixed(1)}% of target size at quality ${maxQuality}`)
+                console.log(
+                  `Compressed to ${((result.size / maxSizeBytes) * 100).toFixed(
+                    1
+                  )}% of target size at quality ${maxQuality}`
+                )
                 resolve(result.file)
                 return
               }
-              
+
               // If lowest quality is still too large, we need to reduce dimensions
               result = await attemptCompression(minQuality)
               if (result.size > maxSizeBytes) {
@@ -1262,7 +1270,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                 canvas.width = width
                 canvas.height = height
                 ctx?.drawImage(img, 0, 0, width, height)
-                
+
                 result = await attemptCompression(minQuality)
                 if (result.size > maxSizeBytes) {
                   // Last resort: keep reducing dimensions until we meet target
@@ -1278,18 +1286,18 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                   }
                 }
               }
-              
+
               // Binary search to find optimal quality between min and max
               let currentMin = minQuality
               let currentMax = maxQuality
               let attempts = 0
               const MAX_ATTEMPTS = 8
-              
+
               while (currentMax - currentMin > 0.05 && attempts < MAX_ATTEMPTS) {
                 attempts++
                 const midQuality = (currentMin + currentMax) / 2
                 result = await attemptCompression(midQuality)
-                
+
                 if (result.size <= maxSizeBytes) {
                   // This quality works, try higher quality
                   bestQuality = midQuality
@@ -1300,28 +1308,34 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                   currentMax = midQuality
                 }
               }
-              
+
               // Use the best result we found, or the last result if none met criteria
               if (bestFile) {
-                console.log(`Optimal compression found at quality ${bestQuality!.toFixed(2)}, size: ${(bestFile.size / 1024).toFixed(0)}KB`)
+                console.log(
+                  `Optimal compression found at quality ${bestQuality!.toFixed(2)}, size: ${(
+                    bestFile.size / 1024
+                  ).toFixed(0)}KB`
+                )
                 resolve(bestFile)
               } else {
-                console.log(`Compressed to ${(result.size / 1024).toFixed(0)}KB (target: ${(maxSizeBytes / 1024).toFixed(0)}KB)`)
+                console.log(
+                  `Compressed to ${(result.size / 1024).toFixed(0)}KB (target: ${(maxSizeBytes / 1024).toFixed(0)}KB)`
+                )
                 resolve(result.file)
               }
             } catch (err) {
               reject(err)
             }
           }
-          
+
           tryCompressionLevel()
         }
-        
+
         img.onerror = (error) => {
           reject(error)
         }
       }
-      
+
       reader.onerror = (error) => {
         reject(error)
       }
@@ -1833,9 +1847,9 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
 
   // Function to handle image click and show in modal
   const handleImageClick = (imageUrl: string) => {
-    setSelectedImageUrl(imageUrl);
-    setIsImageModalOpen(true);
-  };
+    setSelectedImageUrl(imageUrl)
+    setIsImageModalOpen(true)
+  }
 
   return (
     <div ref={formRef} className="relative mb-44">
@@ -2205,9 +2219,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                 onBlur={controllerField.onBlur}
                                 errors={errors.features?.[field.id]}
                                 placeholder={`مثال : ${
-                                  field.key === 'text_selling_price'
-                                    ? '100 تومن'
-                                    : '10 تومن (اختیاری)'
+                                  field.key === 'text_selling_price' ? '100 تومن' : '10 تومن (اختیاری)'
                                 }`}
                                 formatPrice={true}
                                 inputMode="numeric"
@@ -2247,9 +2259,7 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                 onChange={controllerField.onChange}
                                 onBlur={controllerField.onBlur}
                                 errors={errors.features?.[field.id]}
-                                placeholder={`مثال : ${
-                                  field.key === 'text_mortgage_deposit' ? '100 تومن' : '10 تومن'
-                                }`}
+                                placeholder={`مثال : ${field.key === 'text_mortgage_deposit' ? '100 تومن' : '10 تومن'}`}
                                 formatPrice={true}
                                 inputMode="numeric"
                                 pattern="[0-9]*"
@@ -2717,35 +2727,35 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                     control={control}
                     render={({ field }) => {
                       // Get form values
-                      const address = watch('address');
-                      const formFeatures = watch('features');
-                      
+                      const address = watch('address')
+                      const formFeatures = watch('features')
+
                       // Generate title when selected category, address or features change
                       useEffect(() => {
                         // Don't generate title if user has manually edited it
                         if (isTitleManuallyEdited || !selectedCategory || !features?.features) {
-                          return;
+                          return
                         }
-                        
+
                         // Generate feature text based on available feature data
-                        let featureText = '';
-                        
+                        let featureText = ''
+
                         if (features?.features) {
                           // Try to find area feature first
                           const areaFeature = features.features.find(
                             (f) => f.type === 'text' && (f.name.includes('متراژ') || (f.key && f.key.includes('area')))
-                          );
-                          
+                          )
+
                           if (areaFeature && formFeatures?.[areaFeature.id]) {
-                            featureText = ` ${formFeatures[areaFeature.id]} متری`;
+                            featureText = ` ${formFeatures[areaFeature.id]} متری`
                           } else {
                             // Try year feature next
                             const yearFeature = features.features.find(
                               (f) => f.type === 'text' && (f.name.includes('سال') || (f.key && f.key.includes('year')))
-                            );
-                            
+                            )
+
                             if (yearFeature && formFeatures?.[yearFeature.id]) {
-                              featureText = ` سال ${formFeatures[yearFeature.id]}`;
+                              featureText = ` سال ${formFeatures[yearFeature.id]}`
                             } else {
                               // Try any available text feature
                               const anyTextFeature = features.features.find(
@@ -2756,47 +2766,47 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                                   !f.key?.includes('selling_price') &&
                                   !f.key?.includes('mortgage') &&
                                   !f.key?.includes('rent')
-                              );
-                              
+                              )
+
                               if (anyTextFeature && formFeatures?.[anyTextFeature.id]) {
-                                featureText = ` ${anyTextFeature.name}: ${formFeatures[anyTextFeature.id]}`;
+                                featureText = ` ${anyTextFeature.name}: ${formFeatures[anyTextFeature.id]}`
                               }
                             }
                           }
                         }
-                        
+
                         // Generate location text from address
-                        let locationText = '';
+                        let locationText = ''
                         if (address) {
-                          const addressParts = address.split('،').map(part => part.trim());
+                          const addressParts = address.split('،').map((part) => part.trim())
                           if (addressParts.length > 0) {
                             const meaningfulParts = addressParts.filter(
-                              part => part && !part.match(/^\d+$/) && part.length > 1
-                            );
-                            locationText = meaningfulParts.length > 0 ? 
-                              ` ${meaningfulParts[meaningfulParts.length - 1]}` : '';
+                              (part) => part && !part.match(/^\d+$/) && part.length > 1
+                            )
+                            locationText =
+                              meaningfulParts.length > 0 ? ` ${meaningfulParts[meaningfulParts.length - 1]}` : ''
                           }
                         }
-                        
+
                         // Build title
                         const categoryName = selectedCategory.name
                           .replace('خرید', 'فروش')
                           .replace('پیش فروش', '')
                           .replace('رهن و اجاره', '')
                           .replace('اجاره کوتاه مدت', '')
-                          .trim();
-                        
-                        let suggestedTitle = categoryName;
+                          .trim()
+
+                        let suggestedTitle = categoryName
                         if (featureText) {
-                          suggestedTitle += `، ${featureText.trim()}`;
+                          suggestedTitle += `، ${featureText.trim()}`
                         }
                         if (locationText) {
-                          suggestedTitle += `، ${locationText.trim()}`;
+                          suggestedTitle += `، ${locationText.trim()}`
                         }
-                        
+
                         // Update field without causing more rerenders
-                        field.onChange(suggestedTitle);
-                      }, [selectedCategory, address, formFeatures, features, isTitleManuallyEdited, field]);
+                        field.onChange(suggestedTitle)
+                      }, [selectedCategory, address, formFeatures, features, isTitleManuallyEdited, field])
 
                       return (
                         <TextField
@@ -2807,14 +2817,14 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
                           errors={errors.title}
                           placeholder="مثال: خانه ویلایی 300 متری خیابان جمهوری"
                           onChange={(e) => {
-                            const value = e?.target?.value ?? '';
+                            const value = e?.target?.value ?? ''
                             if (!isTitleManuallyEdited && value !== '') {
-                              setIsTitleManuallyEdited(true);
+                              setIsTitleManuallyEdited(true)
                             }
-                            field.onChange(e);
+                            field.onChange(e)
                           }}
                         />
-                      );
+                      )
                     }}
                   />
                   <div className="w-fit" dir={'ltr'}>
@@ -3062,43 +3072,39 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
       </div>
 
       {/* Image Preview Modal */}
-{isImageModalOpen && (
-  <Modal 
-    isShow={isImageModalOpen} 
-    onClose={() => setIsImageModalOpen(false)}
-    effect="ease-out"
-  >
-    <div className="bg-white rounded-lg p-4">
-      <div className="flex relative items-center justify-center pb-2">
-        <h2 className="font-medium">نمایش تصویر</h2>
-        <button
-          type="button"
-          onClick={() => setIsImageModalOpen(false)}
-          className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full"
-        >
-          <Close className="h-3 w-3" />
-        </button>
-      </div>
-      <div>
-        <div className="flex justify-center items-center p-4">
-          <img 
-            src={selectedImageUrl} 
-            alt="تصویر بزرگ" 
-            className="max-w-full max-h-[70vh] object-contain rounded-lg"
-          />
-        </div>
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={() => setIsImageModalOpen(false)}
-            className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90"
-          >
-            بستن
-          </button>
-        </div>
-      </div>
-    </div>
-  </Modal>
-)}
+      {isImageModalOpen && (
+        <Modal isShow={isImageModalOpen} onClose={() => setIsImageModalOpen(false)} effect="ease-out">
+          <div className="bg-white rounded-lg p-4">
+            <div className="flex relative items-center justify-center pb-2">
+              <h2 className="font-medium">نمایش تصویر</h2>
+              <button
+                type="button"
+                onClick={() => setIsImageModalOpen(false)}
+                className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full"
+              >
+                <Close className="h-3 w-3" />
+              </button>
+            </div>
+            <div>
+              <div className="flex justify-center items-center p-4">
+                <img
+                  src={selectedImageUrl}
+                  alt="تصویر بزرگ"
+                  className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                />
+              </div>
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={() => setIsImageModalOpen(false)}
+                  className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90"
+                >
+                  بستن
+                </button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
