@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm, Controller, Resolver } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import {
@@ -31,6 +31,7 @@ import { AdFormValues, Category, Feature, MarketerUserForm, RequestFormValues } 
 import { marketerUserFormValidationSchema, validationRequestSchema, validationSchema } from '@/utils'
 import { IoMdClose } from 'react-icons/io'
 import jalaali from 'jalaali-js'
+
 const toJalaali = (date: Date) => {
   const jalaaliDate = jalaali.toJalaali(date)
   return {
@@ -65,19 +66,6 @@ const MarketerUserLoginForm: React.FC = () => {
   const [selectedVideos, setSelectedVideos] = useState<File[]>([])
   const [isImageModalOpen, setIsImageModalOpen] = useState(false)
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
-  
-  // New states for camera recording
-  const [isRecording, setIsRecording] = useState(false)
-  const [recordingTime, setRecordingTime] = useState(0)
-  const [cameraPermission, setCameraPermission] = useState(false)
-  const [showCameraModal, setShowCameraModal] = useState(false)
-  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([])
-  
-  // Refs
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   const {
     handleSubmit,
@@ -177,10 +165,18 @@ const MarketerUserLoginForm: React.FC = () => {
     }
   }
 
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setIsImageModalOpen(true);
+  };
+
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files) {
-      setSelectedVideos([...selectedVideos, ...Array.from(files)])
+    if (files && files.length > 0) {
+      // Store only the most recent video file
+      const videoFile = files[0];
+      setSelectedVideos([videoFile]);
+      setValue('scannedImage', videoFile);
     }
   }
 
@@ -188,125 +184,10 @@ const MarketerUserLoginForm: React.FC = () => {
     setSelectedVideos((prevFiles) => {
       const updatedFiles = [...prevFiles]
       updatedFiles.splice(index, 1)
-      setValue('scannedImage', updatedFiles[0])
+      setValue('scannedImage', null);
       return updatedFiles
     })
   }
-
-  const handleImageClick = (imageUrl: string) => {
-    setSelectedImageUrl(imageUrl);
-    setIsImageModalOpen(true);
-  };
-
-  // Camera handling functions
-  const requestCameraPermission = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: "user",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          frameRate: { ideal: 30 }
-        }, 
-        audio: true 
-      });
-      
-      setCameraPermission(true);
-      setShowCameraModal(true);
-      
-      streamRef.current = stream;
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play().catch(err => console.error("Error playing video:", err));
-      }
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      alert("برای استفاده از این قابلیت لطفا دسترسی به دوربین را فعال کنید");
-    }
-  };
-
-  const startRecording = () => {
-    if (!streamRef.current) return;
-
-    // Use higher quality video recording settings
-    const options = { mimeType: 'video/webm;codecs=vp9,opus', bitsPerSecond: 2500000 };
-    
-    // Try with the specified options, fallback to browser defaults if not supported
-    let mediaRecorder;
-    try {
-      mediaRecorder = new MediaRecorder(streamRef.current, options);
-    } catch (e) {
-      console.warn("Requested codec not supported, using default codec:", e);
-      mediaRecorder = new MediaRecorder(streamRef.current);
-    }
-    
-    mediaRecorderRef.current = mediaRecorder;
-    
-    const chunks: Blob[] = [];
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        chunks.push(e.data);
-      }
-    };
-    
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(chunks, { type: "video/webm" });
-      setRecordedChunks([blob]);
-      
-      const file = new File([blob], "selfie-video.webm", { type: "video/webm" });
-      
-      // Create a URL for the recorded video to check it's working
-      const videoURL = URL.createObjectURL(blob);
-      
-      // Use a timeout to ensure the UI updates before processing the video
-      setTimeout(() => {
-        setSelectedVideos([file]);
-        setValue('scannedImage', file);
-      }, 500);
-    };
-    
-    mediaRecorder.start(100); // Start recording with 100ms timeslices for better quality
-    setIsRecording(true);
-    setRecordingTime(0);
-    
-    // Start the 5-second timer
-    timerRef.current = setInterval(() => {
-      setRecordingTime(prev => {
-        if (prev >= 5) {
-          stopRecording();
-          return 5;
-        }
-        return prev + 1;
-      });
-    }, 1000);
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
-    
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    
-    setIsRecording(false);
-    
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-    
-    setShowCameraModal(false);
-  };
-  
-  const closeCameraModal = () => {
-    stopRecording();
-    setShowCameraModal(false);
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-  };
 
   if (errors) {
     console.log(errors, 'errors--errors')
@@ -642,8 +523,7 @@ const MarketerUserLoginForm: React.FC = () => {
             </label>
           </div>
 
-          <div className=" pb-6">
-            <input type="file" accept="video/*" className="hidden" id="VideoThumbnail" onChange={handleVideoChange} />
+          <div className="pb-6">
             <div className="text-start mb-1.5 font-normal flex text-sm">
               اسکن تصویر( 5 ثانیه تصویر خود را اسکن کنید)<div className="text-[#7A7A7A] text-sm">(اختیاری)</div>
             </div>
@@ -662,43 +542,7 @@ const MarketerUserLoginForm: React.FC = () => {
                         const video = e.target as HTMLVideoElement;
                         video.currentTime = 0;
                       }}
-                      onPlay={() => {
-                        const playButton = document.getElementById(`play-button-${index}`)
-                        if (playButton) {
-                          playButton.innerHTML = `
-                            <div class="w-1 h-3 bg-white mx-0.5"></div>
-                            <div class="w-1 h-3 bg-white mx-0.5"></div>
-                          `
-                        }
-                      }}
-                      onPause={() => {
-                        const playButton = document.getElementById(`play-button-${index}`)
-                        if (playButton) {
-                          playButton.innerHTML = `
-                            <div class="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
-                          `
-                        }
-                      }}
                     />
-                    <div
-                      className="absolute inset-0 flex items-center justify-center cursor-pointer"
-                      onClick={() => {
-                        const video = document.getElementById(`video-${index}`) as HTMLVideoElement
-                        if (video) {
-                          if (video.paused) {
-                            video.play().catch(err => console.error("Error playing video:", err));
-                          } else {
-                            video.pause();
-                          }
-                        }
-                      }}
-                    >
-                      <div className="w-8 h-8 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                        <div id={`play-button-${index}`} className="flex items-center justify-center">
-                          <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                   <button
                     type="button"
@@ -715,25 +559,38 @@ const MarketerUserLoginForm: React.FC = () => {
               ))
             ) : (
               <div className="grid grid-cols-2 gap-2">
-                <button 
-                  type="button" 
-                  onClick={requestCameraPermission} 
-                  className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center"
-                >
-                  <div className="flex flex-col gap-2 items-center">
-                    <CameraIcon width="50px" height="42px" />
-                    <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">فیلم سلفی 5 ثانیه</h1>
+                <div className="relative">
+                  <input
+                    type="file"
+                    className="absolute inset-0 opacity-0 z-10"
+                    id="SelfieVideo"
+                    onChange={handleVideoChange}
+                    accept="video/*"
+                    capture="user"
+                  />
+                  <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center cursor-pointer">
+                    <div className="flex flex-col gap-2 items-center">
+                      <CameraIcon width="50px" height="42px" />
+                      <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">فیلم سلفی 5 ثانیه</h1>
+                    </div>
                   </div>
-                </button>
+                </div>
 
-                <label htmlFor="VideoThumbnail" className="block cursor-pointer text-sm font-normal">
-                  <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center">
+                <div className="relative">
+                  <input
+                    type="file"
+                    className="absolute inset-0 opacity-0 z-10"
+                    id="VideoUpload"
+                    onChange={handleVideoChange}
+                    accept="video/*"
+                  />
+                  <div className="h-[190px] bg-[#FCFCFC] rounded-lg custom-dashed-marketer flex-center cursor-pointer">
                     <div className="flex flex-col gap-2 items-center">
                       <UploadCloudIcon width="56px" height="48px" />
                       <h1 className="font-normal text-[#5A5A5A] border-[#5A5A5A] border-b w-fit">آپلود ویدیو</h1>
                     </div>
                   </div>
-                </label>
+                </div>
               </div>
             )}
           </div>
@@ -825,64 +682,9 @@ const MarketerUserLoginForm: React.FC = () => {
           </div>
         </Modal>
       )}
-
-      {/* Camera Modal */}
-      {showCameraModal && (
-        <Modal isShow={showCameraModal} onClose={closeCameraModal} effect="ease-out">
-          <div className="bg-white rounded-lg p-4">
-            <div className="flex relative items-center justify-center pb-2">
-              <h2 className="font-medium">ضبط ویدیوی سلفی</h2>
-              <button
-                type="button"
-                onClick={closeCameraModal}
-                className="p-0.5 left-0 absolute border-[1.8px] border-black rounded-full"
-              >
-                <IoMdClose className="h-3 w-3" />
-              </button>
-            </div>
-            <div>
-              <div className="flex justify-center items-center p-4 relative">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-[50vh] object-cover rounded-lg"
-                  style={{ transform: 'scaleX(-1)' }} // Mirror effect for selfie mode
-                />
-                {recordingTime > 0 && (
-                  <div className="absolute top-6 right-6 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full flex items-center">
-                    <div className="w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></div>
-                    {recordingTime} / 5
-                  </div>
-                )}
-              </div>
-              <div className="flex justify-center mt-4">
-                {!isRecording ? (
-                  <button
-                    type="button"
-                    onClick={startRecording}
-                    className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90"
-                  >
-                    شروع ضبط (5 ثانیه)
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={stopRecording}
-                    className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90 flex items-center"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-white mr-2 animate-pulse"></div>
-                    پایان ضبط
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
     </form>
   )
 }
 
 export default MarketerUserLoginForm
+
