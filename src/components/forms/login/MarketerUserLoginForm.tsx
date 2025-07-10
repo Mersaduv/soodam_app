@@ -202,7 +202,12 @@ const MarketerUserLoginForm: React.FC = () => {
   const requestCameraPermission = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "user" }, 
+        video: { 
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
+        }, 
         audio: true 
       });
       
@@ -213,6 +218,7 @@ const MarketerUserLoginForm: React.FC = () => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(err => console.error("Error playing video:", err));
       }
     } catch (err) {
       console.error("Error accessing camera:", err);
@@ -223,7 +229,18 @@ const MarketerUserLoginForm: React.FC = () => {
   const startRecording = () => {
     if (!streamRef.current) return;
 
-    const mediaRecorder = new MediaRecorder(streamRef.current);
+    // Use higher quality video recording settings
+    const options = { mimeType: 'video/webm;codecs=vp9,opus', bitsPerSecond: 2500000 };
+    
+    // Try with the specified options, fallback to browser defaults if not supported
+    let mediaRecorder;
+    try {
+      mediaRecorder = new MediaRecorder(streamRef.current, options);
+    } catch (e) {
+      console.warn("Requested codec not supported, using default codec:", e);
+      mediaRecorder = new MediaRecorder(streamRef.current);
+    }
+    
     mediaRecorderRef.current = mediaRecorder;
     
     const chunks: Blob[] = [];
@@ -238,11 +255,18 @@ const MarketerUserLoginForm: React.FC = () => {
       setRecordedChunks([blob]);
       
       const file = new File([blob], "selfie-video.webm", { type: "video/webm" });
-      setSelectedVideos([file]);
-      setValue('scannedImage', file);
+      
+      // Create a URL for the recorded video to check it's working
+      const videoURL = URL.createObjectURL(blob);
+      
+      // Use a timeout to ensure the UI updates before processing the video
+      setTimeout(() => {
+        setSelectedVideos([file]);
+        setValue('scannedImage', file);
+      }, 500);
     };
     
-    mediaRecorder.start();
+    mediaRecorder.start(100); // Start recording with 100ms timeslices for better quality
     setIsRecording(true);
     setRecordingTime(0);
     
@@ -632,28 +656,40 @@ const MarketerUserLoginForm: React.FC = () => {
                       src={URL.createObjectURL(file)}
                       className="h-[190px] w-full object-cover rounded-[4px]"
                       id={`video-${index}`}
+                      controls
+                      playsInline
+                      onLoadedMetadata={(e) => {
+                        const video = e.target as HTMLVideoElement;
+                        video.currentTime = 0;
+                      }}
                       onPlay={() => {
                         const playButton = document.getElementById(`play-button-${index}`)
-                        playButton.innerHTML = `
-                                              <div class="w-1 h-3 bg-white mx-0.5"></div>
-                                              <div class="w-1 h-3 bg-white mx-0.5"></div>
-                                            `
+                        if (playButton) {
+                          playButton.innerHTML = `
+                            <div class="w-1 h-3 bg-white mx-0.5"></div>
+                            <div class="w-1 h-3 bg-white mx-0.5"></div>
+                          `
+                        }
                       }}
                       onPause={() => {
                         const playButton = document.getElementById(`play-button-${index}`)
-                        playButton.innerHTML = `
-                                              <div class="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
-                                            `
+                        if (playButton) {
+                          playButton.innerHTML = `
+                            <div class="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div>
+                          `
+                        }
                       }}
                     />
                     <div
                       className="absolute inset-0 flex items-center justify-center cursor-pointer"
                       onClick={() => {
                         const video = document.getElementById(`video-${index}`) as HTMLVideoElement
-                        if (video.paused) {
-                          video.play()
-                        } else {
-                          video.pause()
+                        if (video) {
+                          if (video.paused) {
+                            video.play().catch(err => console.error("Error playing video:", err));
+                          } else {
+                            video.pause();
+                          }
                         }
                       }}
                     >
@@ -812,9 +848,11 @@ const MarketerUserLoginForm: React.FC = () => {
                   playsInline
                   muted
                   className="w-full h-[50vh] object-cover rounded-lg"
+                  style={{ transform: 'scaleX(-1)' }} // Mirror effect for selfie mode
                 />
                 {recordingTime > 0 && (
-                  <div className="absolute top-6 right-6 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full">
+                  <div className="absolute top-6 right-6 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></div>
                     {recordingTime} / 5
                   </div>
                 )}
@@ -832,8 +870,9 @@ const MarketerUserLoginForm: React.FC = () => {
                   <button
                     type="button"
                     onClick={stopRecording}
-                    className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90"
+                    className="px-4 py-2 bg-[#D52133] text-white rounded-lg hover:bg-opacity-90 flex items-center"
                   >
+                    <div className="w-2 h-2 rounded-full bg-white mr-2 animate-pulse"></div>
                     پایان ضبط
                   </button>
                 )}
