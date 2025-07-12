@@ -34,8 +34,8 @@ const RegistrationSuccessPage = () => {
             </p>
           </div>
 
-          <Link className="w-full" href="/admin/authentication/login">
-            <Button className="w-full py-[14px] font-bold text-sm rounded-lg bg-[#2C3E50]">بازگشت به صفحه ورود</Button>
+          <Link className="w-full" href="/admin/requests">
+            <Button className="w-full py-[14px] font-bold text-sm rounded-lg bg-[#2C3E50]">بازگشت به لیست ثبت نامی ها</Button>
           </Link>
         </div>
       </div>
