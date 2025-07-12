@@ -519,9 +519,9 @@ const AdminRequestsPage: NextPage = () => {
         headerButton={
           <button
             onClick={() => push('/admin/authentication/role-select')}
-            className="bg-[#2C3E50] text-white px-4 py-2 rounded-lg text-sm flex items-center"
+            className="border border-[#2C3E50] hover:bg-[#2C3E50] hover:text-white text-[#2C3E50] transition-all duration-300 scale-100 focus:scale-90 px-4 py-2 rounded-lg text-sm flex items-center"
           >
-            ایجاد ثبت کننده
+            اضافه کردن
           </button>
         }
       >
