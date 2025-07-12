@@ -210,7 +210,7 @@ function LoginPage() {
           <title>سودم | ورود</title>
         </Head>
         <div className="bg-[#2C3E50] h-screen">
-          {isShowLogin && <AdminFirstLoginModal isShow={isShow} onClose={handleModalClose} />}
+          {/* {isShowLogin && <AdminFirstLoginModal isShow={isShow} onClose={handleModalClose} />} */}
           <AdminHeader title="ورود" />
 
           <div className="bg-[#F6F7FB] rounded-t-[40px] h-full">
@@ -307,12 +307,12 @@ const LoginForm: React.FC<Props> = (props) => {
           <LoginButton className="bg-[#2C3E50E5] w-full" isLoading={isLoading}>
             ارسال کد تایید
           </LoginButton>
-          <div className="text-sm text-gray-500 flex items-center justify-center mt-6 gap-2">
+          {/* <div className="text-sm text-gray-500 flex items-center justify-center mt-6 gap-2">
             <span className="text-sm font-normal">حساب کاربری ندارید؟</span>
             <span className="text-[#1976D2] font-semibold cursor-pointer" onClick={handleModalOpen}>
               ثبت نام کنید
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
     </form>

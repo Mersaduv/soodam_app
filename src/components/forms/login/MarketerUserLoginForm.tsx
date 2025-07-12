@@ -188,6 +188,39 @@ const MarketerUserLoginForm: React.FC = () => {
       return updatedFiles
     })
   }
+  
+  const handleDeleteFrontImage = (index: number) => {
+    setSelectedNotionalCardFrontFiles(prev => {
+      const newFiles = [...prev];
+      newFiles.splice(index, 1);
+      if (newFiles.length === 0) {
+        setValue('nationalCardFrontImage', null, { shouldValidate: true });
+      }
+      return newFiles;
+    });
+  }
+  
+  const handleDeleteBackImage = (index: number) => {
+    setSelectedNotionalCardBackFiles(prev => {
+      const newFiles = [...prev];
+      newFiles.splice(index, 1);
+      if (newFiles.length === 0) {
+        setValue('nationalCardBackImage', null, { shouldValidate: true });
+      }
+      return newFiles;
+    });
+  }
+  
+  const handleDeleteIdImage = (index: number) => {
+    setSelectedIdImageFiles(prev => {
+      const newFiles = [...prev];
+      newFiles.splice(index, 1);
+      if (newFiles.length === 0) {
+        setValue('IdImage', null, { shouldValidate: true });
+      }
+      return newFiles;
+    });
+  }
 
   if (errors) {
     console.log(errors, 'errors--errors')
@@ -417,17 +450,28 @@ const MarketerUserLoginForm: React.FC = () => {
                 selectedNotionalCardFrontFile.map((file: any, index: number) => (
                   <div
                     key={index}
-                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleImageClick(URL.createObjectURL(file));
-                    }}
+                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer relative"
                   >
                     <img
                       src={URL.createObjectURL(file)}
                       alt={file.name}
                       className="h-[190px] object-contain rounded-md cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleImageClick(URL.createObjectURL(file));
+                      }}
                     />
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 border hover:bg-red-500 hover:text-white bg-gray-50 p-0.5 rounded-full text-gray-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleDeleteFrontImage(index);
+                      }}
+                    >
+                      <IoMdClose className="text-base" />
+                    </button>
                   </div>
                 ))
               ) : (
@@ -457,17 +501,28 @@ const MarketerUserLoginForm: React.FC = () => {
                 selectedNotionalCardBackFile.map((file: any, index: number) => (
                   <div
                     key={index}
-                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleImageClick(URL.createObjectURL(file));
-                    }}
+                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer relative"
                   >
                     <img
                       src={URL.createObjectURL(file)}
                       alt={file.name}
                       className="h-[190px] object-contain rounded-md cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleImageClick(URL.createObjectURL(file));
+                      }}
                     />
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 border hover:bg-red-500 hover:text-white bg-gray-50 p-0.5 rounded-full text-gray-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleDeleteBackImage(index);
+                      }}
+                    >
+                      <IoMdClose className="text-base" />
+                    </button>
                   </div>
                 ))
               ) : (
@@ -497,17 +552,28 @@ const MarketerUserLoginForm: React.FC = () => {
                 selectedIdImageFile.map((file: any, index: number) => (
                   <div
                     key={index}
-                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleImageClick(URL.createObjectURL(file));
-                    }}
+                    className="text-sm rounded-lg p-0.5 text-gray-600 flex justify-center custom-dashed-marketer relative"
                   >
                     <img
                       src={URL.createObjectURL(file)}
                       alt={file.name}
                       className="h-[190px] object-contain rounded-md cursor-pointer"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleImageClick(URL.createObjectURL(file));
+                      }}
                     />
+                    <button
+                      type="button"
+                      className="absolute -top-2 -right-2 border hover:bg-red-500 hover:text-white bg-gray-50 p-0.5 rounded-full text-gray-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleDeleteIdImage(index);
+                      }}
+                    >
+                      <IoMdClose className="text-base" />
+                    </button>
                   </div>
                 ))
               ) : (

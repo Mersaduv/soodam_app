@@ -238,4 +238,5 @@ export interface AdminRegisterForm {
     name: string
   }
   address?: string
+  national_id_image?: File
 }
