@@ -32,6 +32,7 @@ export interface Housing {
     last_viewed_at: string | null
   }
   highlight_attributes?: Feature[]
+  has_pending_edit?: boolean
   created_at: string
   updated_at: string
   expiry_date: string

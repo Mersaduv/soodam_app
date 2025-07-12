@@ -26,12 +26,6 @@ const MyAds: NextPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  // const [housingAdd, setHousingAdd] = useState<Housing[]>([])
-
-  // useEffect(() => {
-  //   const storedHousingAdd = localStorage.getItem('addAdv')
-  //   setHousingAdd(storedHousingAdd ? JSON.parse(storedHousingAdd) : [])
-  // }, [])
 
   useEffect(() => {
     if (isSuccess) {
@@ -41,7 +35,6 @@ const MyAds: NextPage = () => {
 
   const handleClearAds = () => {
     localStorage.removeItem('addAdv')
-    // setHousingAdd([])
   }
 
   const handleDeleteAd = (id: string) => {
@@ -272,25 +265,6 @@ const MyAds: NextPage = () => {
                                     </div>
                                   )
                                 })}
-                              {/* 
-                              <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
-                                {' '}
-                                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
-                                <div className="font-bold text-[#7A7A7A] text-xs text-ellipsis overflow-hidden whitespace-nowrap">
-                                  بزودی قابل نمایش میشود
-                                </div>
-                              </div>
-                              <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
-                                {' '}
-                                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
-                                <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
-                              </div>
-                              <div className="flex gap-0.5 font-medium farsi-digits whitespace-nowrap ont-bold text-[#7A7A7A] text-xs">
-                                {' '}
-                                <img className="w-[16px]" src={`/static/grid-222.png`} alt="" />
-                                <div className="font-bold text-[#7A7A7A] text-xs">بزودی</div>
-                              </div>
-                              */}
                             </div>
                             <hr className="my-3" />
                             <div className="flex items-center justify-between">
