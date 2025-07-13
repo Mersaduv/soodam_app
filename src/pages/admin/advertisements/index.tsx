@@ -521,7 +521,9 @@ const Advertisements: NextPage = () => {
                         <div className="flex justify-end items-center gap-2">
                           <div
                             className={`text-sm font-medium ${
-                              housing.status === 0
+                              housing.has_pending_edit
+                                ? 'text-yellow-600'
+                                : housing.status === 0
                                 ? 'text-yellow-600'
                                 : housing.status === 1
                                 ? 'text-green-600'
@@ -530,7 +532,9 @@ const Advertisements: NextPage = () => {
                                 : ''
                             }`}
                           >
-                            {housing.status === 0
+                            {housing.has_pending_edit
+                              ? 'در انتظار تایید'
+                              : housing.status === 0
                               ? 'در انتظار تایید'
                               : housing.status === 1
                               ? 'تایید شده'
