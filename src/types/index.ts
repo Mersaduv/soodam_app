@@ -82,6 +82,7 @@ export interface AdminAdvertisement {
   status: number;
   user: AdminUser;
   attributes?: any[];
+  has_pending_edit?: boolean;
 }
 
 export interface AdminAdvertisementResponse {
