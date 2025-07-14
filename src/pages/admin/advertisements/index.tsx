@@ -20,7 +20,7 @@ import { NextPage } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { IoIosArrowBack } from 'react-icons/io'
 import axios from 'axios'
 import { toast } from 'react-toastify'
@@ -49,17 +49,20 @@ const Advertisements: NextPage = () => {
   const observer = useRef<IntersectionObserver | null>(null)
   const lastHousingElementRef = useRef<HTMLDivElement | null>(null)
   
+  // Add a maximum page limit to prevent excessive API calls
+  const MAX_PAGES = 10 // Safety limit to prevent too many requests
+  
   // Page size fixed to 8 for infinite scroll
   const pageSize = 8
 
   // Query params for the API
-  const queryParams = {
+  const queryParams = useMemo(() => ({
     page: currentPage,
     limit: pageSize,
     ...(searchQuery && { search: searchQuery }),
     ...(filterStatus !== null && { status: filterStatus }),
     ...(showPendingEdits && { has_pending_edit: 1 }),
-  }
+  }), [currentPage, filterStatus, pageSize, searchQuery, showPendingEdits])
 
   const { data: housingData, isLoading, isFetching, refetch } = useGetAdvByAdminQuery(queryParams)
   const [modalType, setModalType] = useState<'approve' | 'reject'>('approve')
@@ -71,6 +74,10 @@ const Advertisements: NextPage = () => {
 
   // Reset data when filters change
   useEffect(() => {
+    // Reset all states when filters change
+    lastPageLoadTime.current = 0;
+    setIsRequestInProgress(false);
+    
     if (currentPage !== 1) {
       setCurrentPage(1)
     } else {
@@ -84,6 +91,9 @@ const Advertisements: NextPage = () => {
 
   // Load data when API response is received
   useEffect(() => {
+    // Reset request flag when API response is received
+    setIsRequestInProgress(false);
+    
     if (housingData?.items) {
       let items = housingData.items;
       
@@ -91,14 +101,23 @@ const Advertisements: NextPage = () => {
         // Reset data on first page load
         setAllHousingData(items)
       } else {
-        // Append new data on pagination
-        setAllHousingData(prev => [...prev, ...items])
+        // Append new data on pagination, ensuring no duplicates
+        setAllHousingData(prev => {
+          // Create a Set of existing IDs for efficient lookup
+          const existingIds = new Set(prev.map(item => item.id));
+          
+          // Only add items that don't already exist in the list
+          const newUniqueItems = items.filter(item => !existingIds.has(item.id));
+          
+          return [...prev, ...newUniqueItems];
+        });
       }
       
       // Update pagination state
-      setHasMore(housingData.metadata?.has_next || false)
-      setIsLoadingMore(false)
-      setIsInitialLoad(false)
+      const noMorePages = !housingData.metadata?.has_next;
+      setHasMore(!noMorePages);
+      setIsLoadingMore(false);
+      setIsInitialLoad(false);
     }
   }, [housingData, currentPage])
 
@@ -108,22 +127,81 @@ const Advertisements: NextPage = () => {
     }
   }, [isSuccess, dispatch])
 
+  // Remove the problematic debounce function
+  
+  // Track the last time we triggered a page load to avoid multiple calls
+  const lastPageLoadTime = useRef<number>(0);
+  const PAGE_LOAD_THROTTLE = 1000; // 1 second minimum between page loads
+  
+  // Prevent multiple page requests while one is in progress
+  const [isRequestInProgress, setIsRequestInProgress] = useState(false);
+
   // Intersection Observer setup for infinite scroll
   const lastElementRef = useCallback((node: HTMLDivElement) => {
-    if (isLoadingMore || isLoading) return;
+    // Skip if we're already loading or a request is in progress
+    if (isLoadingMore || isLoading || isRequestInProgress || !hasMore) return;
     
     if (observer.current) observer.current.disconnect();
     
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setIsLoadingMore(true);
-        setCurrentPage(prevPage => prevPage + 1);
+      // Check if we should load more data
+      const shouldLoadMore = 
+        entries[0].isIntersecting && 
+        hasMore && 
+        !isLoadingMore && 
+        !isLoading && 
+        !isRequestInProgress &&
+        Date.now() - lastPageLoadTime.current > PAGE_LOAD_THROTTLE;
+      
+      if (shouldLoadMore) {
+        // Update the last page load time
+        lastPageLoadTime.current = Date.now();
+        setIsRequestInProgress(true);
+        
+        // Use setTimeout to further prevent rapid multiple calls
+        setTimeout(() => {
+          setIsLoadingMore(true);
+          setCurrentPage(prevPage => prevPage + 1);
+        }, 100);
       }
-    }, { threshold: 0.5 });
+    }, { rootMargin: '200px', threshold: 0.1 }); // Increased rootMargin for earlier detection
     
     if (node) observer.current.observe(node);
     lastHousingElementRef.current = node;
-  }, [hasMore, isLoadingMore, isLoading]);
+  }, [hasMore, isLoadingMore, isLoading, isRequestInProgress]);
+
+  // Ensure we're using the ref correctly in the render function
+  // This function is no longer needed since we're directly attaching the ref
+  
+  // Add a function to manually trigger next page load
+  const loadMoreManually = useCallback(() => {
+    // Only load more if:
+    // 1. There's more data to load
+    // 2. We're not already loading
+    // 3. It's been at least PAGE_LOAD_THROTTLE ms since the last load
+    const canLoadMore = 
+      hasMore && 
+      !isLoadingMore && 
+      !isLoading && 
+      !isRequestInProgress && 
+      Date.now() - lastPageLoadTime.current > PAGE_LOAD_THROTTLE;
+    
+    if (canLoadMore) {
+      // Update the last page load time
+      lastPageLoadTime.current = Date.now();
+      setIsRequestInProgress(true);
+      setTimeout(() => {
+        setIsLoadingMore(true);
+        setCurrentPage(prev => prev + 1);
+      }, 100);
+    }
+  }, [hasMore, isLoading, isLoadingMore, isRequestInProgress]);
+
+  // We're using the useDebounce helper directly instead of creating debouncedLoadMore
+
+  // Determine if we should show initial loading state (skeletons)
+  // Changed to only show loading on first load, not during pagination
+  const showInitialLoading = (isLoading || isFetching) && (isInitialLoad || allHousingData.length === 0);
 
   const handleClearAds = () => {
     localStorage.removeItem('addAdv')
@@ -229,13 +307,23 @@ const Advertisements: NextPage = () => {
     }
   }
 
-  // Sort advertisements by date (newest first)
-  const sortedHousingData = [...allHousingData].sort((a, b) => 
-    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  // Sort advertisements by date (newest first) and ensure no duplicates by id
+  const sortedHousingData = useMemo(() => {
+    // Create a Map with id as key to ensure uniqueness
+    const uniqueMap = new Map();
+    
+    // Add all items to the map (if duplicate ids exist, later ones overwrite earlier ones)
+    allHousingData.forEach(item => {
+      uniqueMap.set(item.id, item);
+    });
+    
+    // Convert map values back to array and sort by date
+    return Array.from(uniqueMap.values()).sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }, [allHousingData]);
   
-  // Determine if we should show loading state
-  const showLoading = isLoading || isFetching || isInitialLoad || (allHousingData.length === 0 && !housingData);
+  // This line is now managed in the lastElementRef callback section above
 
   return (
     <>
@@ -344,7 +432,7 @@ const Advertisements: NextPage = () => {
             </div>
           </div>
 
-          {showLoading ? (
+          {showInitialLoading ? (
             <div className="flex flex-col gap-4 px-4">
               <HousingSkeleton />
               <HousingSkeleton />
@@ -377,6 +465,7 @@ const Advertisements: NextPage = () => {
             <div className="px-4">
               <div className="space-y-4">
                 {sortedHousingData.map((housing, index) => {
+                  // Only attach ref to last element
                   const isLastElement = index === sortedHousingData.length - 1;
                   
                   return (
@@ -551,8 +640,24 @@ const Advertisements: NextPage = () => {
 
               {/* Loading indicator for infinite scroll */}
               {isLoadingMore && (
-                <div className="flex justify-center items-center py-4">
+                <div className="flex justify-center items-center py-6 bg-white rounded-lg my-4">
                   <InlineLoading />
+                  <span className="ml-2 text-gray-600">در حال بارگذاری آگهی‌های بیشتر...</span>
+                </div>
+              )}
+              
+              {/* Manual load more button - displayed if there's more data to load and we're not already loading */}
+              {hasMore && !isLoadingMore && sortedHousingData.length >= 8 && (
+                <div className="flex justify-center my-4">
+                  <button
+                    onClick={loadMoreManually}
+                    className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 px-5 py-2 rounded-lg flex items-center"
+                  >
+                    <span>نمایش آگهی‌های بیشتر</span>
+                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
                 </div>
               )}
             </div>
