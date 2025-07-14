@@ -219,6 +219,29 @@ const productionApiSlice = createApi({
             ]
           : ['Housing'],
     }),
+    getEditAdvAdmin: builder.query<AdminAdvertisementResponse, QueryParams | void>({
+      query: (params) => {
+        const queryParams = params ? generateQueryParams(params) : ''
+        return {
+          url: `/api/admin/advertisement-edits${queryParams ? `?${queryParams}` : ''}`,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      },
+      providesTags: (result) =>
+        result?.items
+          ? [
+              ...result.items.map(({ id }) => ({
+                type: 'Housing' as const,
+                id,
+              })),
+              'Housing',
+            ]
+          : ['Housing'],
+    }),
     deleteAdv: builder.mutation<ServiceResponse<Housing>, IdQuery>({
       query: ({ id }) => ({
         url: `/api/advertisements/${id}`,
@@ -253,6 +276,7 @@ export const {
   useGetMyAdvQuery,
   useGetAdvByIdQuery,
   useGetAdvByAdminQuery,
+  useGetEditAdvAdminQuery,
   useDeleteAdvMutation,
   useUpdateAdvMutation,
   useGetFavoritesQuery,

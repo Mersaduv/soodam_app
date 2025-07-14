@@ -12,7 +12,7 @@ import {
   TrashGrayIcon,
 } from '@/icons'
 import { useGetHousingQuery } from '@/services'
-import { useGetMyAdvQuery, useGetAdvByAdminQuery } from '@/services/productionBaseApi'
+import { useGetMyAdvQuery, useGetAdvByAdminQuery, useGetEditAdvAdminQuery } from '@/services/productionBaseApi'
 import { setIsSuccess } from '@/store'
 import { AdminAdvertisementResponse, PaginationMetadata } from '@/types'
 import { formatPriceLoc, getProvinceFromCoordinates, NEXT_PUBLIC_API_URL } from '@/utils'
@@ -61,10 +61,21 @@ const Advertisements: NextPage = () => {
     limit: pageSize,
     ...(searchQuery && { search: searchQuery }),
     ...(filterStatus !== null && { status: filterStatus }),
-    ...(showPendingEdits && { has_pending_edit: 1 }),
-  }), [currentPage, filterStatus, pageSize, searchQuery, showPendingEdits])
+  }), [currentPage, filterStatus, pageSize, searchQuery])
 
-  const { data: housingData, isLoading, isFetching, refetch } = useGetAdvByAdminQuery(queryParams)
+  const { data: housingData, isLoading: isLoadingRegular, isFetching: isFetchingRegular, refetch: refetchRegular } = useGetAdvByAdminQuery(
+    showPendingEdits ? undefined : queryParams
+  )
+
+  const { data: editedAdsData, isLoading: isLoadingEdited, isFetching: isFetchingEdited, refetch: refetchEdited } = useGetEditAdvAdminQuery(
+    showPendingEdits ? queryParams : undefined
+  )
+
+  // Use the appropriate data and loading states based on whether we're showing regular or edited ads
+  const isLoading = showPendingEdits ? isLoadingEdited : isLoadingRegular
+  const isFetching = showPendingEdits ? isFetchingEdited : isFetchingRegular
+  const refetch = showPendingEdits ? refetchEdited : refetchRegular
+
   const [modalType, setModalType] = useState<'approve' | 'reject'>('approve')
   const [selectedAdId, setSelectedAdId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -94,8 +105,10 @@ const Advertisements: NextPage = () => {
     // Reset request flag when API response is received
     setIsRequestInProgress(false);
     
-    if (housingData?.items) {
-      let items = housingData.items;
+    const data = showPendingEdits ? editedAdsData : housingData;
+    
+    if (data?.items) {
+      let items = data.items;
       
       if (currentPage === 1) {
         // Reset data on first page load
@@ -114,12 +127,12 @@ const Advertisements: NextPage = () => {
       }
       
       // Update pagination state
-      const noMorePages = !housingData.metadata?.has_next;
+      const noMorePages = !data.metadata?.has_next;
       setHasMore(!noMorePages);
       setIsLoadingMore(false);
       setIsInitialLoad(false);
     }
-  }, [housingData, currentPage])
+  }, [housingData, editedAdsData, currentPage, showPendingEdits])
 
   useEffect(() => {
     if (isSuccess) {
