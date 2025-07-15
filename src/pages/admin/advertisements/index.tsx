@@ -703,7 +703,10 @@ const Advertisements: NextPage = () => {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex flex-col">
-                        <Link href={`/admin/advertisements/${housing.id}`} className="flex gap-2">
+                        <Link href={showPendingEdits ? 
+                          `/admin/advertisements/edit/${housing.id}` : 
+                          `/admin/advertisements/${housing.id}`} 
+                          className="flex gap-2">
                           {housing.primary_image ? (
                             <div className=" bg-gray-200 rounded-[10px] mb-4">
                               <Image
