@@ -9,9 +9,6 @@ const LoadingScreen: React.FC = () => {
         alt="Logo"
         className="w-2/3" 
       />
-      <h1 className="text-2xl font-bold text-center text-[#ebebeb]">
-        با سودم همیشه تو سود باش
-      </h1>
     </div>
   );
 };

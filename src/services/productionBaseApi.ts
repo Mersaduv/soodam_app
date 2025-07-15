@@ -252,6 +252,27 @@ const productionApiSlice = createApi({
       }),
       invalidatesTags: ['Housing'],
     }),
+    reviewEditAdv: builder.mutation<
+      any,
+      { id: string; action: 'approve' | 'reject'; admin_notes?: string; body?: any }
+    >({
+      query: ({ id, action, admin_notes, body = {} }) => {
+        const queryParams = new URLSearchParams();
+        if (action) queryParams.append('action', action);
+        if (admin_notes) queryParams.append('admin_notes', admin_notes);
+        
+        return {
+          url: `/api/admin/advertisement-edits/${id}/review?${queryParams.toString()}`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body,
+        };
+      },
+      invalidatesTags: ['Housing'],
+    }),
     updateAdv: builder.mutation<any, { id: string; data: any }>({
       query: ({ id, data }) => ({
         url: `/api/advertisements/${id}`,
@@ -278,6 +299,7 @@ export const {
   useGetAdvByAdminQuery,
   useGetEditAdvAdminQuery,
   useDeleteAdvMutation,
+  useReviewEditAdvMutation,
   useUpdateAdvMutation,
   useGetFavoritesQuery,
   useAddFavoriteMutation,
