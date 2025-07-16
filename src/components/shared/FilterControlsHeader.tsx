@@ -10,6 +10,7 @@ interface Props {
   handleRemoveFilters?: () => void
   isAdmin?: boolean
   headerButton?: React.ReactNode
+  profile?: React.ReactNode
 }
 const FilterControlsHeader: React.FC<Props> = ({
   title,
@@ -18,6 +19,7 @@ const FilterControlsHeader: React.FC<Props> = ({
   handleRemoveFilters,
   isAdmin,
   headerButton,
+  profile,
 }) => {
   const { back, push } = useRouter()
   const dispatch = useAppDispatch()
@@ -42,7 +44,7 @@ const FilterControlsHeader: React.FC<Props> = ({
       } ${isAdmin ? 'bg-[#F6F7FB]' : ''} py-2 px-4 fixed z-[9999] w-full flex justify-between items-center`}
     >
       <div className="flex items-center gap-3 w-full text-lg font-medium">
-        {adConfirmExit !== '0' && (
+        {!profile && adConfirmExit !== '0' && (
           <button
             onClick={handleBack}
             className={` ${isProfile ? 'bg-white rounded-full w-fit p-1' : 'py-4'} -rotate-90 font-bold`}
@@ -50,10 +52,21 @@ const FilterControlsHeader: React.FC<Props> = ({
             <ArrowLeftIcon width="24px" height="24px" />
           </button>
         )}
+        {profile && (
+          <div className="flex items-center gap-1 flex-1 w-full">
+            <button
+              onClick={handleBack}
+              className={` ${isProfile ? 'bg-white rounded-full w-fit p-1' : 'py-4'} -rotate-90 font-bold`}
+            >
+              <ArrowLeftIcon width="24px" height="24px" />
+            </button>
+            {profile}
+          </div>
+        )}
 
         {headerButton ? (
-          <div className="flex items-center justify-between w-full">
-            {!isProfile && title}
+          <div className={`flex items-center ${profile ? 'justify-end' : 'justify-between w-full'}`}>
+            {!isProfile && !profile && title}
             <div className="ml-2">{headerButton}</div>
           </div>
         ) : (

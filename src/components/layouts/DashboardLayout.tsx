@@ -11,9 +11,10 @@ interface Props {
   title?: string
   headerButton?: React.ReactNode
   chatRoomBg?: boolean
+  profile?: React.ReactNode
 }
 
-const DashboardLayout: React.FC<Props> = ({ children, showDetail, title, headerButton, chatRoomBg }) => {
+const DashboardLayout: React.FC<Props> = ({ children, showDetail, title, headerButton, chatRoomBg, profile }) => {
   const [openRight, setOpenRight] = useState(false)
   return (
     <div className={`${!showDetail ? 'bg-[#2C3E50]' : 'bg-[#F6F7FB]'} h-screen`}
@@ -26,7 +27,7 @@ const DashboardLayout: React.FC<Props> = ({ children, showDetail, title, headerB
     >
       {showDetail ? (
         <div className="fixed top-0 z-[90]">
-            <FilterControlsHeader title={title} isAdmin headerButton={headerButton} />
+            <FilterControlsHeader title={title} isAdmin headerButton={headerButton} profile={profile} />
             {/* {headerButton && <div className="ml-2">{headerButton}</div>} */}
         </div>
       ) : (

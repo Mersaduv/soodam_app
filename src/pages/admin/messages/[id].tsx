@@ -7,7 +7,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { DashboardLayout } from '@/components/layouts'
 import { LuCheckCheck } from 'react-icons/lu'
-import { CheckReadIcon } from '@/icons'
+import { CheckReadIcon, Phone22Icon } from '@/icons'
+import { BsTelephone } from 'react-icons/bs'
 
 type Message = {
   id: string
@@ -260,6 +261,47 @@ const ConversationDetailPage: NextPage = () => {
       return `${diffDays} روز پیش ${time}`
     }
   }
+  
+  console.log(conversationDetail, "conversationDetail")
+  
+  // Prepare profile component only when conversationDetail exists
+  const chatProfile = conversationDetail ? (
+    <div className="border-b border-gray-200 flex items-center justify-between bg-red-50 w-full">
+      <div className="flex items-center">
+        {conversationDetail.participants.find((p) => p.id !== '1')?.image ? (
+          <Image
+            src={conversationDetail.participants.find((p) => p.id !== '1')?.image || ''}
+            alt={conversationDetail.participants.find((p) => p.id !== '1')?.fullName || ''}
+            width={40}
+            height={40}
+            className="rounded-full object-cover min-w-[42px] min-h-[42px]"
+          />
+        ) : (
+          <div className="min-w-[42px] min-h-[42px] rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+            {conversationDetail.participants.find((p) => p.id !== '1')?.fullName.charAt(0)}
+          </div>
+        )}
+        <div className="mr-3">
+          <div className="font-medium text-gray-800">
+            {conversationDetail.participants.find((p) => p.id !== '1')?.fullName}
+          </div>
+          <div className="text-xs text-gray-500 flex items-center">
+            {conversationDetail.participants.find((p) => p.id !== '1')?.isOnline ? (
+              <>
+                <span className="w-2 h-2 bg-green-500 rounded-full ml-1"></span> آنلاین
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 bg-gray-400 rounded-full ml-1"></span>
+                آخرین بازدید:{' '}
+                {formatDate(conversationDetail.participants.find((p) => p.id !== '1')?.lastSeen || '')}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : null;
 
   return (
     <>
@@ -270,20 +312,11 @@ const ConversationDetailPage: NextPage = () => {
       <DashboardLayout
         showDetail
         title="گفتگو"
+        profile={chatProfile}
         headerButton={
-          <Link href="/admin/messages" className="flex items-center gap-2 text-[#2C3E50]">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-            </svg>
-            بازگشت به لیست گفتگوها
-          </Link>
+          <div>
+            <Phone22Icon width="26px" height="26px" />
+          </div>
         }
         chatRoomBg
       >
@@ -297,11 +330,7 @@ const ConversationDetailPage: NextPage = () => {
               {/* Chat container with proper spacing for header and input */}
               <div className="flex flex-col h-full relative pt-[70px] pb-[76px]">
                 {/* Messages container with scrolling */}
-                <div 
-                  ref={messagesContainerRef}
-                  className="flex-1 overflow-y-auto px-4 py-2"
-                  dir="ltr"
-                >
+                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-2" dir="ltr">
                   <div className="space-y-4">
                     {conversationDetail.messages.map((message) => (
                       <div
@@ -317,7 +346,9 @@ const ConversationDetailPage: NextPage = () => {
                           }`}
                         >
                           <p
-                            className={`text-sm font-normal ${message.senderId === '1' ? 'text-white' : 'text-gray-800'}`}
+                            className={`text-sm font-normal ${
+                              message.senderId === '1' ? 'text-white' : 'text-gray-800'
+                            }`}
                           >
                             {message.text}
                           </p>
