@@ -16,17 +16,23 @@ import { useRouter } from 'next/router'
 import { Toaster } from 'react-hot-toast'
 
 async function enableMocking() {
-  const { worker } = await import('../mocks/browser')
-  if (process.env.NODE_ENV !== 'development') {
-    worker.start({
+  try {
+    const { worker } = await import('../mocks/browser')
+    // Start MSW in all environments to ensure mock API endpoints work
+    return worker.start({
       onUnhandledRequest: 'bypass',
+      serviceWorker: {
+        url: '/mockServiceWorker.js',
+      }
+    }).then(() => {
+      console.log('%c[MSW] Mock API Server running', 'color: green; font-weight: bold')
+      if (typeof window !== 'undefined') {
+        window.mswWorkerInitialized = true
+      }
     })
-    return
+  } catch (error) {
+    console.error('Failed to initialize MSW:', error)
   }
-
-  // `worker.start()` retu rns a Promise that resolves
-  // once the Service Worker is up and ready to intercept requests.
-  return worker.start()
 }
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -38,28 +44,36 @@ export default function App({ Component, pageProps }: AppProps) {
       setIsLoading(false)
     }, 2000)
 
-    const startMocking = async () => {
-      await enableMocking()
+    // Initialize MSW for all routes that may need it
+    const initializeMSW = async () => {
+      // Check if we're on client side
+      if (typeof window !== 'undefined') {
+        // Initialize MSW for admin messages or registration pages
+        if (window.location.pathname.includes('/admin/messages') || 
+            window.location.pathname.includes('/admin/authentication/register')) {
+          await enableMocking()
+        }
+      }
     }
 
-    startMocking()
-
-    // Initialize MSW only in development mode and for admin registration-related pages
-    if (typeof window !== 'undefined' && 
-        process.env.NODE_ENV === 'development' && 
-        window.location.pathname.includes('/admin/authentication/register')) {
-      // Initialize MSW
-      import('../mocks/browser')
-        .then(({ worker }) => {
-          // Start is now handled in browser.ts
-        })
-        .catch(error => {
-          console.error('Error importing MSW worker:', error)
-        })
-    }
+    initializeMSW()
 
     return () => clearTimeout(timer)
   }, [])
+
+  // Listen for route changes to initialize MSW for certain routes
+  useEffect(() => {
+    const handleRouteChange = async (url: string) => {
+      if (url.includes('/admin/messages') && typeof window !== 'undefined' && !window.mswWorkerInitialized) {
+        await enableMocking()
+      }
+    }
+
+    router.events.on('routeChangeComplete', handleRouteChange)
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange)
+    }
+  }, [router])
 
   if (isLoading) {
     return <LoadingScreen />
@@ -86,4 +100,11 @@ export default function App({ Component, pageProps }: AppProps) {
       <ToastContainer />
     </Provider>
   )
+}
+
+// Add TypeScript declaration for window
+declare global {
+  interface Window {
+    mswWorkerInitialized?: boolean
+  }
 }

@@ -220,3 +220,5 @@ export { default as EmailAdmIcon } from './svgs/emailadmin.svg'
 export { default as SettingAdmIcon } from './svgs/settingAdmin.svg'
 export { default as HeartWithOutSlashRedFavIcon } from './svgs/heart-slash copy.svg'
 export { default as HeartWithSlashFavIcon } from './svgs/heart-slash.svg'
+export { default as CheckReadIcon } from './svgs/Check Read.svg'
+

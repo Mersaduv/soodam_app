@@ -3010,3 +3010,521 @@ export const handlers = [
 //   "phoneNumber": "09014689030",
 //   "convertible": false
 // }
+
+// Mock data for messages
+const conversations = [
+  {
+    id: '1',
+    participants: [
+      {
+        id: '1',
+        fullName: 'محمد شادلو',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: '/static/IMG-20240805-WA0098.jpg',
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد'
+      },
+      {
+        id: '2',
+        fullName: 'علی الهی',
+        role: 'user',
+        phoneNumber: '09123456789',
+        image: null,
+        lastSeen: new Date(Date.now() - 30 * 60000).toISOString(),
+        isOnline: false,
+        cityTitle: 'ادمین شهر مشهد'
+      }
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '2',
+        receiverId: '1',
+        text: 'سلام وقتتون بخیر، به مدیری بود. خواستم بپرسم درباره آگهی که به تازگی ثبت شده منطقه سجاد مشهد',
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        status: 'delivered',
+        isRead: true
+      },
+      {
+        id: '2',
+        senderId: '1',
+        receiverId: '2',
+        text: 'سلام ادمین محترم!',
+        timestamp: new Date(Date.now() - 3500000).toISOString(),
+        status: 'delivered',
+        isRead: true
+      },
+      {
+        id: '3',
+        senderId: '2',
+        receiverId: '1',
+        text: 'که اطلاعات مالک با مشخصات ارسال‌کننده نمی‌خونه. میشه کمک کنم تماس بگیرم یا مستقیم روش کنم؟',
+        timestamp: new Date(Date.now() - 3400000).toISOString(),
+        status: 'delivered',
+        isRead: true
+      },
+      {
+        id: '4',
+        senderId: '1',
+        receiverId: '2',
+        text: 'اگر اطلاعات زیاد هست و مطمئن نیستی، حتما تماس بگیر. در صورت عدم پاسخ یا ابهام زیاد، روش کن و دلیل رو هم ذکر کن لطفا',
+        timestamp: new Date(Date.now() - 3300000).toISOString(),
+        status: 'delivered',
+        isRead: true
+      },
+      {
+        id: '5',
+        senderId: '2',
+        receiverId: '1',
+        text: 'تشکر از همکاریتون.',
+        timestamp: new Date(Date.now() - 3200000).toISOString(),
+        status: 'delivered',
+        isRead: true
+      }
+    ],
+    lastMessage: {
+      text: 'تشکر از همکاریتون.',
+      timestamp: new Date(Date.now() - 3200000).toISOString(),
+      senderId: '2'
+    },
+    unreadCount: 0
+  },
+  {
+    id: '2',
+    participants: [
+      {
+        id: '1',
+        fullName: 'محمد شادلو',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: '/static/IMG-20240805-WA0098.jpg',
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد'
+      },
+      {
+        id: '3',
+        fullName: 'محمد شجاعی',
+        role: 'user',
+        phoneNumber: '09187654321',
+        image: null,
+        lastSeen: new Date(Date.now() - 120 * 60000).toISOString(),
+        isOnline: false,
+        cityTitle: 'بازاریاب تهران'
+      }
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '3',
+        receiverId: '1',
+        text: 'سلام وقت بخیر، درباره درخواست افزایش سقف ثبت آگهی‌های ماهیانه خواستم صحبت کنم',
+        timestamp: new Date(Date.now() - 86400000).toISOString(),
+        status: 'delivered',
+        isRead: true
+      },
+      {
+        id: '2',
+        senderId: '1',
+        receiverId: '3',
+        text: 'سلام، بله در خدمتم. چه کمکی از دستم بر میاد؟',
+        timestamp: new Date(Date.now() - 86300000).toISOString(),
+        status: 'delivered',
+        isRead: true
+      }
+    ],
+    lastMessage: {
+      text: 'سلام، بله در خدمتم. چه کمکی از دستم بر میاد؟',
+      timestamp: new Date(Date.now() - 86300000).toISOString(),
+      senderId: '1'
+    },
+    unreadCount: 0
+  },
+  {
+    id: '3',
+    participants: [
+      {
+        id: '1',
+        fullName: 'محمد شادلو',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: '/static/IMG-20240805-WA0098.jpg',
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد'
+      },
+      {
+        id: '4',
+        fullName: 'سعید رضازاده',
+        role: 'user',
+        phoneNumber: '09223344556',
+        image: null,
+        lastSeen: new Date(Date.now() - 240 * 60000).toISOString(),
+        isOnline: false,
+        cityTitle: 'بازاریاب تهران'
+      }
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '4',
+        receiverId: '1',
+        text: 'سلام، میشه لطفا یکی از آگهی‌های من رو که اشتباهی وارد شده حذف کنید؟',
+        timestamp: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+        status: 'delivered',
+        isRead: true
+      }
+    ],
+    lastMessage: {
+      text: 'سلام، میشه لطفا یکی از آگهی‌های من رو که اشتباهی وارد شده حذف کنید؟',
+      timestamp: new Date(Date.now() - 172800000).toISOString(),
+      senderId: '4'
+    },
+    unreadCount: 1
+  },
+  {
+    id: '4',
+    participants: [
+      {
+        id: '1',
+        fullName: 'محمد شادلو',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: '/static/IMG-20240805-WA0098.jpg',
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد'
+      },
+      {
+        id: '5',
+        fullName: 'علی الهی',
+        role: 'user',
+        phoneNumber: '09111222333',
+        image: null,
+        lastSeen: new Date(Date.now() - 300 * 60000).toISOString(),
+        isOnline: false,
+        cityTitle: 'ادمین شهر مشهد'
+      }
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '1',
+        receiverId: '5',
+        text: 'سلام، آگهی شما با کد A10254 تایید شد و از امروز نمایش داده می‌شود.',
+        timestamp: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
+        status: 'delivered',
+        isRead: false
+      }
+    ],
+    lastMessage: {
+      text: 'سلام، آگهی شما با کد A10254 تایید شد و از امروز نمایش داده می‌شود.',
+      timestamp: new Date(Date.now() - 259200000).toISOString(),
+      senderId: '1'
+    },
+    unreadCount: 0
+  },
+  {
+    id: '5',
+    participants: [
+      {
+        id: '1',
+        fullName: 'محمد شادلو',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: '/static/IMG-20240805-WA0098.jpg',
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد'
+      },
+      {
+        id: '6',
+        fullName: 'سعید رضازاده',
+        role: 'user',
+        phoneNumber: '09444555666',
+        image: null,
+        lastSeen: new Date(Date.now() - 400 * 60000).toISOString(),
+        isOnline: false,
+        cityTitle: 'بازاریاب تهران'
+      }
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '6',
+        receiverId: '1',
+        text: 'سلام، من میخواستم یک سوال درباره نحوه ارسال مدارک داشته باشم',
+        timestamp: new Date(Date.now() - 432000000).toISOString(), // 5 days ago
+        status: 'delivered',
+        isRead: true
+      }
+    ],
+    lastMessage: {
+      text: 'سلام، من میخواستم یک سوال درباره نحوه ارسال مدارک داشته باشم',
+      timestamp: new Date(Date.now() - 432000000).toISOString(),
+      senderId: '6'
+    },
+    unreadCount: 0
+  },
+  {
+    id: '6',
+    participants: [
+      {
+        id: '1',
+        fullName: 'محمد شادلو',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: '/static/IMG-20240805-WA0098.jpg',
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد'
+      },
+      {
+        id: '7',
+        fullName: 'علی الهی',
+        role: 'user',
+        phoneNumber: '09777888999',
+        image: null,
+        lastSeen: new Date(Date.now() - 500 * 60000).toISOString(),
+        isOnline: false,
+        cityTitle: 'ادمین شهر مشهد'
+      }
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '7',
+        receiverId: '1',
+        text: 'باسلام، آیا امکان تغییر نام کاربری وجود دارد؟',
+        timestamp: new Date(Date.now() - 604800000).toISOString(), // 7 days ago
+        status: 'delivered',
+        isRead: true
+      }
+    ],
+    lastMessage: {
+      text: 'باسلام، آیا امکان تغییر نام کاربری وجود دارد؟',
+      timestamp: new Date(Date.now() - 604800000).toISOString(),
+      senderId: '7'
+    },
+    unreadCount: 0
+  }
+];
+
+// Message API handlers
+rest.get('/api/admin/messages', (req, res, ctx) => {
+  // Sort conversations by last message timestamp (newest first)
+  const sortedConversations = [...conversations].sort(
+    (a, b) => new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime()
+  );
+  
+  return res(
+    ctx.status(200),
+    ctx.json({
+      success: true,
+      data: sortedConversations.map(conv => {
+        // Find the other participant (not admin)
+        const otherParticipant = conv.participants.find(p => p.id !== '1');
+        return {
+          id: conv.id,
+          user: otherParticipant,
+          lastMessage: conv.lastMessage,
+          unreadCount: conv.unreadCount
+        };
+      })
+    })
+  );
+}),
+
+rest.get('/api/admin/messages/:conversationId', (req, res, ctx) => {
+  const { conversationId } = req.params;
+  
+  const conversation = conversations.find(conv => conv.id === conversationId);
+  
+  if (!conversation) {
+    return res(
+      ctx.status(404),
+      ctx.json({
+        success: false,
+        message: 'گفتگو یافت نشد'
+      })
+    );
+  }
+  
+  // Mark all messages as read
+  conversation.messages.forEach(msg => {
+    if (msg.receiverId === '1') {
+      msg.isRead = true;
+    }
+  });
+  conversation.unreadCount = 0;
+  
+  return res(
+    ctx.status(200),
+    ctx.json({
+      success: true,
+      data: {
+        conversation: {
+          id: conversation.id,
+          participants: conversation.participants,
+          messages: conversation.messages
+        }
+      }
+    })
+  );
+}),
+
+rest.post('/api/admin/messages/:conversationId', async (req, res, ctx) => {
+  const { conversationId } = req.params;
+  const { text } = await req.json();
+  
+  const conversation = conversations.find(conv => conv.id === conversationId);
+  
+  if (!conversation) {
+    return res(
+      ctx.status(404),
+      ctx.json({
+        success: false,
+        message: 'گفتگو یافت نشد'
+      })
+    );
+  }
+  
+  const otherParticipant = conversation.participants.find(p => p.id !== '1');
+  
+  // Create new message
+  const newMessage = {
+    id: (conversation.messages.length + 1).toString(),
+    senderId: '1',
+    receiverId: otherParticipant.id,
+    text,
+    timestamp: new Date().toISOString(),
+    status: 'sent',
+    isRead: false
+  };
+  
+  // Add to conversation
+  conversation.messages.push(newMessage);
+  
+  // Update last message
+  conversation.lastMessage = {
+    text,
+    timestamp: newMessage.timestamp,
+    senderId: '1'
+  };
+  
+  return res(
+    ctx.status(201),
+    ctx.json({
+      success: true,
+      data: {
+        message: newMessage
+      }
+    })
+  );
+}),
+
+rest.post('/api/admin/messages', async (req, res, ctx) => {
+  const { userId, text } = await req.json();
+  
+  // Check if conversation already exists
+  let conversation = conversations.find(
+    conv => conv.participants.some(p => p.id === userId)
+  );
+  
+  // Create a properly typed targetUser object
+  const targetUser = {
+    id: userId,
+    fullName: 'کاربر جدید',
+    role: 'user',
+    phoneNumber: '091234567' + userId,
+    image: null,
+    lastSeen: new Date().toISOString(),
+    isOnline: false,
+    cityTitle: 'کاربر'
+  };
+  
+  // Create new conversation if it doesn't exist
+  if (!conversation) {
+    conversation = {
+      id: (conversations.length + 1).toString(),
+      participants: [
+        {
+          id: '1',
+          fullName: 'محمد شادلو',
+          role: 'admin',
+          phoneNumber: '09334004040',
+          image: '/static/IMG-20240805-WA0098.jpg',
+          lastSeen: new Date().toISOString(),
+          isOnline: true,
+          cityTitle: 'ادمین شهر بجنورد'
+        },
+        targetUser
+      ],
+      messages: [],
+      lastMessage: null,
+      unreadCount: 0
+    };
+    conversations.push(conversation);
+  }
+  
+  // Create new message
+  const newMessage = {
+    id: (conversation.messages.length + 1).toString(),
+    senderId: '1',
+    receiverId: userId,
+    text,
+    timestamp: new Date().toISOString(),
+    status: 'sent',
+    isRead: false
+  };
+  
+  // Add to conversation
+  conversation.messages.push(newMessage);
+  
+  // Update last message
+  conversation.lastMessage = {
+    text,
+    timestamp: newMessage.timestamp,
+    senderId: '1'
+  };
+  
+  return res(
+    ctx.status(201),
+    ctx.json({
+      success: true,
+      data: {
+        conversation,
+        message: newMessage
+      }
+    })
+  );
+}),
+
+rest.delete('/api/admin/messages/:conversationId', (req, res, ctx) => {
+  const { conversationId } = req.params;
+  
+  const conversationIndex = conversations.findIndex(conv => conv.id === conversationId);
+  
+  if (conversationIndex === -1) {
+    return res(
+      ctx.status(404),
+      ctx.json({
+        success: false,
+        message: 'گفتگو یافت نشد'
+      })
+    );
+  }
+  
+  // Remove conversation
+  conversations.splice(conversationIndex, 1);
+  
+  return res(
+    ctx.status(200),
+    ctx.json({
+      success: true,
+      message: 'گفتگو با موفقیت حذف شد'
+    })
+  );
+})
