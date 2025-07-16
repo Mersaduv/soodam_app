@@ -38,78 +38,197 @@ type ConversationDetail = {
   messages: Message[]
 }
 
-// Add mock data directly in the component for fallback
-const MOCK_CONVERSATION_DETAILS = {
-  id: '1',
-  participants: [
-    {
-      id: '1',
-      fullName: 'ادمین',
-      role: 'admin',
-      phoneNumber: '09334004040',
-      image: null,
-      lastSeen: new Date().toISOString(),
-      isOnline: true,
-      cityTitle: 'ادمین شهر بجنورد',
-    },
-    {
-      id: '2',
-      fullName: 'محمد شادلو',
-      role: 'user',
-      phoneNumber: '09123456789',
-      image: null,
-      lastSeen: new Date(Date.now() - 30 * 60000).toISOString(),
-      isOnline: false,
-      cityTitle: 'ادمین شهر مشهد',
-    },
-  ],
-  messages: [
-    {
-      id: '1',
-      senderId: '2',
-      receiverId: '1',
-      text: 'سلام وقتتون بخیر، به مدیری بود. خواستم بپرسم درباره آگهی که به تازگی ثبت شده منطقه سجاد مشهد',
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      status: 'delivered',
-      isRead: true,
-    },
-    {
-      id: '2',
-      senderId: '1',
-      receiverId: '2',
-      text: 'سلام ادمین محترم!',
-      timestamp: new Date(Date.now() - 3500000).toISOString(),
-      status: 'delivered',
-      isRead: true,
-    },
-    {
-      id: '3',
-      senderId: '2',
-      receiverId: '1',
-      text: 'که اطلاعات مالک با مشخصات ارسال‌کننده نمی‌خونه. میشه کمک کنم تماس بگیرم یا مستقیم روش کنم؟',
-      timestamp: new Date(Date.now() - 3400000).toISOString(),
-      status: 'delivered',
-      isRead: true,
-    },
-    {
-      id: '4',
-      senderId: '1',
-      receiverId: '2',
-      text: 'اگر اطلاعات زیاد هست و مطمئن نیستی، حتما تماس بگیر. در صورت عدم پاسخ یا ابهام زیاد، روش کن و دلیل رو هم ذکر کن لطفا',
-      timestamp: new Date(Date.now() - 3300000).toISOString(),
-      status: 'delivered',
-      isRead: true,
-    },
-    {
-      id: '5',
-      senderId: '2',
-      receiverId: '1',
-      text: 'تشکر از همکاریتون.',
-      timestamp: new Date(Date.now() - 3200000).toISOString(),
-      status: 'delivered',
-      isRead: true,
-    },
-  ],
+// Create a map of mock conversation details for multiple IDs
+const MOCK_CONVERSATIONS_MAP: Record<string, ConversationDetail> = {
+  '1': {
+    id: '1',
+    participants: [
+      {
+        id: '1',
+        fullName: 'ادمین',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: null,
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد',
+      },
+      {
+        id: '2',
+        fullName: 'محمد شادلو',
+        role: 'user',
+        phoneNumber: '09123456789',
+        image: null,
+        lastSeen: new Date(Date.now() - 30 * 60000).toISOString(),
+        isOnline: false,
+        cityTitle: 'ادمین شهر مشهد',
+      },
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '2',
+        receiverId: '1',
+        text: 'سلام وقتتون بخیر، به مدیری بود. خواستم بپرسم درباره آگهی که به تازگی ثبت شده منطقه سجاد مشهد',
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '2',
+        senderId: '1',
+        receiverId: '2',
+        text: 'سلام ادمین محترم!',
+        timestamp: new Date(Date.now() - 3500000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '3',
+        senderId: '2',
+        receiverId: '1',
+        text: 'که اطلاعات مالک با مشخصات ارسال‌کننده نمی‌خونه. میشه کمک کنم تماس بگیرم یا مستقیم روش کنم؟',
+        timestamp: new Date(Date.now() - 3400000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '4',
+        senderId: '1',
+        receiverId: '2',
+        text: 'اگر اطلاعات زیاد هست و مطمئن نیستی، حتما تماس بگیر. در صورت عدم پاسخ یا ابهام زیاد، روش کن و دلیل رو هم ذکر کن لطفا',
+        timestamp: new Date(Date.now() - 3300000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '5',
+        senderId: '2',
+        receiverId: '1',
+        text: 'تشکر از همکاریتون.',
+        timestamp: new Date(Date.now() - 3200000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+    ],
+  },
+  '2': {
+    id: '2',
+    participants: [
+      {
+        id: '1',
+        fullName: 'ادمین',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: null,
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد',
+      },
+      {
+        id: '3',
+        fullName: 'علی حسینی',
+        role: 'user',
+        phoneNumber: '09371234567',
+        image: null,
+        lastSeen: new Date(Date.now() - 120 * 60000).toISOString(),
+        isOnline: false,
+        cityTitle: 'ادمین شهر تهران',
+      },
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '3',
+        receiverId: '1',
+        text: 'سلام، من میخواستم بپرسم چرا آگهی من هنوز تایید نشده؟',
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '2',
+        senderId: '1',
+        receiverId: '3',
+        text: 'سلام، آگهی شما در حال بررسی است. معمولا تا 24 ساعت طول میکشد.',
+        timestamp: new Date(Date.now() - 7100000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '3',
+        senderId: '3',
+        receiverId: '1',
+        text: 'ممنون از پاسخگویی شما. منتظر تایید میمونم.',
+        timestamp: new Date(Date.now() - 7000000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+    ],
+  },
+  '3': {
+    id: '3',
+    participants: [
+      {
+        id: '1',
+        fullName: 'ادمین',
+        role: 'admin',
+        phoneNumber: '09334004040',
+        image: null,
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر بجنورد',
+      },
+      {
+        id: '4',
+        fullName: 'زهرا کریمی',
+        role: 'user',
+        phoneNumber: '09185678901',
+        image: null,
+        lastSeen: new Date().toISOString(),
+        isOnline: true,
+        cityTitle: 'ادمین شهر شیراز',
+      },
+    ],
+    messages: [
+      {
+        id: '1',
+        senderId: '4',
+        receiverId: '1',
+        text: 'سلام، میخواستم بدونم چطور میتونم امکانات بیشتری برای آگهی خودم اضافه کنم؟',
+        timestamp: new Date(Date.now() - 5000000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '2',
+        senderId: '1',
+        receiverId: '4',
+        text: 'سلام، شما میتونید با ارتقا به پلن ویژه، امکانات بیشتری داشته باشید.',
+        timestamp: new Date(Date.now() - 4900000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '3',
+        senderId: '4',
+        receiverId: '1',
+        text: 'هزینه پلن ویژه چقدر است؟',
+        timestamp: new Date(Date.now() - 4800000).toISOString(),
+        status: 'delivered',
+        isRead: true,
+      },
+      {
+        id: '4',
+        senderId: '1',
+        receiverId: '4',
+        text: 'از بخش اشتراک ها میتونید مشاهده کنید. پلن های ماهانه از 50 هزار تومان شروع میشه.',
+        timestamp: new Date(Date.now() - 4700000).toISOString(),
+        status: 'delivered',
+        isRead: false,
+      },
+    ],
+  },
 }
 
 const ConversationDetailPage: NextPage = () => {
@@ -133,15 +252,15 @@ const ConversationDetailPage: NextPage = () => {
 
         if (data.success && data.data && data.data.conversation) {
           setConversationDetail(data.data.conversation)
-        } else if (id === '1') {
-          // Fallback to mock data if API failed for conversation 1
-          setConversationDetail(MOCK_CONVERSATION_DETAILS)
+        } else if (typeof id === 'string' && MOCK_CONVERSATIONS_MAP[id]) {
+          // Fallback to mock data if API failed and we have mock data for this ID
+          setConversationDetail(MOCK_CONVERSATIONS_MAP[id])
         }
       } catch (error) {
         console.error('Error fetching conversation detail:', error)
-        // Use mock conversation detail if API failed and ID is 1
-        if (id === '1') {
-          setConversationDetail(MOCK_CONVERSATION_DETAILS)
+        // Use mock conversation detail if API failed and we have mock data for this ID
+        if (typeof id === 'string' && MOCK_CONVERSATIONS_MAP[id]) {
+          setConversationDetail(MOCK_CONVERSATIONS_MAP[id])
         }
       } finally {
         setLoading(false)
@@ -150,8 +269,11 @@ const ConversationDetailPage: NextPage = () => {
 
     // Set a timeout to ensure we show something even if API is slow
     const timeoutId = setTimeout(() => {
-      if (loading && id === '1') {
-        setConversationDetail(MOCK_CONVERSATION_DETAILS)
+      if (loading && typeof id === 'string' && MOCK_CONVERSATIONS_MAP[id]) {
+        setConversationDetail(MOCK_CONVERSATIONS_MAP[id])
+        setLoading(false)
+      } else if (loading) {
+        // If we don't have mock data for this ID, stop loading
         setLoading(false)
       }
     }, 2000)
