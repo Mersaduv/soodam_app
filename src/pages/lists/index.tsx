@@ -104,7 +104,7 @@ const Lists: NextPage = () => {
   return (
     <>
       <ClientLayout title={`آگهی های مورد علاقه`}>
-        {favoritesData?.items.length > 0 ? (
+        {favoritesData?.items && favoritesData?.items.length > 0 ? (
           <main className="py-[87px] relative">
             <div className="px-4 space-y-4">
               {favoritesData &&

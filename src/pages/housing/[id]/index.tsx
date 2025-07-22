@@ -133,6 +133,7 @@ const SingleHousing: NextPage = () => {
   const { data: favoritesData } = useGetFavoritesQuery({})
   const [addFavorite, { isLoading: isAddingFavorite }] = useAddFavoriteMutation()
   const [viewAdvertisement] = useViewAdvertisementMutation()
+  const isSaved = favoritesData?.items && favoritesData?.items.length > 0 && favoritesData?.items.some((fav) => fav.id === housingData?.id)
 
   // برای نمایش محلی وضعیت علاقه‌مندی
   const [localIsSaved, setLocalIsSaved] = useState(isSaved)
@@ -225,7 +226,6 @@ const SingleHousing: NextPage = () => {
     }
   }, [idQuery, viewAdvertisement])
 
-  const isSaved = favoritesData?.items.some((fav) => fav.id === housingData?.id)
   if (isLoading) return <div>loading...</div>
   if (!housingData) return <div>not found</div>
 
