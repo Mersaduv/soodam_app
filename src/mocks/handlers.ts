@@ -10,6 +10,763 @@ const getRandomLocation = (baseLat: number, baseLng: number, offset: number) => 
   const randomLng = baseLng + (Math.random() - 0.5) * offset
   return { lat: parseFloat(randomLat.toFixed(6)), lng: parseFloat(randomLng.toFixed(6)) }
 }
+
+// تعریف موقعیت‌های جغرافیایی برای مناطق مختلف تهران
+const tehranLocations = [
+  { area: 'ونک', lat: 35.7551, lng: 51.4102 },
+  { area: 'تجریش', lat: 35.8059, lng: 51.4329 },
+  { area: 'جردن', lat: 35.7696, lng: 51.4194 },
+  { area: 'نیاوران', lat: 35.8231, lng: 51.4571 },
+  { area: 'پاسداران', lat: 35.7945, lng: 51.4627 },
+  { area: 'سعادت آباد', lat: 35.7853, lng: 51.3776 },
+  { area: 'شهرک غرب', lat: 35.7607, lng: 51.3571 },
+  { area: 'میدان آرژانتین', lat: 35.7561, lng: 51.4177 },
+];
+
+// ایجاد آگهی‌های مسکن جدید با موقعیت‌های واقعی تهران
+// ساختار برای ذخیره آگهی‌های مورد علاقه کاربران
+interface FavoriteItem {
+  userId: string;
+  adId: string;
+}
+
+// آرایه برای ذخیره آگهی‌های مورد علاقه
+const favoritesData: FavoriteItem[] = [
+  { userId: 'user-123', adId: '102' },
+  { userId: 'user-123', adId: '104' }
+];
+
+// تابع کمکی برای بررسی وجود آگهی در لیست علاقه‌مندی‌ها
+const isFavorite = (userId: string, adId: string): boolean => {
+  return favoritesData.some(item => item.userId === userId && item.adId === adId);
+};
+
+// تابع کمکی برای دریافت تمام آگهی‌های مورد علاقه یک کاربر
+const getUserFavorites = (userId: string): string[] => {
+  return favoritesData
+    .filter(item => item.userId === userId)
+    .map(item => item.adId);
+};
+
+const mockHousing = [
+  {
+    id: '101',
+    status: 2,
+    title: 'آپارتمان لوکس ۱۵۰ متری در ونک',
+    full_address: { 
+      latitude: tehranLocations[0].lat, 
+      longitude: tehranLocations[0].lng,
+      province: {
+        id: 1,
+        name: 'تهران'
+      },
+      city: {
+        id: 1,
+        name: 'تهران'
+      },
+      street: 'خیابان ملاصدرا',
+      address: 'تهران، ونک، خیابان ملاصدرا، کوچه شیراز'
+    },
+    highlight_attributes: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        icon: '/static/ads/Bed.png',
+        name: 'تعداد اتاق',
+        value: '3',
+      },
+      {
+        id: '2',
+        image: '/static/ads/grid-2.png',
+        icon: '/static/ads/grid-2.png',
+        name: 'متراژ',
+        value: '150',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        icon: '/static/ads/buliding.png',
+        name: 'سال ساخت',
+        value: '1401',
+      },
+    ],
+    attributes: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        key: 'text_room_count',
+        name: 'تعداد اتاق',
+        value: '3',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        key: 'text_parking',
+        name: 'پارکینگ',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        key: 'text_storage',
+        name: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '4',
+        image: '/static/ads/buliding.png',
+        key: 'text_elevator',
+        name: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '5',
+        image: '/static/ads/buliding.png',
+        key: 'text_facade',
+        name: 'نمای ساختمان',
+        value: 'سنگ و شیشه',
+      },
+      {
+        id: '6',
+        image: '/static/ads/grid-2.png',
+        key: 'text_selling_price',
+        name: 'قیمت',
+        value: '28000000000',
+      },
+    ],
+    price: {
+      deposit: 0,
+      rent: 0,
+      amount: 28000000000,
+      currency: 'IRT',
+      is_negotiable: false,
+      discount_amount: 0,
+      original_amount: 28000000000,
+      price_per_unit: 186666667,
+      unit: 'متر مربع'
+    },
+    category: {
+      id: '2-1',
+      name: 'فروش آپارتمان',
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    expiry_date: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+    primary_image: '/static/ads/pic1.jpg',
+    images: [
+      {
+        url: '/static/ads/pic1.jpg',
+        is_primary: true,
+        order: 1,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      },
+      {
+        url: '/static/ads/pic2.jpg',
+        is_primary: false,
+        order: 2,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      },
+      {
+        url: '/static/ads/pic3.jpg',
+        is_primary: false,
+        order: 3,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      }
+    ],
+    user: {
+      id: 'user-123',
+      phone_number: '09121234567',
+      full_name: 'علی رضایی',
+      user_type: 2
+    },
+    statistics: {
+      views: 45,
+      favorites: 12,
+      inquiries: 5,
+      shares: 3,
+      last_viewed_at: new Date().toISOString()
+    },
+    description: 'آپارتمان لوکس با نور و نقشه عالی، طبقه هشتم، دسترسی عالی به مترو و مراکز خرید',
+  },
+  {
+    id: '102',
+    status: 2,
+    title: 'آپارتمان ۲۰۰ متری در تجریش',
+    full_address: { 
+      latitude: tehranLocations[1].lat, 
+      longitude: tehranLocations[1].lng,
+      province: {
+        id: 1,
+        name: 'تهران'
+      },
+      city: {
+        id: 1,
+        name: 'تهران'
+      },
+      street: 'خیابان ولیعصر',
+      address: 'تهران، تجریش، خیابان ولیعصر، کوچه بهار'
+    },
+    highlight_attributes: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        icon: '/static/ads/Bed.png',
+        name: 'تعداد اتاق',
+        value: '4',
+      },
+      {
+        id: '2',
+        image: '/static/ads/grid-2.png',
+        icon: '/static/ads/grid-2.png',
+        name: 'متراژ',
+        value: '200',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        icon: '/static/ads/buliding.png',
+        name: 'سال ساخت',
+        value: '1399',
+      },
+    ],
+    attributes: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        key: 'text_room_count',
+        name: 'تعداد اتاق',
+        value: '4',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        key: 'text_parking',
+        name: 'پارکینگ',
+        value: 'دارد - دو پارکینگ',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        key: 'text_storage',
+        name: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '4',
+        image: '/static/ads/buliding.png',
+        key: 'text_elevator',
+        name: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '5',
+        image: '/static/ads/buliding.png',
+        key: 'text_pool',
+        name: 'استخر',
+        value: 'دارد',
+      },
+      {
+        id: '6',
+        image: '/static/ads/buliding.png',
+        key: 'text_sauna',
+        name: 'سونا',
+        value: 'دارد',
+      },
+      {
+        id: '7',
+        image: '/static/ads/grid-2.png',
+        key: 'text_selling_price',
+        name: 'قیمت',
+        value: '35000000000',
+      },
+    ],
+    price: {
+      deposit: 0,
+      rent: 0,
+      amount: 35000000000,
+      currency: 'IRT',
+      is_negotiable: false,
+      discount_amount: 0,
+      original_amount: 35000000000,
+      price_per_unit: 175000000,
+      unit: 'متر مربع'
+    },
+    category: {
+      id: '2-1',
+      name: 'فروش آپارتمان',
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    expiry_date: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+    primary_image: '/static/ads/pic2.jpg',
+    images: [
+      {
+        url: '/static/ads/pic2.jpg',
+        is_primary: true,
+        order: 1,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      },
+      {
+        url: '/static/ads/pic3.jpg',
+        is_primary: false,
+        order: 2,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      },
+      {
+        url: '/static/ads/pic4.jpg',
+        is_primary: false,
+        order: 3,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      }
+    ],
+    user: {
+      id: 'user-123',
+      phone_number: '09121234567',
+      full_name: 'علی رضایی',
+      user_type: 2
+    },
+    statistics: {
+      views: 32,
+      favorites: 8,
+      inquiries: 3,
+      shares: 2,
+      last_viewed_at: new Date().toISOString()
+    },
+    description: 'آپارتمان لوکس در منطقه تجریش با دید عالی به شهر، دارای استخر و سونا',
+  },
+  {
+    id: '103',
+    status: 2,
+    title: 'آپارتمان ۸۵ متری در نیاوران',
+    full_address: { 
+      latitude: tehranLocations[2].lat, 
+      longitude: tehranLocations[2].lng,
+      province: {
+        id: 1,
+        name: 'تهران'
+      },
+      city: {
+        id: 1,
+        name: 'تهران'
+      },
+      street: 'خیابان نیاوران',
+      address: 'تهران، نیاوران، خیابان جماران، کوچه یاس'
+    },
+    highlight_attributes: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        icon: '/static/ads/Bed.png',
+        name: 'تعداد اتاق',
+        value: '2',
+      },
+      {
+        id: '2',
+        image: '/static/ads/grid-2.png',
+        icon: '/static/ads/grid-2.png',
+        name: 'متراژ',
+        value: '85',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        icon: '/static/ads/buliding.png',
+        name: 'سال ساخت',
+        value: '1395',
+      },
+    ],
+    attributes: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        key: 'text_room_count',
+        name: 'تعداد اتاق',
+        value: '2',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        key: 'text_parking',
+        name: 'پارکینگ',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        key: 'text_storage',
+        name: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '4',
+        image: '/static/ads/buliding.png',
+        key: 'text_elevator',
+        name: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '5',
+        image: '/static/ads/grid-2.png',
+        key: 'text_mortgage_deposit',
+        name: 'رهن',
+        value: '400000000',
+      },
+      {
+        id: '6',
+        image: '/static/ads/grid-2.png',
+        key: 'text_monthly_rent',
+        name: 'اجاره',
+        value: '15000000',
+      },
+    ],
+    price: {
+      deposit: 400000000,
+      rent: 15000000,
+      amount: 0,
+      currency: 'IRT',
+      is_negotiable: true,
+      discount_amount: 0,
+      original_amount: 0,
+      price_per_unit: 0,
+      unit: 'متر مربع'
+    },
+    category: {
+      id: '1-2',
+      name: 'رهن و اجاره آپارتمان',
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    expiry_date: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+    primary_image: '/static/ads/pic3.jpg',
+    images: [
+      {
+        url: '/static/ads/pic3.jpg',
+        is_primary: true,
+        order: 1,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      },
+      {
+        url: '/static/ads/pic4.jpg',
+        is_primary: false,
+        order: 2,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      }
+    ],
+    user: {
+      id: 'user-456',
+      phone_number: '09129876543',
+      full_name: 'رضا محمدی',
+      user_type: 2
+    },
+    statistics: {
+      views: 27,
+      favorites: 5,
+      inquiries: 4,
+      shares: 1,
+      last_viewed_at: new Date().toISOString()
+    },
+    description: 'آپارتمان شیک و نوساز در منطقه نیاوران، نزدیک به پارک و مراکز خرید',
+  },
+  {
+    id: '104',
+    status: 2,
+    title: 'آپارتمان دوبلکس ۲۵۰ متری در زعفرانیه',
+    full_address: { 
+      latitude: tehranLocations[3].lat, 
+      longitude: tehranLocations[3].lng,
+      province: {
+        id: 1,
+        name: 'تهران'
+      },
+      city: {
+        id: 1,
+        name: 'تهران'
+      },
+      street: 'خیابان زعفرانیه',
+      address: 'تهران، زعفرانیه، خیابان مقدس اردبیلی، کوچه آرش'
+    },
+    highlight_attributes: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        icon: '/static/ads/Bed.png',
+        name: 'تعداد اتاق',
+        value: '5',
+      },
+      {
+        id: '2',
+        image: '/static/ads/grid-2.png',
+        icon: '/static/ads/grid-2.png',
+        name: 'متراژ',
+        value: '250',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        icon: '/static/ads/buliding.png',
+        name: 'سال ساخت',
+        value: '1402',
+      },
+    ],
+    attributes: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        key: 'text_room_count',
+        name: 'تعداد اتاق',
+        value: '5',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        key: 'text_parking',
+        name: 'پارکینگ',
+        value: 'دارد - سه پارکینگ',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        key: 'text_storage',
+        name: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '4',
+        image: '/static/ads/buliding.png',
+        key: 'text_elevator',
+        name: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '5',
+        image: '/static/ads/buliding.png',
+        key: 'text_jacuzzi',
+        name: 'جکوزی',
+        value: 'دارد',
+      },
+      {
+        id: '6',
+        image: '/static/ads/grid-2.png',
+        key: 'text_selling_price',
+        name: 'قیمت',
+        value: '75000000000',
+      },
+    ],
+    price: {
+      deposit: 0,
+      rent: 0,
+      amount: 75000000000,
+      currency: 'IRT',
+      is_negotiable: false,
+      discount_amount: 0,
+      original_amount: 75000000000,
+      price_per_unit: 300000000,
+      unit: 'متر مربع'
+    },
+    category: {
+      id: '2-1',
+      name: 'فروش آپارتمان',
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    expiry_date: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+    primary_image: '/static/ads/pic4.jpg',
+    images: [
+      {
+        url: '/static/ads/pic4.jpg',
+        is_primary: true,
+        order: 1,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      },
+      {
+        url: '/static/ads/pic5.jpg',
+        is_primary: false,
+        order: 2,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      },
+      {
+        url: '/static/ads/pic1.jpg',
+        is_primary: false,
+        order: 3,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      }
+    ],
+    user: {
+      id: 'user-789',
+      phone_number: '09123456789',
+      full_name: 'محمد حسینی',
+      user_type: 3
+    },
+    statistics: {
+      views: 65,
+      favorites: 20,
+      inquiries: 12,
+      shares: 8,
+      last_viewed_at: new Date().toISOString()
+    },
+    description: 'آپارتمان لوکس دوبلکس در بهترین منطقه زعفرانیه، با چشم‌انداز عالی و امکانات رفاهی کامل',
+  },
+  {
+    id: '105',
+    status: 2,
+    title: 'آپارتمان ۱۲۰ متری در پاسداران',
+    full_address: { 
+      latitude: tehranLocations[4].lat, 
+      longitude: tehranLocations[4].lng,
+      province: {
+        id: 1,
+        name: 'تهران'
+      },
+      city: {
+        id: 1,
+        name: 'تهران'
+      },
+      street: 'خیابان پاسداران',
+      address: 'تهران، پاسداران، بوستان پنجم، پلاک ۱۵'
+    },
+    highlight_attributes: [
+      {
+        id: '1',
+        image: '/static/ads/Bed.png',
+        icon: '/static/ads/Bed.png',
+        name: 'تعداد اتاق',
+        value: '3',
+      },
+      {
+        id: '2',
+        image: '/static/ads/grid-2.png',
+        icon: '/static/ads/grid-2.png',
+        name: 'متراژ',
+        value: '120',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        icon: '/static/ads/buliding.png',
+        name: 'سال ساخت',
+        value: '1398',
+      },
+    ],
+    attributes: [
+      {
+        id: '1',
+        image: '/static/ads/buliding.png',
+        key: 'text_room_count',
+        name: 'تعداد اتاق',
+        value: '3',
+      },
+      {
+        id: '2',
+        image: '/static/ads/buliding.png',
+        key: 'text_parking',
+        name: 'پارکینگ',
+        value: 'دارد',
+      },
+      {
+        id: '3',
+        image: '/static/ads/buliding.png',
+        key: 'text_storage',
+        name: 'انباری',
+        value: 'دارد',
+      },
+      {
+        id: '4',
+        image: '/static/ads/buliding.png',
+        key: 'text_elevator',
+        name: 'آسانسور',
+        value: 'دارد',
+      },
+      {
+        id: '5',
+        image: '/static/ads/grid-2.png',
+        key: 'text_mortgage_deposit',
+        name: 'رهن',
+        value: '500000000',
+      },
+      {
+        id: '6',
+        image: '/static/ads/grid-2.png',
+        key: 'text_monthly_rent',
+        name: 'اجاره',
+        value: '25000000',
+      },
+    ],
+    price: {
+      deposit: 500000000,
+      rent: 25000000,
+      amount: 0,
+      currency: 'IRT',
+      is_negotiable: true,
+      discount_amount: 0,
+      original_amount: 0,
+      price_per_unit: 0,
+      unit: 'متر مربع'
+    },
+    category: {
+      id: '1-2',
+      name: 'رهن و اجاره آپارتمان',
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    expiry_date: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+    primary_image: '/static/ads/pic5.jpg',
+    images: [
+      {
+        url: '/static/ads/pic5.jpg',
+        is_primary: true,
+        order: 1,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      },
+      {
+        url: '/static/ads/pic1.jpg',
+        is_primary: false,
+        order: 2,
+        width: 800,
+        height: 600,
+        alt_text: 'تصویر آپارتمان'
+      }
+    ],
+    user: {
+      id: 'user-123',
+      phone_number: '09121234567',
+      full_name: 'علی رضایی',
+      user_type: 2
+    },
+    statistics: {
+      views: 38,
+      favorites: 10,
+      inquiries: 7,
+      shares: 2,
+      last_viewed_at: new Date().toISOString()
+    },
+    description: 'آپارتمان شیک با نورگیری عالی در منطقه پاسداران، دسترسی عالی به مترو و مراکز خرید',
+  },
+];
+
 function normalizePersian(str: string): string {
   return str
     .replace(/ي/g, 'ی')
@@ -2427,18 +3184,30 @@ export const handlers = [
   }),
 
   rest.get('/api/advertisements/nearby', (req, res, ctx) => {
-    const longitude = req.url.searchParams.get('longitude')
-    const latitude = req.url.searchParams.get('latitude')
-    const radius = req.url.searchParams.get('radius')
+    const longitude = parseFloat(req.url.searchParams.get('longitude') || '51.41')
+    const latitude = parseFloat(req.url.searchParams.get('latitude') || '35.75')
+    const radius = parseFloat(req.url.searchParams.get('radius') || '5')
     
-    // Return some mock nearby advertisements
+    // Filter advertisements based on location and radius
+    const nearbyAds = mockHousing.map(ad => {
+      // Calculate distance from requested coordinates
+      const distanceKm = Math.sqrt(
+        Math.pow((ad.full_address.latitude - latitude) * 111, 2) + 
+        Math.pow((ad.full_address.longitude - longitude) * 85, 2)
+      )
+      
+      return {
+        ...ad,
+        distance: parseFloat(distanceKm.toFixed(1))
+      }
+    }).filter(ad => ad.distance <= radius)
+    
     return res(
       ctx.status(200),
       ctx.json({
-        data: housing.slice(0, 3).map(h => ({
-          ...h,
-          distance: Math.floor(Math.random() * 100) / 10, // Random distance in km
-        })),
+        success: true,
+        items: nearbyAds,
+        total: nearbyAds.length
       })
     )
   }),
@@ -2457,6 +3226,302 @@ export const handlers = [
           status: 'ACTIVE',
           viewedProperties: [],
         }
+      })
+    )
+  }),
+
+  // Handler for advertisements list
+  rest.get('/api/advertisements', (req, res, ctx) => {
+    const page = parseInt(req.url.searchParams.get('page') || '1')
+    const limit = parseInt(req.url.searchParams.get('limit') || '10')
+    const categoryId = req.url.searchParams.get('categoryId')
+    const userId = 'user-123' // استفاده از کاربر پیش‌فرض
+    
+    // Filter by category if provided
+    let filteredAds = mockHousing
+    if (categoryId) {
+      filteredAds = mockHousing.filter(ad => ad.category.id === categoryId)
+    }
+    
+    // Paginate results
+    const startIndex = (page - 1) * limit
+    const endIndex = page * limit
+    const paginatedAds = filteredAds.slice(startIndex, endIndex)
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        items: paginatedAds.map(ad => ({
+          ...ad,
+          isFavorite: isFavorite(userId, ad.id)
+        })),
+        total: filteredAds.length,
+        page,
+        limit,
+        totalPages: Math.ceil(filteredAds.length / limit)
+      })
+    )
+  }),
+  
+  // Handler for advertisement details
+  rest.get('/api/advertisements/:id', (req, res, ctx) => {
+    const { id } = req.params
+    const ad = mockHousing.find(ad => ad.id === id)
+    const userId = 'user-123' // استفاده از کاربر پیش‌فرض
+    
+    if (!ad) {
+      return res(
+        ctx.status(404),
+        ctx.json({
+          success: false,
+          message: 'آگهی یافت نشد'
+        })
+      )
+    }
+    
+    // برای اطمینان از اینکه تمام فیلدهای مورد نیاز وجود دارند
+    const enhancedAd = {
+      ...ad,
+      isFavorite: isFavorite(userId, ad.id),
+      // اطمینان از وجود فیلدهای ضروری
+      statistics: {
+        views: ad.statistics?.views || 0,
+        favorites: ad.statistics?.favorites || 0,
+        inquiries: ad.statistics?.inquiries || 0,
+        shares: ad.statistics?.shares || 0,
+        last_viewed_at: ad.statistics?.last_viewed_at || new Date().toISOString()
+      },
+      contact_info: {
+        phone_number: ad.user?.phone_number || ''
+      },
+      user: {
+        ...ad.user,
+        id: ad.user?.id || 'user-123',
+        phone_number: ad.user?.phone_number || '09123456789',
+        full_name: ad.user?.full_name || 'کاربر سودم',
+        user_type: ad.user?.user_type || 2
+      }
+    }
+    
+    return res(
+      ctx.status(200),
+      ctx.json(enhancedAd)
+    )
+  }),
+  
+  // Handler for my advertisements
+  rest.post('/api/advertisements/my_adv', (req, res, ctx) => {
+    // Return first 3 advertisements as user's ads
+    const userAds = mockHousing.slice(0, 3)
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        items: userAds,
+        total: userAds.length
+      })
+    )
+  }),
+  
+  // Handler for advertisement features by category
+  rest.post('/api/advertisements/features', async (req, res, ctx) => {
+    // Extract category info from request body
+    const body = await req.json()
+    const { sub_category_id, sub_category_level_two_id } = body
+    
+    // Return filtered features based on category
+    const filteredFeatures = features.slice(0, 15) // Use first 15 features
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        features: filteredFeatures
+      })
+    )
+  }),
+  
+  // Handler for categories
+  rest.get('/api/categories', (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        data: categories
+      })
+    )
+  }),
+  
+  // Handler for advertisements by geolocation
+  rest.get('/api/advertisements/by-geolocation', (req, res, ctx) => {
+    const longitudeStr = req.url.searchParams.get('longitude') || '51.41'
+    const latitudeStr = req.url.searchParams.get('latitude') || '35.75'
+    const radiusStr = req.url.searchParams.get('radius') || '5'
+    
+    const longitude = parseFloat(longitudeStr)
+    const latitude = parseFloat(latitudeStr)
+    const radius = parseFloat(radiusStr)
+    
+    const userId = 'user-123' // استفاده از کاربر پیش‌فرض
+    
+    // Filter advertisements based on location and radius
+    const geoAds = mockHousing.map(ad => {
+      const distanceKm = Math.sqrt(
+        Math.pow((ad.full_address.latitude - latitude) * 111, 2) + 
+        Math.pow((ad.full_address.longitude - longitude) * 85, 2)
+      )
+      
+      return {
+        ...ad,
+        distance: parseFloat(distanceKm.toFixed(1)),
+        isFavorite: isFavorite(userId, ad.id)
+      }
+    }).filter(ad => ad.distance <= radius)
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        data: geoAds,
+        total: geoAds.length
+      })
+    )
+  }),
+  
+  // Handler for advertisement view increment
+  rest.post('/api/advertisements/:id/view', (req, res, ctx) => {
+    const { id } = req.params
+    const ad = mockHousing.find(ad => ad.id === id)
+    
+    if (ad && ad.statistics) {
+      ad.statistics.views += 1
+    }
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        message: 'بازدید با موفقیت ثبت شد'
+      })
+    )
+  }),
+  
+  // Handler for getting user's favorite advertisements
+  rest.get('/api/advertisements/favorites', (req, res, ctx) => {
+    // استفاده از کاربر پیش‌فرض
+    const userId = 'user-123'
+    
+    // دریافت آیدی آگهی‌های مورد علاقه کاربر
+    const favoriteAdIds = getUserFavorites(userId)
+    
+    // دریافت آگهی‌های مورد علاقه کاربر
+    const favoriteAds = mockHousing.filter(ad => favoriteAdIds.includes(ad.id))
+    
+    // پارامترهای صفحه‌بندی
+    const page = parseInt(req.url.searchParams.get('page') || '1')
+    const limit = parseInt(req.url.searchParams.get('limit') || '10')
+    
+    // صفحه‌بندی نتایج
+    const startIndex = (page - 1) * limit
+    const endIndex = page * limit
+    const paginatedAds = favoriteAds.slice(startIndex, endIndex)
+    
+    // پاسخ API به شکل مورد انتظار کامپوننت (items در سطح اول)
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        items: paginatedAds.map(ad => ({
+          ...ad,
+          isFavorite: true // همه آگهی‌ها در این لیست مورد علاقه هستند
+        })),
+        total: favoriteAds.length,
+        page,
+        limit,
+        totalPages: Math.ceil(favoriteAds.length / limit)
+      })
+    )
+  }),
+  
+  // Handler for adding advertisement to favorites (toggle functionality)
+  rest.post('/api/advertisements/:id/favorite', (req, res, ctx) => {
+    const { id } = req.params
+    const userId = 'user-123' // استفاده از کاربر پیش‌فرض
+    
+    // بررسی وجود آگهی
+    const ad = mockHousing.find(ad => ad.id === id)
+    if (!ad) {
+      return res(
+        ctx.status(404),
+        ctx.json({
+          success: false,
+          message: 'آگهی یافت نشد'
+        })
+      )
+    }
+    
+    let message = '';
+    let action = '';
+    
+    // رفتار toggle: اگر در علاقه‌مندی‌ها باشد، حذف کن؛ در غیر این صورت اضافه کن
+    if (isFavorite(userId, id as string)) {
+      // حذف از لیست علاقه‌مندی‌ها
+      const index = favoritesData.findIndex(item => item.userId === userId && item.adId === id as string);
+      if (index !== -1) {
+        favoritesData.splice(index, 1);
+      }
+      message = 'آگهی از لیست علاقه‌مندی‌ها حذف شد';
+      action = 'remove';
+    } else {
+      // اضافه کردن به لیست علاقه‌مندی‌ها
+      favoritesData.push({ userId, adId: id as string });
+      message = 'آگهی به لیست علاقه‌مندی‌ها اضافه شد';
+      action = 'add';
+    }
+    
+    // بروزرسانی آمار علاقه‌مندی‌ها در صورت وجود
+    if (ad.statistics) {
+      ad.statistics.favorites = action === 'add' ? 
+        (ad.statistics.favorites || 0) + 1 : 
+        Math.max((ad.statistics.favorites || 0) - 1, 0);
+    }
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        message: message,
+        isFavorite: action === 'add',
+        action: action
+      })
+    )
+  }),
+  
+  // همان عملکرد را در هندلر اضافه کردن با رفتار toggle پیاده‌سازی کردیم
+  // برای حفظ سازگاری با API، این هندلر را نگه می‌داریم اما همان عملکرد قبلی را اجرا می‌کند
+  rest.delete('/api/advertisements/:id/favorite', (req, res, ctx) => {
+    const { id } = req.params
+    const userId = 'user-123' // استفاده از کاربر پیش‌فرض
+    
+    // حذف از لیست علاقه‌مندی‌ها
+    const index = favoritesData.findIndex(item => item.userId === userId && item.adId === id)
+    if (index !== -1) {
+      favoritesData.splice(index, 1)
+    }
+    
+    // بروزرسانی آمار علاقه‌مندی‌ها
+    const ad = mockHousing.find(ad => ad.id === id)
+    if (ad && ad.statistics) {
+      ad.statistics.favorites = Math.max((ad.statistics.favorites || 0) - 1, 0)
+    }
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        message: 'آگهی از لیست علاقه‌مندی‌ها حذف شد',
+        isFavorite: false,
+        action: 'remove'
       })
     )
   }),

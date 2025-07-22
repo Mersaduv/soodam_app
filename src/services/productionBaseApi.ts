@@ -115,9 +115,10 @@ const productionApiSlice = createApi({
                 type: 'Housing' as const,
                 id,
               })),
+              { type: 'Housing', id: 'LIST' },
               'Housing',
             ]
-          : ['Housing'],
+          : [{ type: 'Housing', id: 'LIST' }, 'Housing'],
     }),
 
     getFavorites: builder.query<any, QueryParams>({
@@ -138,9 +139,10 @@ const productionApiSlice = createApi({
                 type: 'Housing' as const,
                 id,
               })),
+              { type: 'Housing', id: 'FAVORITES' },
               'Housing',
             ]
-          : ['Housing'],
+          : [{ type: 'Housing', id: 'FAVORITES' }, 'Housing'],
     }),
 
     addFavorite: builder.mutation<any, IdQuery>({
@@ -151,7 +153,11 @@ const productionApiSlice = createApi({
           Authorization: `Bearer ${getToken()}`,
         },
       }),
-      invalidatesTags: ['Housing'],
+      invalidatesTags: (result) => [
+        'Housing',
+        { type: 'Housing', id: 'LIST' },
+        { type: 'Housing', id: 'FAVORITES' }
+      ],
     }),
 
     viewAdvertisement: builder.mutation<any, IdQuery>({

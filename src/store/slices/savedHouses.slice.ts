@@ -74,15 +74,27 @@ const savedHousesSlice = createSlice({
     builder.addMatcher(
       productionApiSlice.endpoints.addFavorite.matchFulfilled,
       (state, { payload, meta }) => {
-        // Añadir el ID a la lista si la operación fue exitosa
+        // Añadir el ID a la lista si la operación fue exitosa y responde con action/isFavorite
         if (payload && meta.arg.originalArgs && meta.arg.originalArgs.id) {
           const id = meta.arg.originalArgs.id;
-          if (!state.apiFavorites.includes(id)) {
-            state.apiFavorites.push(id);
-          } else {
-            // Si ya existe, lo quitamos (toggle)
+          
+          // اگر پاسخ API دارای فیلد action یا isFavorite باشد، بر اساس آن عمل می‌کنیم
+          if (payload.action === 'add' || payload.isFavorite === true) {
+            if (!state.apiFavorites.includes(id)) {
+              state.apiFavorites.push(id);
+            }
+          } else if (payload.action === 'remove' || payload.isFavorite === false) {
             state.apiFavorites = state.apiFavorites.filter(itemId => itemId !== id);
+          } else {
+            // اگر پاسخ API اطلاعات کافی نداشت، رفتار toggle را انجام می‌دهیم
+            if (!state.apiFavorites.includes(id)) {
+              state.apiFavorites.push(id);
+            } else {
+              state.apiFavorites = state.apiFavorites.filter(itemId => itemId !== id);
+            }
           }
+          
+          console.log("Updated apiFavorites:", state.apiFavorites);
         }
       }
     );

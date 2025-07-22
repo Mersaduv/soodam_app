@@ -6,6 +6,7 @@ import { Housing } from '@/types'
 import { formatPriceLoc, getProvinceFromCoordinates, NEXT_PUBLIC_API_URL } from '@/utils'
 import jalaali from 'jalaali-js'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 
 interface Props {
   isSaved?: boolean
@@ -99,10 +100,42 @@ const HousingCard: React.FC<Props> = (props) => {
     return diffInDays <= 7
   })()
 
-  const handleSaveClick = (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
+  // استفاده از وضعیت علاقه‌مندی‌ها از Redux
+  const { apiFavorites } = useAppSelector(state => state.saveHouse)
+  
+  // اگر isSaved از بیرون تعیین نشده، از apiFavorites استفاده کنیم
+  const effectiveIsSaved = isSaved !== undefined ? isSaved : apiFavorites.includes(housing.id)
+  
+  // State برای نمایش آنی تغییرات
+  const [localIsSaved, setLocalIsSaved] = useState(effectiveIsSaved)
+  
+  // به روز کردن localIsSaved هر بار که effectiveIsSaved تغییر می‌کند
+  useEffect(() => {
+    setLocalIsSaved(effectiveIsSaved)
+  }, [effectiveIsSaved, housing.id, apiFavorites])
+
+  const handleSaveClick = async (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
     event.preventDefault()
     event.stopPropagation()
-    addFavorite({ id: housing.id })
+    
+    // ابتدا وضعیت محلی را تغییر می‌دهیم (برای تجربه کاربری بهتر)
+    setLocalIsSaved(!localIsSaved)
+    
+    try {
+      // فراخوانی API
+      const response = await addFavorite({ id: housing.id }).unwrap()
+      console.log('پاسخ API علاقه‌مندی:', response)
+      
+      // اگر پاسخ API متفاوت از انتظار بود، وضعیت محلی را به حالت قبل برمی‌گردانیم
+      if ((response.action === 'add' && !localIsSaved) || 
+          (response.action === 'remove' && localIsSaved)) {
+        setLocalIsSaved(!localIsSaved)
+      }
+    } catch (error) {
+      console.error('خطا در به‌روزرسانی علاقه‌مندی:', error)
+      // وضعیت محلی را به حالت قبل برمی‌گردانیم
+      setLocalIsSaved(!localIsSaved)
+    }
   }
 
   console.log(isSaved, 'isSaved');
@@ -281,7 +314,7 @@ const HousingCard: React.FC<Props> = (props) => {
                 <div
                   id="saveHouse"
                   className={`border-[1.5px] p-2 pt-[9.5px] rounded-full flex-center ${
-                    isSaved ? 'text-[#D52133] border-[#D52133]' : 'text-white'
+                    localIsSaved ? 'text-[#D52133] border-[#D52133]' : 'text-white'
                   }`}
                   onClick={(event) => handleSaveClick(event, housing)}
                 >

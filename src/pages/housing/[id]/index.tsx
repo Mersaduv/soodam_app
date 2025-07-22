@@ -134,10 +134,36 @@ const SingleHousing: NextPage = () => {
   const [addFavorite, { isLoading: isAddingFavorite }] = useAddFavoriteMutation()
   const [viewAdvertisement] = useViewAdvertisementMutation()
 
-  const handleSaveClick = (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
+  // برای نمایش محلی وضعیت علاقه‌مندی
+  const [localIsSaved, setLocalIsSaved] = useState(isSaved)
+  
+  // به روزرسانی وضعیت محلی هر وقت isSaved تغییر می‌کند
+  useEffect(() => {
+    setLocalIsSaved(isSaved)
+  }, [isSaved])
+
+  const handleSaveClick = async (event: React.MouseEvent<HTMLDivElement>, housing: Housing) => {
     event.preventDefault()
     event.stopPropagation()
-    addFavorite({ id: housing.id })
+    
+    // ابتدا وضعیت محلی را تغییر می‌دهیم برای تجربه کاربری بهتر
+    setLocalIsSaved(!localIsSaved)
+    
+    try {
+      // فراخوانی API
+      const response = await addFavorite({ id: housing.id }).unwrap()
+      console.log('پاسخ API علاقه‌مندی:', response)
+      
+      // اگر پاسخ API متفاوت از انتظار بود، وضعیت محلی را به حالت قبل برمی‌گردانیم
+      if ((response.action === 'add' && !localIsSaved) || 
+          (response.action === 'remove' && localIsSaved)) {
+        setLocalIsSaved(!localIsSaved)
+      }
+    } catch (error) {
+      console.error('خطا در به‌روزرسانی علاقه‌مندی:', error)
+      // وضعیت محلی را به حالت قبل برمی‌گردانیم
+      setLocalIsSaved(!localIsSaved)
+    }
   }
 
   // useEffect(() => {
@@ -226,7 +252,7 @@ const SingleHousing: NextPage = () => {
                 <div className="flex gap-4">
                   <div
                     id="saveHouse"
-                    className={`rounded-full cursor-pointer flex-center ${isSaved ? 'text-[#D52133]' : 'text-white'}`}
+                    className={`rounded-full cursor-pointer flex-center ${localIsSaved ? 'text-[#D52133]' : 'text-white'}`}
                     onClick={(event) => handleSaveClick(event, housingData)}
                   >
                     {isAddingFavorite ? (

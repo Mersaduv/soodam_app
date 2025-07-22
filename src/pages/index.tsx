@@ -156,7 +156,7 @@ export default function Home() {
             {housingData?.items && housingData.items.length > 0 && (
               <section className="flex flex-wrap justify-center gap-3">
                 {housingData.items.map((item) => (
-                  <HousingCard isSaved={favoritesData?.items.some(fav => fav.id === item.id)} housing={item} key={item.id} onCardClick={handleHousingCardClick} />
+                  <HousingCard isSaved={favoritesData?.items && favoritesData?.items.length > 0 && favoritesData?.items.some(fav => fav.id === item.id)} housing={item} key={item.id} onCardClick={handleHousingCardClick} />
                 ))}
               </section>
             )}
