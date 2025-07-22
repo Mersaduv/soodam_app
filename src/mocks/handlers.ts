@@ -985,137 +985,6 @@ const housing = [
     description: ' آسانسور، سندتکبرگ، وام دار',
   },
   {
-    id: '6',
-    status: 2,
-    title: 'محدوده ولنجک، بلوار ',
-    location: getRandomLocation(35.75, 51.41, 0.02),
-    highlightFeatures: [
-      {
-        id: '1',
-        image: '/static/ads/Bed.png',
-        title: 'تعداد اتاق',
-        value: '1',
-      },
-      {
-        id: '2',
-        image: '/static/ads/grid-2.png',
-        title: 'متراژ',
-        value: '100',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'سال ساخت',
-        value: '1379',
-      },
-    ],
-    features: [
-      {
-        id: '1',
-        image: '/static/ads/buliding.png',
-        title: 'تعداد اتاق',
-        value: '2',
-      },
-      {
-        id: '2',
-        image: '/static/ads/buliding.png',
-        title: 'پارکینگ',
-        value: 'دارد',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'انباری',
-        value: 'دارد',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'آسانسور',
-        value: 'دارد',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'نمای ساختمان',
-        value: 'سنگ',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'سال ساخت',
-        value: '1366',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'استخر',
-        value: 'دارد',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'سونا',
-        value: 'دارد',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'سیستم گرمایش:',
-        value: 'دارد',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'وان و جکوزی',
-        value: 'دارد',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'موقعیت جغرافیایی',
-        value: 'شمالی',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'بالکن',
-        value: 'دارد',
-      },
-      {
-        id: '3',
-        image: '/static/ads/buliding.png',
-        title: 'تعداد کل طبقات ساختمان',
-        value: '4',
-      },
-    ],
-    deposit: 0,
-    rent: 0,
-    price: 1400000000,
-    ownerProfitPercentage: 0,
-    producerProfitPercentage: 0,
-    capacity: 0,
-    extraPeople: 0,
-    rentalTerm: null,
-    address: 'تهران، ونک،خیابان 33',
-    categoryId: '2-1',
-    category: 'فروش آپارتمان',
-    created: new Date().toISOString(),
-    updated: new Date().toISOString(),
-    adCode: 'A10002',
-    images: [
-      '/static/ads/pic1.jpg',
-      '/static/ads/pic2.jpg',
-      '/static/ads/pic3.jpg',
-      '/static/ads/pic4.jpg',
-      '/static/ads/pic5.jpg',
-    ],
-    views: 21,
-    save: 0,
-    contactOwner: '09334003030',
-    description: ' آسانسور، سندتکبرگ، وام دار',
-  },
-  {
     id: '7',
     status: 3,
     title: 'دعوت از سازنده جهت مشارکت در ساخت فاز8پردیس ',
@@ -2275,6 +2144,246 @@ export const adminHandlers = [
 ];
 
 export const handlers = [
+  // Authentication handlers
+  rest.post('/api/auth/get_ver_code', async (req, res, ctx) => {
+    const { phone_number } = await req.json()
+
+    // Check if phone number is valid
+    if (!/^09[0-9]{9}$/.test(phone_number)) {
+      return res(
+        ctx.status(400),
+        ctx.json({ 
+          success: false,
+          message: 'شماره موبایل نامعتبر است'
+        })
+      )
+    }
+
+    // Generate a 6-digit verification code
+    const randomCode = Math.floor(100000 + Math.random() * 900000).toString()
+    verificationCodes.set(phone_number, randomCode)
+
+    // Return success response
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        message: 'کد تایید ارسال شد',
+        code: randomCode
+      })
+    )
+  }),
+
+  rest.post('/api/auth/see_ver_code', async (req, res, ctx) => {
+    const { phone_number } = await req.json()
+
+    // Check if phone number is valid
+    if (!/^09[0-9]{9}$/.test(phone_number)) {
+      return res(
+        ctx.status(400),
+        ctx.json({ 
+          success: false,
+          message: 'شماره موبایل نامعتبر است'
+        })
+      )
+    }
+
+    // Get the stored verification code
+    const code = verificationCodes.get(phone_number) || Math.floor(100000 + Math.random() * 900000).toString()
+    verificationCodes.set(phone_number, code)
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        message: 'کد تایید بازیابی شد',
+        code
+      })
+    )
+  }),
+
+  rest.post('/api/auth/verify', async (req, res, ctx) => {
+    const { phone_number, verify_code } = await req.json()
+    
+    // Check if code is valid
+    const storedCode = verificationCodes.get(phone_number)
+    
+    if (!storedCode || verify_code !== storedCode) {
+      return res(
+        ctx.status(400),
+        ctx.json({
+          success: false,
+          message: 'کد تایید نامعتبر است'
+        })
+      )
+    }
+
+    // Create or get user based on phone number
+    let user = Array.from(users.values()).find(u => u.phone_number === phone_number)
+    
+    if (!user) {
+      // Create a new user if not exists
+      const newUser = {
+        id: generateUUID(),
+        phone_number: phone_number,
+        first_name: '',
+        last_name: '',
+        is_verified: true,
+        is_active: true,
+        user_type: 1, // Default to NormalUser
+        user_group: 1
+      }
+      users.set(newUser.id, newUser)
+      user = newUser
+    }
+
+    // Remove verification code after successful verification
+    verificationCodes.delete(phone_number)
+
+    // Generate a mock token
+    const token = `mock-token-${Date.now()}`
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        message: 'ورود موفقیت آمیز',
+        token
+      })
+    )
+  }),
+
+  rest.get('/api/user/profile', (req, res, ctx) => {
+    // Mock user data for profile
+    return res(
+      ctx.status(200),
+      ctx.json({
+        id: "user-123",
+        first_name: "محمد",
+        last_name: "محمدی",
+        father_name: "علی",
+        security_number: "0012345678",
+        email: "mohammad@example.com",
+        phone_number: "09123456789",
+        is_verified: true,
+        is_active: true,
+        user_type: 1,
+        user_group: 4,
+        birthday: "1370/03/15",
+        gender: "male",
+        province: { id: 1, name: "تهران", slug: "tehran" },
+        city: { id: 1, name: "تهران", slug: "tehran", province_id: 1 },
+        user_wallet: { id: 1, balance: 0 },
+        addresses: [
+          {
+            id: 1,
+            province_id: 1,
+            city_id: 1,
+            street: "",
+            address: "خیابان ولیعصر",
+            zip_code: "1234567890",
+            longitude: 51.389,
+            latitude: 35.6892
+          }
+        ],
+        avatar: null
+      })
+    )
+  }),
+  
+  rest.put('/api/user/profile', async (req, res, ctx) => {
+    const updatedUser = await req.json()
+    
+    // Store the updated user data in sessionStorage
+    try {
+      sessionStorage.setItem('updatedUserProfile', JSON.stringify(updatedUser))
+    } catch (error) {
+      console.error('Error storing updated user data:', error)
+    }
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        message: 'اطلاعات حساب کاربری با موفقیت بروز رسانی شد'
+      })
+    )
+  }),
+
+  rest.post('/api/user/avatar', async (req, res, ctx) => {
+    // Mock avatar upload response
+    return res(
+      ctx.status(200),
+      ctx.json({
+        status: 'success',
+        avatar: {
+          path: '/uploads/avatars/user-123-avatar.jpg',
+          url: '/media/uploads/avatars/user-123-avatar.jpg'
+        }
+      })
+    )
+  }),
+  
+  rest.get('/api/geolocation/get_provinces', (req, res, ctx) => {
+    const provinces = [
+      { id: 1, name: "تهران", slug: "tehran" },
+      { id: 2, name: "اصفهان", slug: "esfahan" },
+      { id: 3, name: "خراسان رضوی", slug: "khorasan-razavi" },
+      { id: 4, name: "فارس", slug: "fars" },
+      { id: 5, name: "خوزستان", slug: "khuzestan" },
+      { id: 6, name: "آذربایجان شرقی", slug: "east-azerbaijan" },
+      { id: 7, name: "آذربایجان غربی", slug: "west-azerbaijan" },
+      { id: 8, name: "کرمان", slug: "kerman" },
+      { id: 9, name: "مازندران", slug: "mazandaran" },
+      { id: 10, name: "گیلان", slug: "gilan" }
+    ]
+    
+    return res(
+      ctx.status(200),
+      ctx.json(provinces)
+    )
+  }),
+  
+  rest.get('/api/geolocation/get_cites_by_id/:provinceId', (req, res, ctx) => {
+    const { provinceId } = req.params
+    
+    // Create different cities based on province ID
+    let cities = []
+    
+    if (provinceId === '1') {
+      cities = [
+        { id: 1, name: "تهران", slug: "tehran", province_id: 1 },
+        { id: 2, name: "شمیرانات", slug: "shemiranat", province_id: 1 },
+        { id: 3, name: "اسلامشهر", slug: "eslamshahr", province_id: 1 },
+        { id: 4, name: "پاکدشت", slug: "pakdasht", province_id: 1 }
+      ]
+    } else if (provinceId === '2') {
+      cities = [
+        { id: 5, name: "اصفهان", slug: "esfahan", province_id: 2 },
+        { id: 6, name: "کاشان", slug: "kashan", province_id: 2 },
+        { id: 7, name: "نجف آباد", slug: "najafabad", province_id: 2 }
+      ]
+    } else if (provinceId === '3') {
+      cities = [
+        { id: 8, name: "مشهد", slug: "mashhad", province_id: 3 },
+        { id: 9, name: "نیشابور", slug: "neyshabur", province_id: 3 },
+        { id: 10, name: "سبزوار", slug: "sabzevar", province_id: 3 }
+      ]
+    } else {
+      cities = [
+        { id: 11, name: "شهر 1", slug: "city-1", province_id: parseInt(provinceId as string) },
+        { id: 12, name: "شهر 2", slug: "city-2", province_id: parseInt(provinceId as string) },
+        { id: 13, name: "شهر 3", slug: "city-3", province_id: parseInt(provinceId as string) }
+      ]
+    }
+    
+    return res(
+      ctx.status(200),
+      ctx.json(cities)
+    )
+  }),
+
+  // Existing handlers
   rest.post('/api/auth/send-code', async (req, res, ctx) => {
     const { phoneNumber } = await req.json<{ phoneNumber: string }>()
 
@@ -2286,682 +2395,71 @@ export const handlers = [
     verificationCodes.set(phoneNumber, randomCode)
     return res(ctx.status(200), ctx.json({ message: 'کد تایید ارسال شد', code: randomCode }))
   }),
+  
+  // ... rest of your existing handlers
 
-  // rest.post('/api/auth/verify-code', async (req, res, ctx) => {
-  //   const { code, phoneNumber, role } = await req.json<{ code: string; phoneNumber: string; role: UserRoleType }>()
-
-  //   const storedCode = verificationCodes.get(phoneNumber)
-
-  //   if (!storedCode) {
-  //     return res(ctx.status(401), ctx.json({ message: 'کد تایید منقضی شده است' }))
-  //   }
-
-  //   if (code !== storedCode) {
-  //     return res(ctx.status(401), ctx.json({ message: 'کد تایید نادرست می‌باشد!', phoneNumber }))
-  //   }
-  //   const user: User = {
-  //     id: generateUUID(), // تابعی برای تولید UUID
-  //     phone_number: phoneNumber,
-  //     role: role,
-  //     userType: 'user',
-  //     first_name: '',
-  //     last_name: '',
-  //     father_name: '',
-  //     security_number: '',
-  //     province: '',
-  //     city: '',
-  //     address: '',
-  //     zip_code: '',
-  //     subscription: undefined, // کاربر جدید هنوز اشتراک ندارد
-  //   }
-
-  //   users.set(phoneNumber, user)
-  //   try {
-  //     localStorage.setItem('user', JSON.stringify(user))
-  //   } catch (error) {
-  //     console.error('خطا در ذخیره اطلاعات کاربر در localStorage:', error)
-  //     return res(ctx.status(500), ctx.json({ message: 'خطا در ذخیره اطلاعات کاربر' }))
-  //   }
-  //   verificationCodes.clear()
-
-  //   return res(ctx.status(200), ctx.json({ message: 'ورود موفقیت‌آمیز بود', phoneNumber, role, user }))
-  // }),
-
-  // Handler for purchasing subscription
-  rest.post('/api/subscription/purchase', async (req, res, ctx) => {
-    const { phoneNumber, planType, planName } = await req.json<{
-      phoneNumber: string
-      planType: 'MONTHLY' | 'QUARTERLY' | 'YEARLY'
-      planName: string
-    }>()
-
-    // جستجوی کاربر از localStorage
-    let user
-    try {
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
-        user = JSON.parse(storedUser)
-        // چک کردن تطابق شماره تلفن
-        if (user.phoneNumber !== phoneNumber) {
-          return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
-        }
-      } else {
-        return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
-      }
-    } catch (error) {
-      console.error('خطا در خواندن اطلاعات از localStorage:', error)
-      return res(ctx.status(500), ctx.json({ message: 'خطا در دریافت اطلاعات کاربر' }))
-    }
-
-    // پیدا کردن پلن مورد نظر از آرایه
-    const plan = subscriptionPlans.find((plan) => plan.duration === planType && plan.title === planName)
-
-    if (!plan) {
-      return res(ctx.status(404), ctx.json({ message: 'پلن مورد نظر یافت نشد' }))
-    }
-
-    const now = new Date()
-    let endDate = new Date()
-
-    switch (planType) {
-      case 'MONTHLY':
-        endDate.setMonth(now.getMonth() + 1)
-        break
-      case 'QUARTERLY':
-        endDate.setMonth(now.getMonth() + 3)
-        break
-      case 'YEARLY':
-        endDate.setFullYear(now.getFullYear() + 1)
-        break
-    }
-
-    const updatedUser: User = {
-      ...user,
-      role: 'subscriber',
-      subscription: {
-        type: planType,
-        remainingViews: plan.viewLimit,
-        totalViews: plan.viewLimit,
-        startDate: now.toISOString(),
-        endDate: endDate.toISOString(),
-        status: 'ACTIVE',
-        viewedProperties: [],
-      },
-    }
-
-    // ذخیره‌سازی اطلاعات به‌روزرسانی‌شده در localStorage
-    try {
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      // به‌روزرسانی map users نیز در صورت نیاز
-      users.set(phoneNumber, updatedUser)
-    } catch (error) {
-      console.error('خطا در ذخیره اطلاعات در localStorage:', error)
-      return res(ctx.status(500), ctx.json({ message: 'خطا در ذخیره اطلاعات' }))
-    }
-
-    return res(
-      ctx.status(200),
-      ctx.json({
-        success: true,
-        message: 'فروش اشتراک شما با موفقیت انجام شد.',
-        data: updatedUser,
-      })
-    )
-  }),
-
-  rest.get('/api/properties/viewed-properties', async (req, res, ctx) => {
-    const phoneNumber = req.url.searchParams.get('phoneNumber')
-
-    if (!phoneNumber) {
-      return res(ctx.status(400), ctx.json({ success: false, message: 'شماره تلفن الزامی است' }))
-    }
-
-    // // تولید دستی 15 آیتم با الگوی ثابت
-    // const generateManualProperties = () => {
-    //   const properties = []
-    //   const baseDate = new Date()
-    //   baseDate.setMonth(baseDate.getMonth() - 2) // شروع از دو ماه پیش
-
-    //   // تولید 15 آیتم با تاریخ‌های مرتب و قابل پیش‌بینی
-    //   for (let i = 1; i <= 100; i++) {
-    //     const viewDate = new Date(baseDate)
-    //     viewDate.setDate(viewDate.getDate() + i * 2) // هر 2 روز یکبار
-
-    //     properties.push({
-    //       propertyId: `prop-${1000 + i}`, // الگوی شماره‌ای منظم
-    //       viewedDate: viewDate.toISOString(),
-    //     })
-    //   }
-
-    //   return properties
-    // }
-
-    try {
-      // همیشه کاربر را معتبر در نظر بگیریم
-      // const data = generateManualProperties()
-
-      return res(
-        ctx.status(200),
-        ctx.json({
-          success: true,
-          data: manualData.sort((a, b) => new Date(a.viewedDate).getTime() - new Date(b.viewedDate).getTime()),
-        })
-      )
-    } catch (error) {
-      console.error('خطا در پردازش درخواست:', error)
-      return res(ctx.status(500), ctx.json({ success: false, message: 'خطای سرور' }))
-    }
-  }),
-
-  // rest.get('/api/properties/viewed-properties', async (req, res, ctx) => {
-  //   const phoneNumber = req.url.searchParams.get('phoneNumber')
-
-  //   if (!phoneNumber) {
-  //     return res(
-  //       ctx.status(400),
-  //       ctx.json({
-  //         success: false,
-  //         message: 'شماره تلفن الزامی است',
-  //       })
-  //     )
-  //   }
-
-  //   // خواندن اطلاعات کاربر از localStorage
-  //   let user: User | null = null
-  //   try {
-  //     const storedUser = localStorage.getItem('user')
-  //     if (storedUser) {
-  //       const parsedUser = JSON.parse(storedUser)
-  //       if (parsedUser.phoneNumber === phoneNumber) {
-  //         user = parsedUser
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('خطا در خواندن اطلاعات از localStorage:', error)
-  //   }
-
-  //   if (!user) {
-  //     return res(
-  //       ctx.status(404),
-  //       ctx.json({
-  //         success: false,
-  //         message: 'کاربر یافت نشد',
-  //       })
-  //     )
-  //   }
-
-  //   // تبدیل آرایه propertyIds به فرمت مورد نیاز
-  //   const viewedProperties = (user.subscription?.viewedProperties || []).map(({ propertyId, viewedDate }) => ({
-  //     propertyId,
-  //     viewedDate, // در اینجا می‌توانید تاریخ واقعی بازدید را ذخیره کنید
-  //   }))
-
-  //   return res(
-  //     ctx.status(200),
-  //     ctx.json({
-  //       success: true,
-  //       data: viewedProperties,
-  //     })
-  //   )
-  // }),
-
-  // Handler for viewing a property (decrements remaining views)
-  rest.post('/api/properties/view', async (req, res, ctx) => {
-    const { phoneNumber, propertyId } = await req.json<{
-      phoneNumber: string
-      propertyId: string
-    }>()
-
-    // خواندن اطلاعات کاربر از localStorage
-    let user: User | null = null
-    try {
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser)
-        if (parsedUser.phoneNumber === phoneNumber) {
-          user = parsedUser
-
-          // تبدیل داده‌های قدیمی به فرمت جدید در صورت نیاز
-          if (user.subscription?.viewedProperties) {
-            if (
-              user.subscription.viewedProperties.length > 0 &&
-              typeof user.subscription.viewedProperties[0] === 'string'
-            ) {
-              user.subscription.viewedProperties = (user.subscription.viewedProperties as unknown as string[]).map(
-                (propertyId) => ({
-                  propertyId,
-                  viewedDate: new Date().toISOString(),
-                })
-              )
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('خطا در خواندن اطلاعات از localStorage:', error)
-    }
-
-    if (!user) {
-      return res(ctx.status(403), ctx.json({ message: 'کاربر یافت نشد' }))
-    }
-
-    if (!user.subscription || user.subscription.status !== 'ACTIVE') {
-      return res(ctx.status(403), ctx.json({ message: 'اشتراک فعال یافت نشد' }))
-    }
-
-    // مقداردهی اولیه viewedProperties در صورت عدم وجود
-    if (!user.subscription.viewedProperties) {
-      user.subscription.viewedProperties = []
-    }
-
-    // بررسی بازدیدهای قبلی با فرمت جدید
-    const hasViewed = user.subscription.viewedProperties.some((vp) => vp.propertyId === propertyId)
-    if (hasViewed) {
-      return res(
-        ctx.status(200),
-        ctx.json({
-          message: 'این ملک قبلاً بازدید شده است',
-          remainingViews: user.subscription.remainingViews,
-          alreadyViewed: true,
-        })
-      )
-    }
-
-    if (user.subscription.remainingViews <= 0) {
-      return res(
-        ctx.status(403),
-        ctx.json({
-          message: 'تعداد بازدیدهای مجاز به پایان رسیده است',
-        })
-      )
-    }
-
-    // به‌روزرسانی اطلاعات با فرمت جدید
-    const updatedUser: User = {
-      ...user,
-      subscription: {
-        ...user.subscription,
-        remainingViews: user.subscription.remainingViews - 1,
-        viewedProperties: [
-          ...user.subscription.viewedProperties,
-          {
-            propertyId,
-            viewedDate: new Date().toISOString(),
-          },
-        ],
-      },
-    }
-
-    // ذخیره اطلاعات به‌روزرسانی‌شده
-    try {
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-    } catch (error) {
-      console.error('خطا در ذخیره اطلاعات در localStorage:', error)
-    }
-
-    return res(
-      ctx.status(200),
-      ctx.json({
-        status: 201,
-        message: 'بازدید با موفقیت ثبت شد',
-        data: {
-          remainingViews: updatedUser.subscription.remainingViews,
-          viewedDate: updatedUser.subscription.viewedProperties.slice(-1)[0].viewedDate,
-        },
-        alreadyViewed: false,
-      })
-    )
-  }),
-
-  rest.get('/api/subscription/status', async (req, res, ctx) => {
-    const phoneNumber = req.url.searchParams.get('phoneNumber')
-
-    if (!phoneNumber) {
-      return res(ctx.status(400), ctx.json({ message: 'شماره تلفن الزامی است' }))
-    }
-
-    // بررسی اطلاعات از localStorage
-    let user: User | null = null
-    try {
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser)
-        if (parsedUser.phoneNumber === phoneNumber) {
-          user = parsedUser
-        }
-      }
-    } catch (error) {
-      console.error('خطا در خواندن اطلاعات از localStorage:', error)
-    }
-
-    if (!user) {
-      return res(ctx.status(404), ctx.json({ message: 'کاربر یافت نشد' }))
-    }
-
-    return res(
-      ctx.status(200),
-      ctx.json({
-        data: user.subscription,
-      })
-    )
-  }),
-
-  rest.get('/api/subscriptions', (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: subscriptionPlans }))
-  }),
-
-  rest.get('/api/all-housing', (req, res, ctx) => {
-    const searchParams = req.url.searchParams
-    const title = searchParams.get('title')
-    const rawCategoryParam = searchParams.get('category')
-    const categoryIds = rawCategoryParam ? rawCategoryParam.split(',').map((id) => id.trim()) : []
-
-    const featureParam = searchParams.get('feature')
-    const featureIds = featureParam ? featureParam.split(',') : []
-
-    const status = searchParams.get('status')
-    const drawnPointsRaw = searchParams.get('drawnPoints')
-    const userCityParam = searchParams.get('userCity')
-    const centerLat = parseFloat(searchParams.get('centerLat'))
-    const centerLng = parseFloat(searchParams.get('centerLng'))
-
-    let filteredHousing = [...housing]
-
-    if (status) {
-      filteredHousing = filteredHousing.filter((item) => item.status === parseInt(status))
-    }
-
-    if (!isNaN(centerLat) && !isNaN(centerLng)) {
-      const radiusInKm = 10 // شعاع 10 کیلومتر
-      const deg2rad = (deg) => deg * (Math.PI / 180)
-      const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
-        const R = 6371 // شعاع زمین برحسب کیلومتر
-        const dLat = deg2rad(lat2 - lat1)
-        const dLon = deg2rad(lon2 - lon1)
-        const a =
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        return R * c
-      }
-
-      filteredHousing = filteredHousing.filter((item) => {
-        const distance = getDistanceFromLatLonInKm(centerLat, centerLng, item.location.lat, item.location.lng)
-        return distance <= radiusInKm
-      })
-    }
-    const userCity = JSON.parse(localStorage.getItem('userCity'))
-    if (drawnPointsRaw && drawnPointsRaw.length > 0) {
-      try {
-        const rawPoints = JSON.parse(drawnPointsRaw)
-
-        // تبدیل به [lng, lat]
-        const polygonCoords = rawPoints.map(([lat, lng]) => [lng, lat])
-
-        // بستن حلقه
-        if (
-          polygonCoords.length > 0 &&
-          (polygonCoords[0][0] !== polygonCoords.at(-1)?.[0] || polygonCoords[0][1] !== polygonCoords.at(-1)?.[1])
-        ) {
-          polygonCoords.push(polygonCoords[0])
-        }
-
-        const turfPoly = turfPolygon([polygonCoords])
-
-        filteredHousing = filteredHousing.filter((housing) => {
-          const { lat, lng } = housing.location || {}
-          if (!lat || !lng) return false
-          const p = point([lng, lat])
-          return booleanPointInPolygon(p, turfPoly)
-        })
-      } catch (err) {
-        console.warn('Invalid drawnPoints', err)
-      }
-    }
-    if (userCityParam == '1' && userCity?.coordinates?.length === 2) {
-      console.log(userCityParam, ' passsssssssssssssssss')
-
-      const [cityLat, cityLng] = userCity.coordinates
-      const cityPoint = point([cityLng, cityLat])
-      const radiusKm = 10
-
-      filteredHousing = filteredHousing.filter((housing) => {
-        const { lat, lng } = housing.location || {}
-        if (!lat || !lng) return false
-        const housingPoint = point([lng, lat])
-        const d = distance(cityPoint, housingPoint, { units: 'kilometers' })
-        return d <= radiusKm
-      })
-    }
-
-    if (categoryIds.length > 0) {
-      filteredHousing = filteredHousing.sort((a, b) => {
-        const aMatch = categoryIds.includes(a.categoryId) ? 1 : 0
-        const bMatch = categoryIds.includes(b.categoryId) ? 1 : 0
-        return bMatch - aMatch // موارد منطبق رو بیاره بالا
-      })
-    }
-
-    if (featureIds.length > 0) {
-      filteredHousing = filteredHousing.sort((a, b) => {
-        const aMatch = a.features?.some((f) => featureIds.includes(f.id)) ? 1 : 0
-        const bMatch = b.features?.some((f) => featureIds.includes(f.id)) ? 1 : 0
-        return bMatch - aMatch // موارد منطبق رو بیاره بالا
-      })
-    }
-
-    if (title) {
-      const normalizedTitle = normalizePersian(title.trim())
-
-      filteredHousing.sort((a, b) => {
-        const aTitle = normalizePersian(a.title || '')
-        const bTitle = normalizePersian(b.title || '')
-
-        // امتیاز مشابهت فازی
-        const aFuzzy = getFuzzyScore(aTitle, normalizedTitle)
-        const bFuzzy = getFuzzyScore(bTitle, normalizedTitle)
-
-        // آیا ابتدای عنوان با سرچ مطابقت دارد؟
-        const aStarts = aTitle.startsWith(normalizedTitle) ? 10 : 0
-        const bStarts = bTitle.startsWith(normalizedTitle) ? 10 : 0
-
-        // امتیاز نهایی ترکیبی
-        const aScore = aFuzzy + aStarts
-        const bScore = bFuzzy + bStarts
-
-        return bScore - aScore // امتیاز بیشتر، بالاتر
-      })
-    }
-
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredHousing }))
-  }),
-
-  rest.get('/api/estates', (req, res, ctx) => {
-    const searchParams = req.url.searchParams
-    const title = searchParams.get('title')
-    const type = searchParams.get('type')
-    const status = searchParams.get('status')
-
-    // دریافت پارامترهای bounds در صورت وجود
-    const swLat = searchParams.get('swLat')
-    const swLng = searchParams.get('swLng')
-    const neLat = searchParams.get('neLat')
-    const neLng = searchParams.get('neLng')
-
-    let filteredEstates = [...estates]
-
-    // if (status) {
-    //   filteredEstates = filteredEstates.filter((item) => item.status === parseInt(status))
-    // }
-
-    // فیلتر کردن بر اساس محدوده جغرافیایی در صورت ارسال پارامترها
-    if (swLat && swLng && neLat && neLng) {
-      const swLatNum = parseFloat(swLat)
-      const swLngNum = parseFloat(swLng)
-      const neLatNum = parseFloat(neLat)
-      const neLngNum = parseFloat(neLng)
-
-      filteredEstates = filteredEstates.filter((item) => {
-        const lat = item.location.lat
-        const lng = item.location.lng
-        return lat >= swLatNum && lat <= neLatNum && lng >= swLngNum && lng <= neLngNum
-      })
-    }
-
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: filteredEstates }))
-  }),
-
-  rest.post('/api/housing/ad', async (req, res, ctx) => {
-    const { category } = await req.json<AdFormValues>()
-    // انتخاب یک آیتم تصادفی از housing
-    const filteredHousing = housing.filter((item) => item.categoryId === category)
-    const randomHousingItem = filteredHousing[Math.floor(Math.random() * filteredHousing.length)]
-    randomHousingItem.status = 1
-    // ذخیره آیتم در localStorage
-    localStorage.setItem('addAdv', JSON.stringify([randomHousingItem]))
-
-    return res(ctx.status(200), ctx.json({ message: 'با موفقیت انجام شد' }))
-  }),
-
-  rest.get('/api/housing/:adCode', (req, res, ctx) => {
-    const { adCode } = req.params
-
-    const data = housing.find((item) => item.adCode === adCode)
-
-    return res(ctx.status(200), ctx.json(data))
-  }),
-
+  // Add handlers for missing endpoints
   rest.get('/api/categories', (req, res, ctx) => {
-    const searchParams = req.url.searchParams
-    const name = searchParams.get('name')
-
-    let filtered = [...categories]
-
-    if (name) {
-      filtered = filtered.filter((item) => item.name.toLowerCase().includes(name.toLowerCase()))
-    }
-
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
-  }),
-
-  rest.get('/api/category/:id', (req, res, ctx) => {
-    const { id } = req.params
-
-    // تابع بازگشتی برای یافتن دسته‌بندی و فرزندانش
-    const findCategoryWithChildren = (categories, id) => {
-      for (const category of categories) {
-        if (category.id === id) {
-          return category // دسته‌بندی پیدا شد
-        }
-        if (category.sub_categories) {
-          const found = findCategoryWithChildren(category.sub_categories, id)
-          if (found) {
-            return found // دسته‌بندی در فرزندان یافت شد
-          }
-        }
-      }
-      return null // در هیچ جایی پیدا نشد
-    }
-
-    const category = findCategoryWithChildren(categories, id)
-
-    if (!category) {
-      return res(ctx.status(404), ctx.json({ message: `Category not found with id: ${id}` }))
-    }
-
     return res(
       ctx.status(200),
       ctx.json({
-        message: 'Success',
-        data: category,
+        data: categories,
       })
     )
   }),
 
   rest.get('/api/features', (req, res, ctx) => {
-    const searchParams = req.url.searchParams
-    const name = searchParams.get('name')
-
-    let filtered = [...features]
-
-    if (name) {
-      filtered = filtered.filter((item) => item.name.toLowerCase().includes(name.toLowerCase()))
-    }
-
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
-  }),
-
-  rest.get('/api/all-news', (req, res, ctx) => {
-    const searchParams = req.url.searchParams
-    const title = searchParams.get('title')
-
-    let filtered = [...newsData]
-
-    if (title) {
-      filtered = filtered.filter((item) => item.title.toLowerCase().includes(title.toLowerCase()))
-    }
-
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
-  }),
-
-  rest.get('/api/housings/category/:id', (req, res, ctx) => {
-    const { id } = req.params
-
-    // فیلتر کردن خانه‌ها بر اساس categoryId
-    const filteredHousing = housing.filter((item) => item.categoryId === id)
-
-    if (!filteredHousing.length) {
-      return res(ctx.status(404), ctx.json({ message: `No housings found for category id: ${id}` }))
-    }
-
     return res(
       ctx.status(200),
       ctx.json({
-        message: 'Success',
-        data: filteredHousing,
+        data: features,
       })
     )
   }),
 
-  rest.get('/api/features/by-category/:categoryId', (req, res, ctx) => {
-    const { categoryId } = req.params
-
-    const categoryFeatures = getFeaturesByCategory(categoryId as string)
+  rest.get('/api/advertisements/favorites', (req, res, ctx) => {
     return res(
       ctx.status(200),
       ctx.json({
-        message: 'Success',
-        data: categoryFeatures,
+        data: [],
       })
     )
   }),
 
-  rest.get('/api/request-features/by-category/:categoryId', (req, res, ctx) => {
-    const { categoryId } = req.params
-
-    const categoryFeatures = getFeaturesByCategory(categoryId as string)
+  rest.get('/api/advertisements/nearby', (req, res, ctx) => {
+    const longitude = req.url.searchParams.get('longitude')
+    const latitude = req.url.searchParams.get('latitude')
+    const radius = req.url.searchParams.get('radius')
+    
+    // Return some mock nearby advertisements
     return res(
       ctx.status(200),
       ctx.json({
-        message: 'Success',
-        data: categoryFeatures,
+        data: housing.slice(0, 3).map(h => ({
+          ...h,
+          distance: Math.floor(Math.random() * 100) / 10, // Random distance in km
+        })),
       })
     )
   }),
 
-  rest.get('/api/requests', (req, res, ctx) => {
-    const searchParams = req.url.searchParams
-    const status = searchParams.get('status')
-
-    let filtered = [...requests]
-
-    if (status) {
-      filtered = filtered.filter((item) => item.status === parseInt(status))
-    }
-
-    return res(ctx.status(200), ctx.json({ message: 'Success', data: filtered }))
+  rest.get('/api/subscription/status', (req, res, ctx) => {
+    // Return mock subscription status
+    return res(
+      ctx.status(200),
+      ctx.json({
+        data: {
+          type: 'MONTHLY',
+          remainingViews: 95,
+          totalViews: 100,
+          startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+          endDate: new Date(Date.now() + 23 * 24 * 60 * 60 * 1000).toISOString(), // 23 days from now
+          status: 'ACTIVE',
+          viewedProperties: [],
+        }
+      })
+    )
   }),
-  ...adminHandlers
 ]
 
 // {

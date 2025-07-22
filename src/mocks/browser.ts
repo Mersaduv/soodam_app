@@ -5,15 +5,15 @@ import { handlers } from './handlers'
 export const worker = setupWorker(...handlers)
 
 // Make sure the worker is initialized
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_USE_MOCK_API === 'true')) {
   // Check if we're already running
   if (!window.mswWorkerInitialized) {
     worker.start({
-      // Disable service worker registration in development
+      // Service worker settings
       serviceWorker: {
         url: '/mockServiceWorker.js',
       },
-      // Log any request errors
+      // Quietly handle unhandled requests (don't log them)
       onUnhandledRequest: 'bypass',
     }).then(() => {
       console.log('%c[MSW] Mock API Server running', 'color: green; font-weight: bold;');

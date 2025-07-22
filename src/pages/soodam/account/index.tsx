@@ -89,7 +89,7 @@ const Account: NextPage = () => {
 
   useEffect(() => {
     axios
-      .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_provinces`, {
+      .get(`/api/geolocation/get_provinces`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${getToken()}`,
@@ -109,7 +109,7 @@ const Account: NextPage = () => {
 
             // Load cities for this province
             axios
-              .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${provinceObj.id}`, {
+              .get(`/api/geolocation/get_cites_by_id/${provinceObj.id}`, {
                 headers: {
                   'Content-Type': 'application/json',
                   Authorization: `Bearer ${getToken()}`,
@@ -165,7 +165,7 @@ const Account: NextPage = () => {
   useEffect(() => {
     if (selectedProvince?.id) {
       axios
-        .get(`${NEXT_PUBLIC_API_URL}/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
+        .get(`/api/geolocation/get_cites_by_id/${selectedProvince.id}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${getToken()}`,
@@ -277,7 +277,7 @@ const Account: NextPage = () => {
         const formData = new FormData()
         formData.append('file', files[0])
 
-        const response = await axios.post('http://194.5.193.119:4000/api/user/avatar', formData, {
+        const response = await axios.post('/api/user/avatar', formData, { 
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${getToken()}`,
@@ -285,7 +285,7 @@ const Account: NextPage = () => {
         })
 
         if (response.data.status === 'success') {
-          const avatarUrl = response.data.avatar.url
+          const avatarUrl = response.data.avatar
           setAvatarUrl(avatarUrl)
 
           // Show a preview of the selected image
@@ -341,10 +341,10 @@ const Account: NextPage = () => {
                           className="object-cover w-[76px] h-[76px] rounded-full"
                         />
                       </div>
-                    ) : avatarUrl && avatarUrl.url ? (
+                    ) : avatarUrl ? (
                       <div className="">
                         <img
-                          src={`http://194.5.193.119:4000${avatarUrl.url}`}
+                          src={avatarUrl.url ? `/media${avatarUrl.url}` : avatarUrl.url}
                           alt="user-avatar"
                           className="object-cover w-[76px] h-[76px] rounded-full"
                         />

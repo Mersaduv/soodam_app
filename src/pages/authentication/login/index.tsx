@@ -24,18 +24,9 @@ function LoginPage() {
   const [login, { data, isSuccess, isError, isLoading, error }] = useLoginMutation()
 
   // ? get verification code
-  // const {
-  //   data: dataCode,
-  //   isSuccess: isSuccessVerifyCode,
-  //   isError: isErrorVerifyCode,
-  // } = useGetVerifyCodeMutation(
-  //   { phoneNumber },
-  //   {
-  //     skip: !isSuccess,
-  //   }
-  // )
   const [getVerifyCode, { data: dataCode, isSuccess: isSuccessVerifyCode, isError: isErrorVerifyCode }] =
     useGetVerifyCodeMutation()
+  
   // ? VerificationLogin User
   const [
     verificationCode,
@@ -47,6 +38,7 @@ function LoginPage() {
       error: errorVerification,
     },
   ] = useVerifyLoginMutation()
+  
   // ? Effects
   useEffect(() => {
     if (isSuccess) {
@@ -71,17 +63,18 @@ function LoginPage() {
       userType: query?.userType,
     })
   }
-  // const onSuccess = () => replace(query?.redirectTo?.toString() || "/");
+  
+  // ? Success Handlers
   const onSuccess = () => {
-    // Dispatch an alert
-    // dispatch(showAlert({ title: `کد تایید : ${data?.code}`, status: 'success' }))
     setStep(2)
   }
+  
   useEffect(() => {
     if (isSuccessVerifyCode) {
       dispatch(showAlert({ title: `کد تایید : ${dataCode?.code}`, status: 'success' }))
     }
   }, [isSuccessVerifyCode])
+  
   const onSuccessVerificationCode = () => {
     setTimeout(() => {
       replace(query?.redirectTo?.toString() || '/')
@@ -99,9 +92,10 @@ function LoginPage() {
     }, 50)
   }
 
-  // if (query) {
-  //   console.log(query, 'query')
-  // }
+  if (query?.userType) {
+    console.log(query, 'query')
+  }
+  
   // ? Render(s)
   return (
     <>

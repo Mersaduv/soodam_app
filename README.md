@@ -221,6 +221,62 @@ npm install
 npm run dev
 ```
 
+## Mock Service Worker (MSW) Integration
+
+This project uses Mock Service Worker (MSW) to intercept and mock API requests during development. This allows for development and testing without requiring a real backend server.
+
+### Mocked API Endpoints
+
+The following API endpoints are currently mocked:
+
+- `/api/user/profile` - User profile data
+- `/api/user/profile` (PUT) - Update user profile
+- `/api/user/avatar` - Avatar upload
+- `/api/geolocation/get_provinces` - List of provinces
+- `/api/geolocation/get_cites_by_id/:provinceId` - List of cities for a province
+- `/api/categories` - Categories data
+- `/api/features` - Features data
+- `/api/advertisements/favorites` - User's favorite advertisements
+- `/api/advertisements/nearby` - Nearby advertisements
+- `/api/subscription/status` - User subscription status
+
+### How MSW is Configured
+
+MSW is automatically enabled in development mode. The mocks are defined in:
+
+- `src/mocks/handlers.ts` - API request handlers
+- `src/mocks/browser.ts` - Browser-specific MSW setup
+
+### Adding New Mock Handlers
+
+To add a new mock API endpoint:
+
+1. Add a new REST handler in `src/mocks/handlers.ts`
+2. Follow the pattern of existing handlers, using the `rest` object from MSW
+
+Example:
+
+```javascript
+rest.get('/api/some-endpoint', (req, res, ctx) => {
+  // Get query params
+  const param = req.url.searchParams.get('param')
+  
+  // Return mock data
+  return res(
+    ctx.status(200),
+    ctx.json({
+      data: {
+        // Your mock response data
+      }
+    })
+  )
+})
+```
+
+### Toggling MSW
+
+MSW is automatically enabled in development mode. In production, the real API endpoints are used.
+
 ## Contributing
 
 We welcome contributions to Soodam! Please follow these steps:
