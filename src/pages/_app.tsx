@@ -16,24 +16,22 @@ import { useRouter } from 'next/router'
 import { Toaster } from 'react-hot-toast'
 
 async function enableMocking() {
-  if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_USE_MOCK_API === 'true') {
-    try {
-      const { worker } = await import('../mocks/browser')
-      // Start MSW to ensure mock API endpoints work
-      return worker.start({
-        onUnhandledRequest: 'bypass',
-        serviceWorker: {
-          url: '/mockServiceWorker.js',
-        }
-      }).then(() => {
-        console.log('%c[MSW] Mock API Server running', 'color: green; font-weight: bold')
-        if (typeof window !== 'undefined') {
-          window.mswWorkerInitialized = true
-        }
-      })
-    } catch (error) {
-      console.error('Failed to initialize MSW:', error)
-    }
+  try {
+    const { worker } = await import('../mocks/browser')
+    // Start MSW to ensure mock API endpoints work
+    return worker.start({
+      onUnhandledRequest: 'bypass',
+      serviceWorker: {
+        url: '/mockServiceWorker.js',
+      }
+    }).then(() => {
+      console.log('%c[MSW] Mock API Server running', 'color: green; font-weight: bold')
+      if (typeof window !== 'undefined') {
+        window.mswWorkerInitialized = true
+      }
+    })
+  } catch (error) {
+    console.error('Failed to initialize MSW:', error)
   }
   return Promise.resolve()
 }
@@ -47,10 +45,8 @@ export default function App({ Component, pageProps }: AppProps) {
       setIsLoading(false)
     }, 2000)
 
-    // Initialize MSW in development mode or if mock API is enabled
-    if ((process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_USE_MOCK_API === 'true') && 
-        typeof window !== 'undefined' && 
-        !window.mswWorkerInitialized) {
+    // Initialize MSW if not already initialized
+    if (typeof window !== 'undefined' && !window.mswWorkerInitialized) {
       enableMocking()
     }
 

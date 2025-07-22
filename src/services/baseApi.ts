@@ -3,8 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl:
-      process.env.NODE_ENV === 'production' ? 'http://193.151.129.243:4000' : process.env.NEXT_PUBLIC_API_URL_LOCAL,
+    baseUrl: '',  // Empty base URL to ensure MSW intercepts all requests
     timeout: 60000,
   }),
 

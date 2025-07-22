@@ -1,26 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig: import('next').NextConfig = {
   async rewrites() {
-    // Check if we want to use MSW based on environment variable
-    const enableMSW = process.env.NEXT_PUBLIC_API_MOCKING === 'enabled' || process.env.NODE_ENV === 'development';
-    
-    // If MSW is enabled, don't rewrite API routes
-    if (enableMSW) {
-      console.log('API mocking is enabled. Not using API rewrites.');
-      return [];
-    }
-    
-    // Otherwise use regular API endpoints
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'http://193.151.129.243:4000/api/:path*'
-      },
-      {
-        source: '/media/:path*',
-        destination: 'http://193.151.129.243:4000/media/:path*'
-      } 
-    ];
+    // Always use MSW for API mocking
+    console.log('API mocking is enabled globally. Not using API rewrites.');
+    return [];
   },
   // distDir: '../../backend-soodam/backend_soodam',
   distDir: '.next',
@@ -176,6 +159,11 @@ const nextConfig: import('next').NextConfig = {
           }
         }
       }
+      
+      // Copy mockServiceWorker.js to root of output for production
+      const mockServiceWorkerSource = path.join(process.cwd(), 'public', 'mockServiceWorker.js');
+      const mockServiceWorkerDest = path.join(outDir, 'mockServiceWorker.js');
+      copyFile(mockServiceWorkerSource, mockServiceWorkerDest);
     }
   } : {})
 }

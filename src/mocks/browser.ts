@@ -5,7 +5,7 @@ import { handlers } from './handlers'
 export const worker = setupWorker(...handlers)
 
 // Make sure the worker is initialized
-if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_USE_MOCK_API === 'true')) {
+if (typeof window !== 'undefined') {
   // Check if we're already running
   if (!window.mswWorkerInitialized) {
     worker.start({

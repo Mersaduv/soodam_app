@@ -16,7 +16,7 @@ import { QueryFeatureByCategory } from './feature/type'
 const productionApiSlice = createApi({
   reducerPath: 'productionApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: '/',
+    baseUrl: '',  // Empty base URL to ensure MSW intercepts all requests
     timeout: 60000,
   }),
 
