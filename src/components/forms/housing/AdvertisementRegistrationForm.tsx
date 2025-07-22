@@ -143,7 +143,12 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
   const formRef = useRef<HTMLDivElement | null>(null)
   const previousDealType = useRef<string | null>(null)
   // ? Queries
-  const { data: categoriesData, isFetching } = useGetMetaDataQuery({ ...query })
+  const { data: categoriesData, isFetching, isError } = useGetMetaDataQuery({}, {
+    // در صورت خطا، دوباره تلاش کند
+    refetchOnMountOrArgChange: true,
+    refetchOnReconnect: true,
+    refetchOnFocus: true,
+  })
   const [triggerGetFeaturesByCategory, { data: features, isSuccess }] = useLazyGetFeaturesByCategoryQuery()
   const [
     addHousing,
@@ -1864,108 +1869,118 @@ const AdvertisementRegistrationForm: React.FC<Props> = ({ roleUser, adId, isEdit
           <Modal.Body>
             <div className=" mt-2 w-full z-10">
               <div className="flex flex-col gap-y-3.5 px-4 py-2">
-                {categoriesData?.main_categories.map((item, index) => (
-                  <Disclosure key={item.id}>
-                    {() => (
-                      <>
-                        <Disclosure.Button
-                          onClick={() => setOpenIndex((prev) => (prev === index ? null : index))}
-                          className="!mt-0 flex w-full items-center justify-between py-2"
-                        >
-                          <div className="flex gap-x-1.5 items-center">
-                            {item.image && <img className="w-[24px] h-[24px]" src={`/${item.image}`} alt={item.name} />}
-                            <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
-                              {item.name}
-                            </span>
-                          </div>
-                          <ArrowLeftIcon
-                            className={`w-5 h-5 ${openIndex === index ? '' : 'rotate-90 text-gray-700'} transition-all`}
-                          />
-                        </Disclosure.Button>
+                {isFetching ? (
+                  <div className="flex justify-center items-center p-10">
+                    <div className="w-8 h-8 border-4 border-[#D52133] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : isError ? (
+                  <div className="text-center p-10 text-red-500">
+                    خطا در دریافت دسته‌بندی‌ها. لطفاً دوباره تلاش کنید.
+                  </div>
+                ) : categoriesData && categoriesData.main_categories ? (
+                  categoriesData.main_categories.map((item, index) => (
+                    <Disclosure key={item.id}>
+                      {({ open }) => (
+                        <>
+                          <Disclosure.Button
+                            onClick={() => setOpenIndex((prev) => (prev === index ? null : index))}
+                            className="!mt-0 flex w-full items-center justify-between py-2"
+                          >
+                            <div className="flex gap-x-1.5 items-center">
+                              {item.image && <img className="w-[24px] h-[24px]" src={`/${item.image}`} alt={item.name} />}
+                              <span className="pl-3 whitespace-nowrap font-normal text-[14px] tracking-wide text-[#5A5A5A]">
+                                {item.name}
+                              </span>
+                            </div>
+                            <ArrowLeftIcon
+                              className={`w-5 h-5 ${openIndex === index ? '' : 'rotate-90 text-gray-700'} transition-all`}
+                            />
+                          </Disclosure.Button>
 
-                        {item.sub_categories?.length > 0 && openIndex === index && (
-                          <Disclosure.Panel className="-mt-2">
-                            {item.sub_categories.map((subItem) => (
-                              <div key={subItem.id}>
-                                {subItem.sub_sub_category?.length > 0 ? (
-                                  <Disclosure>
-                                    {({ open: subOpen }) => (
-                                      <>
-                                        <Disclosure.Button
-                                          className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                            selectedCategory?.id === subItem.id
-                                              ? 'bg-[#FFE2E5]  font-medium rounded-lg'
-                                              : ''
-                                          }`}
-                                        >
-                                          <span
-                                            className={`text-[14px] ${
+                          {item.sub_categories?.length > 0 && openIndex === index && (
+                            <Disclosure.Panel className="-mt-2">
+                              {item.sub_categories.map((subItem) => (
+                                <div key={subItem.id}>
+                                  {subItem.sub_sub_category?.length > 0 ? (
+                                    <Disclosure>
+                                      {({ open: subOpen }) => (
+                                        <>
+                                          <Disclosure.Button
+                                            className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
                                               selectedCategory?.id === subItem.id
-                                                ? ' font-medium'
-                                                : 'text-[#5A5A5A] font-light'
+                                                ? 'bg-[#FFE2E5]  font-medium rounded-lg'
+                                                : ''
                                             }`}
                                           >
-                                            {subItem.name}
-                                          </span>
-                                          <ArrowLeftIcon
-                                            className={`w-5 h-5 ml-4 ${
-                                              subOpen ? '' : 'rotate-90 text-gray-700'
-                                            } transition-all`}
-                                          />
-                                        </Disclosure.Button>
-
-                                        <Disclosure.Panel className="-mt-2">
-                                          {subItem.sub_sub_category.map((childItem) => (
-                                            <div
-                                              key={childItem.id}
-                                              onClick={() => handleSelectCategory(childItem, subItem)}
-                                              className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                                selectedCategory?.id === childItem.id
-                                                  ? 'bg-[#FFE2E5]  font-medium rounded-lg'
-                                                  : ''
+                                            <span
+                                              className={`text-[14px] ${
+                                                selectedCategory?.id === subItem.id
+                                                  ? ' font-medium'
+                                                  : 'text-[#5A5A5A] font-light'
                                               }`}
                                             >
-                                              <span
-                                                className={`text-[14px] ${
+                                              {subItem.name}
+                                            </span>
+                                            <ArrowLeftIcon
+                                              className={`w-5 h-5 ml-4 ${
+                                                subOpen ? '' : 'rotate-90 text-gray-700'
+                                              } transition-all`}
+                                            />
+                                          </Disclosure.Button>
+
+                                          <Disclosure.Panel className="-mt-2">
+                                            {subItem.sub_sub_category.map((childItem) => (
+                                              <div
+                                                key={childItem.id}
+                                                onClick={() => handleSelectCategory(childItem, subItem)}
+                                                className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
                                                   selectedCategory?.id === childItem.id
-                                                    ? ' font-medium'
-                                                    : 'text-[#5A5A5A] font-light'
+                                                    ? 'bg-[#FFE2E5]  font-medium rounded-lg'
+                                                    : ''
                                                 }`}
                                               >
-                                                {childItem.name}
-                                              </span>
-                                            </div>
-                                          ))}
-                                        </Disclosure.Panel>
-                                      </>
-                                    )}
-                                  </Disclosure>
-                                ) : (
-                                  <div
-                                    onClick={() => handleSelectCategory(subItem)}
-                                    className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
-                                      selectedCategory?.id === subItem.id ? 'bg-[#FFE2E5]  font-medium rounded-lg' : ''
-                                    }`}
-                                  >
-                                    <span
-                                      className={`text-[14px] ${
-                                        selectedCategory?.id === subItem.id
-                                          ? ' font-medium'
-                                          : 'text-[#5A5A5A] font-light'
+                                                <span
+                                                  className={`text-[14px] ${
+                                                    selectedCategory?.id === childItem.id
+                                                      ? ' font-medium'
+                                                      : 'text-[#5A5A5A] font-light'
+                                                  }`}
+                                                >
+                                                  {childItem.name}
+                                                </span>
+                                              </div>
+                                            ))}
+                                          </Disclosure.Panel>
+                                        </>
+                                      )}
+                                    </Disclosure>
+                                  ) : (
+                                    <div
+                                      onClick={() => handleSelectCategory(subItem)}
+                                      className={`cursor-pointer mb-2 py-2 flex w-full items-center justify-between pr-[32px] ${
+                                        selectedCategory?.id === subItem.id ? 'bg-[#FFE2E5]  font-medium rounded-lg' : ''
                                       }`}
                                     >
-                                      {subItem.name}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </Disclosure.Panel>
-                        )}
-                      </>
-                    )}
-                  </Disclosure>
-                ))}
+                                      <span
+                                        className={`text-[14px] ${
+                                          selectedCategory?.id === subItem.id
+                                            ? ' font-medium'
+                                            : 'text-[#5A5A5A] font-light'
+                                        }`}
+                                      >
+                                        {subItem.name}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </Disclosure.Panel>
+                          )}
+                        </>
+                      )}
+                    </Disclosure>
+                  ))
+                ) : null}
               </div>
             </div>
           </Modal.Body>

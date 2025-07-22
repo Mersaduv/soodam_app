@@ -3263,6 +3263,164 @@ export const handlers = [
       })
     )
   }),
+  // Handler for getting metadata (categories) for advertisement form
+  rest.get('/api/advertisements/meta', (req, res, ctx) => {
+    console.log('درخواست API دریافت متادیتا را دریافت کردم!');
+    // ساخت لیست دسته‌بندی‌های آزمایشی برای فرم
+    const metaData = {
+      main_categories: [
+        {
+          id: '1',
+          name: 'رهن و اجاره',
+          image: 'static/OBJECTM.png',
+          sub_categories: [
+            {
+              id: '1-1',
+              name: 'رهن و اجاره آپارتمان',
+              main_category: {
+                id: '1',
+                name: 'رهن و اجاره'
+              }
+            },
+            {
+              id: '1-2',
+              name: 'رهن و اجاره خانه و ویلا',
+              main_category: {
+                id: '1',
+                name: 'رهن و اجاره'
+              }
+            },
+            {
+              id: '1-3',
+              name: 'رهن و اجاره دفتر کار و تجاری',
+              main_category: {
+                id: '1',
+                name: 'رهن و اجاره'
+              }
+            }
+          ]
+        },
+        {
+          id: '2',
+          name: 'فروش',
+          image: 'static/OBJECTS.png',
+          sub_categories: [
+            {
+              id: '2-1',
+              name: 'فروش آپارتمان',
+              main_category: {
+                id: '2',
+                name: 'فروش'
+              }
+            },
+            {
+              id: '2-2',
+              name: 'فروش خانه و ویلا',
+              main_category: {
+                id: '2',
+                name: 'فروش'
+              }
+            },
+            {
+              id: '2-3',
+              name: 'فروش زمین و کلنگی',
+              main_category: {
+                id: '2',
+                name: 'فروش'
+              }
+            },
+            {
+              id: '2-4',
+              name: 'فروش دفتر کار و تجاری',
+              main_category: {
+                id: '2',
+                name: 'فروش'
+              }
+            }
+          ]
+        },
+        {
+          id: '3',
+          name: 'پروژه‌های ساختمانی',
+          image: 'static/OBJECTM.png',
+          sub_categories: [
+            {
+              id: '3-1',
+              name: 'پیش فروش آپارتمان',
+              main_category: {
+                id: '3',
+                name: 'پروژه‌های ساختمانی'
+              }
+            },
+            {
+              id: '3-2',
+              name: 'مشارکت در ساخت',
+              main_category: {
+                id: '3',
+                name: 'پروژه‌های ساختمانی'
+              }
+            }
+          ]
+        }
+      ],
+      features: [
+        {
+          id: 'common1',
+          name: 'متراژ',
+          key: 'text_area',
+          type: 'text',
+          required: true
+        },
+        {
+          id: 'common2',
+          name: 'تعداد اتاق',
+          key: 'text_room_count',
+          type: 'choice',
+          required: false,
+          value: [
+            { id: '1', value: '1 اتاق' },
+            { id: '2', value: '2 اتاق' },
+            { id: '3', value: '3 اتاق' },
+            { id: '4', value: '4 اتاق' },
+            { id: '5', value: '5 اتاق یا بیشتر' }
+          ]
+        },
+        {
+          id: 'common3',
+          name: 'سال ساخت',
+          key: 'text_year_built',
+          type: 'text',
+          required: false
+        },
+        {
+          id: 'common4',
+          name: 'پارکینگ',
+          key: 'bool_parking',
+          type: 'bool',
+          required: false
+        },
+        {
+          id: 'common5',
+          name: 'انباری',
+          key: 'bool_storage',
+          type: 'bool',
+          required: false
+        },
+        {
+          id: 'common6',
+          name: 'آسانسور',
+          key: 'bool_elevator',
+          type: 'bool',
+          required: false
+        }
+      ]
+    };
+    
+    return res(
+      ctx.status(200),
+      ctx.json(metaData)
+    );
+  }),
   
   // Handler for advertisement details
   rest.get('/api/advertisements/:id', (req, res, ctx) => {
@@ -3404,6 +3562,403 @@ export const handlers = [
         message: 'بازدید با موفقیت ثبت شد'
       })
     )
+  }),
+  
+  // Handler for uploading media files for advertisement
+  rest.post('/api/media/upload', (req, res, ctx) => {
+    // ساخت URL ساختگی برای فایل‌های آپلود شده
+    // در MSW نمی‌توانیم مستقیماً به formData دسترسی داشته باشیم، پس داده‌های ساختگی می‌سازیم
+    
+    // ساخت پاسخ ساختگی برای آپلود فایل
+    const numberOfFiles = Math.floor(Math.random() * 3) + 1; // بین 1 تا 3 فایل
+    
+    const responses = [];
+    for (let i = 0; i < numberOfFiles; i++) {
+      const isVideo = Math.random() > 0.8; // 20% احتمال اینکه فایل ویدئو باشد
+      
+      // ساخت آدرس ساختگی برای هر فایل
+      let url;
+      if (isVideo) {
+        url = `/static/ads/video${i + 1}.mp4`;
+      } else {
+        // استفاده از یکی از تصاویر موجود برای هر فایل تصویری
+        const imageOptions = ['/static/ads/pic1.jpg', '/static/ads/pic2.jpg', '/static/ads/pic3.jpg', '/static/ads/pic4.jpg', '/static/ads/pic5.jpg'];
+        url = imageOptions[Math.floor(Math.random() * imageOptions.length)];
+      }
+      
+      responses.push({ 
+        url, 
+        originalName: isVideo ? `video${i + 1}.mp4` : `image${i + 1}.jpg`, 
+        type: isVideo ? 'video/mp4' : 'image/jpeg' 
+      });
+    }
+    
+    return res(
+      ctx.status(200),
+      ctx.json(responses)
+    );
+  }),
+  
+
+  
+  // Handler for getting features for a category
+  rest.post('*/api/advertisements/features', async (req, res, ctx) => {
+    const { sub_category_id, sub_category_level_two_id } = await req.json();
+    
+    console.log('دریافت ویژگی‌های دسته‌بندی با شناسه:', sub_category_id, 'و زیرشاخه:', sub_category_level_two_id);
+    
+    // در اینجا بر اساس دسته‌بندی انتخاب شده، ویژگی‌های مختلفی را برمی‌گردانیم
+    let features = [];
+    
+    // ویژگی‌های مشترک برای همه دسته‌بندی‌ها
+    const commonFeatures = [
+      {
+        id: 'common1',
+        name: 'متراژ',
+        key: 'text_area',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'common2',
+        name: 'تعداد اتاق',
+        key: 'text_room_count',
+        type: 'choice',
+        required: false,
+        value: [
+          { id: '1', value: '1 اتاق' },
+          { id: '2', value: '2 اتاق' },
+          { id: '3', value: '3 اتاق' },
+          { id: '4', value: '4 اتاق' },
+          { id: '5', value: '5 اتاق یا بیشتر' }
+        ]
+      },
+      {
+        id: 'common3',
+        name: 'سال ساخت',
+        key: 'text_year_built',
+        type: 'text',
+        required: false
+      },
+      {
+        id: 'common4',
+        name: 'پارکینگ',
+        key: 'bool_parking',
+        type: 'bool',
+        required: false
+      },
+      {
+        id: 'common5',
+        name: 'انباری',
+        key: 'bool_storage',
+        type: 'bool',
+        required: false
+      },
+      {
+        id: 'common6',
+        name: 'آسانسور',
+        key: 'bool_elevator',
+        type: 'bool',
+        required: false
+      }
+    ];
+    
+    features = [...commonFeatures];
+    
+    // ویژگی‌های خاص برای هر دسته‌بندی
+    if (String(sub_category_id).startsWith('1')) {
+      // رهن و اجاره
+      features.push(
+        {
+          id: 'rent1',
+          name: 'مبلغ رهن',
+          key: 'text_mortgage_deposit',
+          type: 'text',
+          required: true
+        },
+        {
+          id: 'rent2',
+          name: 'مبلغ اجاره ماهانه',
+          key: 'text_monthly_rent',
+          type: 'text',
+          required: true
+        },
+        {
+          id: 'rent3',
+          name: 'قابل تبدیل',
+          key: 'bool_convertible',
+          type: 'bool',
+          required: false
+        },
+        {
+          id: 'rent4',
+          name: 'طبقه',
+          key: 'text_floor',
+          type: 'text',
+          required: false
+        }
+      );
+    } else if (String(sub_category_id).startsWith('2')) {
+      // فروش
+      features.push(
+        {
+          id: 'sale1',
+          name: 'قیمت فروش',
+          key: 'text_selling_price',
+          type: 'text',
+          required: true
+        },
+        {
+          id: 'sale2',
+          name: 'تخفیف',
+          key: 'text_discount',
+          type: 'text',
+          required: false
+        },
+        {
+          id: 'sale3',
+          name: 'طبقه',
+          key: 'text_floor',
+          type: 'text',
+          required: false
+        },
+        {
+          id: 'sale4',
+          name: 'سند',
+          key: 'bool_document',
+          type: 'bool',
+          required: false
+        }
+      );
+    } else if (String(sub_category_id).startsWith('3')) {
+      // پروژه‌های ساختمانی
+      features.push(
+        {
+          id: 'project1',
+          name: 'درصد سود مالک',
+          key: 'text_owner_profit_percentage',
+          type: 'text',
+          required: true
+        },
+        {
+          id: 'project2',
+          name: 'درصد سود سازنده',
+          key: 'text_producer_profit_percentage',
+          type: 'text',
+          required: true
+        },
+        {
+          id: 'project3',
+          name: 'متراژ زمین',
+          key: 'text_land_area',
+          type: 'text',
+          required: true
+        },
+        {
+          id: 'project4',
+          name: 'پروانه ساخت',
+          key: 'bool_building_permit',
+          type: 'bool',
+          required: false
+        }
+      );
+    }
+    
+    // اضافه کردن ویژگی‌های خاص برای زیردسته‌بندی‌های خاص
+    if (sub_category_id === '1-2' || sub_category_id === '2-2') {
+      // ویژگی‌های اضافی برای خانه و ویلا
+      features.push(
+        {
+          id: 'villa1',
+          name: 'متراژ حیاط',
+          key: 'text_yard_area',
+          type: 'text',
+          required: false
+        },
+        {
+          id: 'villa2',
+          name: 'تعداد طبقات',
+          key: 'text_floors_count',
+          type: 'text',
+          required: false
+        }
+      );
+    } else if (sub_category_id === '1-3' || sub_category_id === '2-4') {
+      // ویژگی‌های اضافی برای دفتر کار و تجاری
+      features.push(
+        {
+          id: 'office1',
+          name: 'تعداد اتاق اداری',
+          key: 'text_office_room_count',
+          type: 'text',
+          required: false
+        },
+        {
+          id: 'office2',
+          name: 'نوع کاربری',
+          key: 'text_usage_type',
+          type: 'choice',
+          required: false,
+          value: [
+            { id: 'office', value: 'دفتر کار' },
+            { id: 'shop', value: 'مغازه' },
+            { id: 'restaurant', value: 'رستوران' },
+            { id: 'other', value: 'سایر' }
+          ]
+        }
+      );
+    } else if (sub_category_id === '2-3') {
+      // ویژگی‌های اضافی برای زمین و کلنگی
+      features.push(
+        {
+          id: 'land1',
+          name: 'متراژ بر زمین',
+          key: 'text_frontage',
+          type: 'text',
+          required: false
+        },
+        {
+          id: 'land2',
+          name: 'کاربری زمین',
+          key: 'text_land_type',
+          type: 'choice',
+          required: false,
+          value: [
+            { id: 'residential', value: 'مسکونی' },
+            { id: 'commercial', value: 'تجاری' },
+            { id: 'agricultural', value: 'کشاورزی' },
+            { id: 'industrial', value: 'صنعتی' },
+            { id: 'mixed', value: 'مختلط' }
+          ]
+        }
+      );
+    }
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        features: features
+      })
+    );
+  }),
+  
+  // Handler for adding new advertisement
+  rest.post('/api/advertisements', async (req, res, ctx) => {
+    const adData = await req.json();
+    
+    // ساخت یک شناسه منحصر به فرد برای آگهی جدید
+    const newAdId = `mock-ad-${Date.now()}`;
+    
+    // ساخت آگهی جدید با اطلاعات ارسال شده
+    const newAd = {
+      id: newAdId,
+      status: 2, // وضعیت "در انتظار تایید"
+      title: adData.title,
+      full_address: adData.full_address,
+      highlight_attributes: adData.attributes?.filter(attr => attr.type === 'text').slice(0, 3).map(attr => ({
+        ...attr,
+        icon: '/static/ads/grid-2.png',
+        image: '/static/ads/grid-2.png'
+      })),
+      attributes: adData.attributes,
+      price: adData.price,
+      category: adData.category_id ? {
+        id: adData.category_id,
+        name: 'دسته‌بندی نمونه'
+      } : {
+        id: '1-1',
+        name: 'رهن و اجاره آپارتمان'
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      expiry_date: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+      primary_image: adData.images?.[0]?.url || '/static/ads/pic1.jpg',
+      images: adData.images || [
+        {
+          url: '/static/ads/pic1.jpg',
+          is_primary: true,
+          order: 1,
+          width: 800,
+          height: 600,
+          alt_text: adData.title || 'تصویر آگهی'
+        }
+      ],
+      user: {
+        id: 'user-123',
+        phone_number: adData.phone_number_owner_building || '09121234567',
+        full_name: 'کاربر آزمایشی',
+        user_type: 2
+      },
+      statistics: {
+        views: 0,
+        favorites: 0,
+        inquiries: 0,
+        shares: 0,
+        last_viewed_at: null
+      },
+      description: adData.description || 'توضیحات آگهی'
+    };
+    
+    // اضافه کردن آگهی جدید به لیست آگهی‌ها
+    mockHousing.unshift(newAd);
+    
+    return res(
+      ctx.status(201),
+      ctx.json({
+        success: true,
+        data: newAd,
+        message: 'آگهی با موفقیت ثبت شد و در انتظار تایید است.'
+      })
+    );
+  }),
+  
+  // Handler for updating an advertisement
+  rest.put('/api/advertisements/:id', async (req, res, ctx) => {
+    const { id } = req.params;
+    const updatedData = await req.json();
+    
+    // یافتن آگهی موجود
+    const adIndex = mockHousing.findIndex(ad => ad.id === id);
+    
+    if (adIndex === -1) {
+      return res(
+        ctx.status(404),
+        ctx.json({
+          success: false,
+          message: 'آگهی یافت نشد'
+        })
+      );
+    }
+    
+    // به روز رسانی اطلاعات آگهی
+    const updatedAd = {
+      ...mockHousing[adIndex],
+      title: updatedData.title || mockHousing[adIndex].title,
+      full_address: updatedData.full_address || mockHousing[adIndex].full_address,
+      attributes: updatedData.attributes || mockHousing[adIndex].attributes,
+      highlight_attributes: updatedData.attributes?.filter(attr => attr.type === 'text').slice(0, 3).map(attr => ({
+        ...attr,
+        icon: '/static/ads/grid-2.png',
+        image: '/static/ads/grid-2.png'
+      })) || mockHousing[adIndex].highlight_attributes,
+      price: updatedData.price || mockHousing[adIndex].price,
+      description: updatedData.description || mockHousing[adIndex].description,
+      updated_at: new Date().toISOString(),
+      images: updatedData.images || mockHousing[adIndex].images,
+      primary_image: updatedData.images?.[0]?.url || mockHousing[adIndex].primary_image,
+    };
+    
+    // جایگزینی آگهی قدیمی با آگهی به روز شده
+    mockHousing[adIndex] = updatedAd;
+    
+    return res(
+      ctx.status(200),
+      ctx.json({
+        success: true,
+        data: updatedAd,
+        message: 'آگهی با موفقیت به روزرسانی شد'
+      })
+    );
   }),
   
   // Handler for getting user's favorite advertisements

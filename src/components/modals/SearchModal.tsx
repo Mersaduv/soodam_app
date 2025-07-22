@@ -14,20 +14,14 @@ import { EmptySearchList } from '@/components/emptyList'
 // import { DataStateDisplay } from '@/components/shared'
 import { DataStateDisplay } from '../shared'
 import Image from 'next/image'
-import {
-  useGetCategoriesQuery,
-  useGetFeaturesQuery,
-  useGetHousingQuery,
-  useGetMetaDataQuery,
-  useLazyFetchAddressesQuery,
-  useLazyFetchHousingQuery,
-} from '@/services'
+
 import { Modal } from '@/components/ui'
 import { IoMdArrowRoundForward } from 'react-icons/io'
 import { IoArrowForward } from 'react-icons/io5'
 import { setCenter, setSearchTriggered, setZoom } from '@/store'
 import { Category, Feature, Housing } from '@/types'
 import { useRouter } from 'next/router'
+import { useGetCategoriesQuery, useGetFeaturesQuery, useGetHousingQuery, useLazyFetchAddressesQuery, useLazyFetchHousingQuery } from '@/services'
 interface Props {}
 
 function normalize(text: string): string[] {

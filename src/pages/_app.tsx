@@ -16,19 +16,29 @@ import { useRouter } from 'next/router'
 import { Toaster } from 'react-hot-toast'
 
 async function enableMocking() {
+  if (typeof window === 'undefined') {
+    return Promise.resolve()
+  }
+
+  if (window.mswWorkerInitialized) {
+    console.log('MSW already initialized')
+    return Promise.resolve()
+  }
+
   try {
     const { worker } = await import('../mocks/browser')
-    // Start MSW to ensure mock API endpoints work
+    // Start MSW with improved settings
     return worker.start({
       onUnhandledRequest: 'bypass',
       serviceWorker: {
         url: '/mockServiceWorker.js',
+        options: {
+          scope: '/'
+        }
       }
     }).then(() => {
       console.log('%c[MSW] Mock API Server running', 'color: green; font-weight: bold')
-      if (typeof window !== 'undefined') {
-        window.mswWorkerInitialized = true
-      }
+      window.mswWorkerInitialized = true
     })
   } catch (error) {
     console.error('Failed to initialize MSW:', error)
@@ -45,10 +55,8 @@ export default function App({ Component, pageProps }: AppProps) {
       setIsLoading(false)
     }, 2000)
 
-    // Initialize MSW if not already initialized
-    if (typeof window !== 'undefined' && !window.mswWorkerInitialized) {
-      enableMocking()
-    }
+    // Always initialize MSW
+    enableMocking()
 
     return () => clearTimeout(timer)
   }, [])

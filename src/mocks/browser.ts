@@ -17,6 +17,7 @@ if (typeof window !== 'undefined') {
       onUnhandledRequest: 'bypass',
     }).then(() => {
       console.log('%c[MSW] Mock API Server running', 'color: green; font-weight: bold;');
+      console.log('Mock handlers registered:', handlers.length);
       window.mswWorkerInitialized = true;
     }).catch(error => {
       console.error('MSW worker start failed:', error);
