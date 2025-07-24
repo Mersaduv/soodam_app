@@ -3272,7 +3272,7 @@ export const handlers = [
         {
           id: '1',
           name: 'رهن و اجاره',
-          image: 'static/OBJECTM.png',
+          image: 'category/house.png', 
           sub_categories: [
             {
               id: '1-1',
@@ -3303,7 +3303,7 @@ export const handlers = [
         {
           id: '2',
           name: 'فروش',
-          image: 'static/OBJECTS.png',
+          image: 'category/house.png',
           sub_categories: [
             {
               id: '2-1',
@@ -3341,27 +3341,122 @@ export const handlers = [
         },
         {
           id: '3',
-          name: 'پروژه‌های ساختمانی',
-          image: 'static/OBJECTM.png',
+          name: 'فروش دفاتر اداری و  تجاری',
+          image: 'category/buildings.png',
           sub_categories: [
             {
               id: '3-1',
-              name: 'پیش فروش آپارتمان',
+              name: 'فروش دفاتر اداری و تجاری',
               main_category: {
                 id: '3',
-                name: 'پروژه‌های ساختمانی'
+                name: 'فروش دفاتر اداری و تجاری'
               }
             },
             {
               id: '3-2',
-              name: 'مشارکت در ساخت',
+              name: 'فروش زمین و کلنگی',
               main_category: {
                 id: '3',
-                name: 'پروژه‌های ساختمانی'
+                name: 'فروش دفاتر اداری و تجاری'
               }
             }
           ]
-        }
+        },
+        {
+          id: '4',
+          name: 'اجاره دفاتر اداری و  تجاری',
+          image: 'category/buildings.png',
+          sub_categories: [
+            {
+              id: '4-1',
+              name: 'اجاره دفاتر اداری و تجاری',
+              main_category: {
+                id: '4',
+                name: 'اجاره دفاتر اداری و تجاری'
+              }
+            },
+            {
+              id: '4-2',
+              name: 'اجاره زمین و کلنگی',
+              main_category: {
+                id: '4',
+                name: 'اجاره دفاتر اداری و تجاری'
+              }
+            }
+          ]
+        },
+
+        {
+          id: '5',
+          name: 'پروژه های ساخت و ساز',
+          image: 'category/tr.png',
+          sub_categories: [
+            {
+              id: '5-1',
+              name: 'مشارکت در ساخت',
+              main_category: {
+                id: '5',
+                name: 'پروژه های ساخت و ساز'
+              }
+            },
+            {
+              id: '5-2',
+              name: 'مالک',
+              main_category: {
+                id: '5',
+                name: 'پروژه های ساخت و ساز'
+              }
+            },
+            {
+              id: '5-3',
+              name: 'سازنده',
+              main_category: {
+                id: '5',
+                name: 'پروژه های ساخت و ساز'
+              }
+            },
+            {
+              id: '5-4',
+              name: 'پیش فروش',
+              main_category: {
+                id: '5',
+                name: 'پروژه های ساخت و ساز'
+              }
+            },
+          ]
+        },
+
+        {
+          id: '6',
+          name: 'اجاره کوتاه مدت',
+          image: 'category/building.png',
+          sub_categories: [
+            {
+              id: '6-1',
+              name: 'اجاره کوتاه مدت آپارتمان و سوئیت',
+              main_category: {
+                id: '6',
+                name: 'اجاره کوتاه مدت'
+              }
+            },
+            {
+              id: '6-2',
+              name: 'اجاره کوتاه مدت باغ و ویلا',
+              main_category: {
+                id: '6',
+                name: 'اجاره کوتاه مدت'
+              }
+            },
+            {
+              id: '6-3',
+              name: 'اجاره کوتاه مدت دفتر کار و فضای آموزشی',
+              main_category: {
+                id: '6',
+                name: 'اجاره کوتاه مدت'
+              }
+            },
+          ]
+        },
       ],
       features: [
         {
