@@ -7,6 +7,7 @@ import type {
   UpdateUserInfoQuery,
   VerifyLoginQuery,
   VerifyLoginResult,
+  UserMeResult,
 } from './types'
 import { clearCredentials, setCredentials } from '@/store'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
@@ -83,7 +84,7 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
       query: ({ phoneNumber }) => {
         const body = { phone_number: phoneNumber }
         return {
-          url: '/api/auth/get_ver_code',
+          url: '/api/v1/login/phone-number',
           method: 'POST',
           body,
         }
@@ -92,66 +93,57 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
 
     verifyLogin: builder.mutation<VerifyLoginResult, VerifyLoginQuery>({
       query: ({ code, phoneNumber }) => {
-        const body = { phone_number: phoneNumber, verify_code: code }
+        const body = { phone_number: phoneNumber, code: code }
 
         return {
-          url: '/api/auth/verify',
+          url: '/api/v1/login/verify',
           method: 'POST',
           body,
         }
       },
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
-          // Clear any existing cached data first to prevent old user data persistence
-          // dispatch(productionApiSlice.util.resetApiState())
-
           const { data } = await queryFulfilled
           if (data) {
             // Clear any remaining stored data before setting new data
             localStorage.clear()
 
-            localStorage.setItem('token', data.token)
+            localStorage.setItem('token', data.access_token)
             localStorage.setItem('userType', args.userType as string)
+            
+            // Get user info using the new API
             const userInfoData = await dispatch(authApiSlice.endpoints.getUserInfo.initiate()).unwrap()
             console.log(userInfoData, 'userInfoData----------')
 
-            const birthdate = userInfoData.birthday || ''
-
-            const address = userInfoData.address || null
-            const latitude = address?.latitude || null
-            const longitude = address?.longitude || null
-            const cityName = getProvinceFromCoordinates(latitude, longitude)
-
+            // Store user info from the new API structure
             const user: User = {
-              id: userInfoData.id,
-              first_name: userInfoData.first_name,
-              last_name: userInfoData.last_name,
-              father_name: userInfoData.father_name,
-              security_number: userInfoData.security_number,
-              email: userInfoData.email,
-              phone_number: userInfoData.phone_number,
-              is_verified: userInfoData.is_verified,
-              is_active: userInfoData.is_active,
-              user_type: userInfoData.user_type,
-              user_group: userInfoData.user_group,
-              birthday: birthdate,
-              province: userInfoData.province,
-              city: userInfoData.city,
-              user_wallet: userInfoData.user_wallet,
-              address: userInfoData.address,
-              avatar: userInfoData.avatar,
+              id: data.user_info.id.toString(),
+              first_name: '',
+              last_name: '',
+              father_name: '',
+              security_number: '',
+              email: '',
+              phone_number: data.user_info.phone_number,
+              is_verified: true,
+              is_active: true,
+              user_type: 1, // Default user type as number
+              user_group: 1, // Default user group as number
+              birthday: '',
+              province: '',
+              city: '',
+              user_wallet: 0,
+              address: null,
+              avatar: '',
               subscription: undefined,
             }
 
             localStorage.setItem('user', JSON.stringify(user))
-            localStorage.setItem('userCity', JSON.stringify({ name: cityName, coordinates: [longitude, latitude] }))
 
             dispatch(
               setCredentials({
                 fullName: '',
-                phoneNumber: args.phoneNumber,
-                // userType: (args.userType as unknown as number) || null,
-                token: data.token,
+                phoneNumber: data.user_info.phone_number,
+                token: data.access_token,
                 loggedIn: true,
               })
             )
@@ -162,9 +154,9 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
       },
     }),
 
-    getUserInfo: builder.query<User, void>({
+    getUserInfo: builder.query<UserMeResult, void>({
       query: () => ({
-        url: `/api/user/profile`,
+        url: `/api/v1/user/me`,
         method: 'GET',
         headers: {
           Authorization: `Bearer ${getToken()}`,
@@ -184,9 +176,12 @@ export const authApiSlice = productionApiSlice.injectEndpoints({
 
     getVerifyCode: builder.mutation<{ code: string }, { phoneNumber: string }>({
       query: ({ phoneNumber }) => ({
-        url: '/api/auth/see_ver_code',
+        url: '/api/v1/login/phone-number',
         method: 'POST',
         body: { phone_number: phoneNumber },
+      }),
+      transformResponse: (response: LoginResult) => ({
+        code: response.code,
       }),
     }),
 

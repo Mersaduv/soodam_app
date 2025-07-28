@@ -4,11 +4,11 @@ const nextConfig: import('next').NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://194.5.193.119:8000/api/:path*'
+        destination: 'https://api.soudam.ir/api/:path*'
       },
       {
         source: '/media/:path*',
-        destination: 'http://194.5.193.119:8000/media/:path*'
+        destination: 'https://api.soudam.ir/media/:path*'
       } 
     ];
   },
@@ -30,11 +30,11 @@ const nextConfig: import('next').NextConfig = {
     return config;
   },
   images: {
-    domains: ['localhost', '194.5.193.119'],
+    domains: ['localhost', 'api.soudam.ir'],
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: '194.5.193.119',
+        hostname: 'api.soudam.ir',
       },
     ],
     unoptimized: true,
